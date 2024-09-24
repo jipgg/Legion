@@ -4,21 +4,44 @@
 #include <typeindex>
 #include <functional>
 #include <util.h>
+#include "common.h"
+#include <type_traits>
+
+
+template <typename T>
+concept Component = requires {
+std::is_aggregate_v<T>;
+std::is_trivially_constructible_v<T>;
+std::is_standard_layout_v<T>;
+};
+
+// components
+struct Physical {
+    M3x3 blueprint;
+    M3x3 transform;
+    V2 velocity;
+    V2 acceleration;
+    Rect collision_boundaries;
+    float mass;
+    float elasticity;
+    float friction;
+};
+// entity
 using EntityID = uint32_t;
 namespace details {
-template <class Component>
-using ComponentStorage = util::SparseSet<EntityID, Component>;
-template <class Component>
-ComponentStorage<Component>& get_component_storage() {
-    static ComponentStorage<Component> storage;
+template <Component T>
+using ComponentStorage = util::SparseSet<EntityID, T>;
+template <Component T>
+ComponentStorage<T>& get_component_storage() {
+    static ComponentStorage<T> storage;
     return storage;
 }
 using ComponentRemovers = std::unordered_map<std::type_index, std::function<void(EntityID)>>;
 inline static ComponentRemovers component_removal_funcs;
-template <class Component>
+template <Component T>
 void register_remover_for() {
-    component_removal_funcs[typeid(Component)] = [](EntityID entity) {
-        get_component_storage<Component>().erase(entity);
+    component_removal_funcs[typeid(T)] = [](EntityID entity) {
+        get_component_storage<T>().erase(entity);
     };
 }
 [[nodiscard]] inline EntityID create_unique_entity_id() noexcept {
@@ -39,31 +62,48 @@ public:
     EntityID id() const {
         return id_;
     }
-    template <class Component>
+    template <Component T>
     void remove() {
-        details::component_removal_funcs[typeid(Component)](id_);
+        details::component_removal_funcs[typeid(T)](id_);
     }
-    template <class Component, class ...InitArgs>
-    void create(InitArgs&&...args) {
-        if (details::component_removal_funcs.count(typeid(Component)) == 0) {
-            details::register_remover_for<Component>();
+    template <Component T, class ...InitArgs>
+    constexpr void create(InitArgs&&...args) {
+        if (details::component_removal_funcs.count(typeid(T)) == 0) {
+            details::register_remover_for<T>();
         }
-        details::get_component_storage<Component>().emplace_back(id_, Component{std::forward<InitArgs>(args)...});
+        details::get_component_storage<T>().emplace_back(id_, T{std::forward<InitArgs>(args)...});
     }
-    template <class Component>
-    bool exists() const {
-        return details::get_component_storage<Component>().count(id_) > 0;
+    template <Component T>
+    bool has() const {
+        return details::get_component_storage<T>().count(id_) > 0;
     }
-    template <class Component>
-    Component& get() {
-        return details::get_component_storage<Component>()[id_];
+    template <Component T>
+    T& get() {
+        return details::get_component_storage<T>()[id_];
     }
-    template <class Component>
-    const Component& get() const {
-        return details::get_component_storage<Component>(id_);
+    template <Component T>
+    const T& get() const {
+        return details::get_component_storage<T>(id_);
     }
-    template <class Component>
-    Component* get_if() {
-        return exists<Component>() ? &get<Component>() : nullptr;
+    template <Component T>
+    T* get_if() {
+        return details::get_component_storage<T>().find(id_);
     }
 };
+//systems
+namespace details {
+template <Component T, Component ...Ts>
+bool validate(Entity& entity, std::tuple<Ts*...>& cache) {
+    T* found = entity.get_if<T>();
+    std::get<T*>(cache) = found;
+    return found != nullptr;
+}
+}/*details*/
+template <Component ...Ts>
+std::optional<std::tuple<std::reference_wrapper<Ts>...>> get_components(Entity& entity) {
+    std::tuple <Ts*...> cache{nullptr};
+    if (bool has_all = (details::validate<Ts>(entity, cache) and ...)) {
+        return std::make_tuple(std::ref(*std::get<Ts*>(cache)...));
+    }
+    return std::nullopt;
+}

@@ -11,7 +11,7 @@
 namespace util {
 template <class Key, class Val>
 class SparseSet {
-    std::unordered_map<Key, size_t> sparse_;
+    std::unordered_map<Key, size_t> sparse_; //maybe make a sparse array for this for better cache locality
     std::vector<Val> dense_;
 public:
     constexpr void emplace_back(Key key, Val&& val) {
@@ -37,6 +37,10 @@ public:
     }
     constexpr Val& operator[](Key key) {
         return dense_[sparse_[key]];
+    }
+    constexpr Val* find(Key key) {
+        auto found = sparse_.find(key);
+        return found == sparse_.end() ? nullptr : &(dense_.at(found->second));
     }
     constexpr const Val& at(const Key key) const {
         return dense_.at(sparse_.at(key));

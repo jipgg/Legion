@@ -29,10 +29,9 @@ int main(int, char**) {
     Entity m;
     m.create<Position>();
     if (auto c = get_components<Position>(m)) {
-        auto& [posref] = *c;
-        posref.get().pos[1] = 99999;
+        auto& [p] = *c;
     }
-    //m.get<Position>().pos[1] = 1000;
+    m.get<Position>().pos[1] = 1000;
     std::cout << m.get<Position>().pos.at(0) << m.get<Position>().pos.at(1) << '\n';
     std::cout << std::boolalpha << (m.get_if<Position>() != nullptr) << '\n';
     m.remove<Position>();

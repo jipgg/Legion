@@ -1,7 +1,6 @@
 #include "util.h"
 #include <luacode.h>
 #include <fstream>
-#include <ranges>
 #ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
