@@ -100,7 +100,7 @@ bool validate(Entity& entity, std::tuple<Ts*...>& cache) {
 }
 }/*details*/
 template <Component ...Ts>
-std::optional<std::tuple<std::reference_wrapper<Ts>...>> get_components(Entity& entity) {
+std::optional<std::tuple<std::reference_wrapper<Ts>...>> get_components(Entity& entity) {//maybe make this just a pointer instead of ref or not_null<T*>
     std::tuple <Ts*...> cache{nullptr};
     if (bool has_all = (details::validate<Ts>(entity, cache) and ...)) {
         return std::make_tuple(std::ref(*std::get<Ts*>(cache)...));
