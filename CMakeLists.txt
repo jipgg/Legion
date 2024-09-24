@@ -8,6 +8,7 @@ find_package(SDL2 REQUIRED CONFIG COMPONENTS SDL2main)
 find_package(SDL2_ttf REQUIRED)
 find_package(SDL2_image REQUIRED)
 find_package(SDL2_mixer REQUIRED)
+find_package(blaze)
 add_subdirectory(extern/Luau)
 file(GLOB SOURCES src/*.cpp)
 if (LINUX)
@@ -28,4 +29,5 @@ target_link_libraries(Legion PRIVATE
     Luau.Compiler
     Luau.CodeGen
 )
+target_link_libraries(Legion INTERFACE blaze::blaze )
 
