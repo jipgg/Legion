@@ -26,18 +26,12 @@ int main(int, char**) {
     constexpr uint32_t wnd_flags = SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE;
     window = SDL_CreateWindow("Legion", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 1280, 720, wnd_flags);
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
-    Entity m;
-    m.create<Position>();
-    if (auto c = get_components<Position>(m)) {
+    ecs::Entity entity = ecs::create_entity();
+    ecs::create<Position>(entity);
+    if (auto c = ecs::collect<Position>(entity)) {
         auto& [posref] = *c;
-        posref.get().pos[1] = 99999;
+        posref->pos[1] = 99999;
     }
-    //m.get<Position>().pos[1] = 1000;
-    std::cout << m.get<Position>().pos.at(0) << m.get<Position>().pos.at(1) << '\n';
-    std::cout << std::boolalpha << (m.get_if<Position>() != nullptr) << '\n';
-    m.remove<Position>();
-    std::cout << (m.get_if<Position>() != nullptr) << '\n';
-
     SDL_Event e;
     while (not quit) {
         {// event handling

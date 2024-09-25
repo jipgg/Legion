@@ -1,20 +1,11 @@
+//all the ecs base logic is implemented here. Sparse set ECS structured
 #pragma once
 #include <stdint.h>
 #include <unordered_map>
 #include <typeindex>
-#include <functional>
 #include <util.h>
 #include "common.h"
 #include <type_traits>
-
-
-template <typename T>
-concept Component = requires {
-std::is_aggregate_v<T>;
-std::is_trivially_constructible_v<T>;
-std::is_standard_layout_v<T>;
-};
-
 // components
 struct Physical {
     M3x3 blueprint;
@@ -26,29 +17,59 @@ struct Physical {
     float elasticity;
     float friction;
 };
+
+namespace ecs {
+template <typename T>
+concept Component = requires {
+std::is_aggregate_v<T>;
+std::is_trivially_constructible_v<T>;
+std::is_standard_layout_v<T>;
+};
 // entity
-using EntityID = uint32_t;
-namespace details {
+using Entity = uint32_t;
+struct IRegistryEntry {
+    virtual ~IRegistryEntry() = default;
+    virtual void remove(Entity) = 0;
+};
 template <Component T>
-using ComponentStorage = util::SparseSet<EntityID, T>;
+using ComponentStorage = util::SparseSet<Entity, T>;
+using ComponentRegistry = std::unordered_map<std::type_index, std::unique_ptr<IRegistryEntry>>;
+inline static ComponentRegistry component_registry{};
 template <Component T>
-ComponentStorage<T>& get_component_storage() {
+ComponentStorage<T>& get_entity_component_storage() {
     static ComponentStorage<T> storage;
     return storage;
 }
-using ComponentRemovers = std::unordered_map<std::type_index, std::function<void(EntityID)>>;
-inline static ComponentRemovers component_removal_funcs;
 template <Component T>
-void register_remover_for() {
-    component_removal_funcs[typeid(T)] = [](EntityID entity) {
-        get_component_storage<T>().erase(entity);
+struct RegistryEntry: public IRegistryEntry {
+    void remove(Entity entity) override {
+        get_entity_component_storage<T>().erase(entity);
     };
+};
+template <Component T, typename ...InitArgs>
+ void create(Entity entity, InitArgs&&...args) {
+    if (component_registry.find(typeid(T)) == component_registry.end()) {
+        component_registry.insert(std::make_pair(typeid(T), std::make_unique<RegistryEntry<T>>()));
+    }
+    get_entity_component_storage<T>().emplace_back(entity, T{std::forward<InitArgs>(args)...});
 }
-[[nodiscard]] inline EntityID create_unique_entity_id() noexcept {
+template <Component T>
+void erase(Entity entity) {
+    get_entity_component_storage<T>().erase(entity);
+}
+template <Component T>
+T& get(Entity entity) {
+    get_entity_component_storage<T>().at(entity);
+};
+template <Component T>
+T* get_if(Entity entity) {
+    return get_entity_component_storage<T>().find(entity);
+}
+[[nodiscard]] inline Entity create_entity() noexcept {
     static uint32_t curr_id{};
     return curr_id++;
 }
-}/*namespace details*/
+/*
 class Entity {
     EntityID id_;
 public:
@@ -90,20 +111,22 @@ public:
         return details::get_component_storage<T>().find(id_);
     }
 };
+*/
 //systems
-namespace details {
+namespace {
 template <Component T, Component ...Ts>
-bool validate(Entity& entity, std::tuple<Ts*...>& cache) {
-    T* found = entity.get_if<T>();
+bool validate(Entity entity, std::tuple<Ts*...>& cache) {
+    T* found = ecs::get_if<T>(entity);
     std::get<T*>(cache) = found;
     return found != nullptr;
 }
-}/*details*/
+}
 template <Component ...Ts>
-std::optional<std::tuple<std::reference_wrapper<Ts>...>> get_components(Entity& entity) {//maybe make this just a pointer instead of ref or not_null<T*>
+std::optional<std::tuple<Ts*>...> collect(Entity entity) {
     std::tuple <Ts*...> cache{nullptr};
-    if (bool has_all = (details::validate<Ts>(entity, cache) and ...)) {
-        return std::make_tuple(std::ref(*std::get<Ts*>(cache)...));
+    if (bool has_all = (validate<Ts>(entity, cache) and ...)) {
+        return cache;
     }
     return std::nullopt;
+}
 }

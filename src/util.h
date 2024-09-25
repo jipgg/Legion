@@ -32,17 +32,17 @@ public:
         dense_.pop_back();
         sparse_.erase(key);
     }
-    constexpr Val& at(Key key) {
+    [[nodiscard]] constexpr Val& at(Key key) {
         return dense_.at(sparse_.at(key));
     }
-    constexpr Val& operator[](Key key) {
+    [[nodiscard]] constexpr Val& operator[](Key key) {
         return dense_[sparse_[key]];
     }
-    constexpr Val* find(Key key) {
+    [[nodiscard]] constexpr Val* find(Key key) {
         auto found = sparse_.find(key);
         return found == sparse_.end() ? nullptr : &(dense_.at(found->second));
     }
-    constexpr const Val& at(const Key key) const {
+    [[nodiscard]] constexpr const Val& at(const Key key) const {
         return dense_.at(sparse_.at(key));
     }
     constexpr void clear() {
