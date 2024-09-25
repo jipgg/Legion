@@ -2,14 +2,13 @@
 #include <SDL_ttf.h>
 #include <cassert>
 #include <iostream>
-#include "ecs.h"
+#include "Legion.h"
 #include "common.h"
 #ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 void attach_console();
 #endif
-struct Position {blaze::StaticVector<float, 2> pos;};
 
 SDL_Window* window{nullptr};
 SDL_Renderer* renderer{nullptr};
@@ -21,17 +20,10 @@ int main(int, char**) {
     #endif
     SDL_Init(SDL_INIT_VIDEO);
     TTF_Init();
-    Position p{};
-    p.pos[2] = 1;
     constexpr uint32_t wnd_flags = SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE;
     window = SDL_CreateWindow("Legion", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 1280, 720, wnd_flags);
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
-    ecs::Entity entity = ecs::create_entity();
-    ecs::create<Position>(entity);
-    if (auto c = ecs::collect<Position>(entity)) {
-        auto& [posref] = *c;
-        posref->pos[1] = 99999;
-    }
+    PhysicsSystem process_physics;
     SDL_Event e;
     while (not quit) {
         {// event handling
@@ -41,6 +33,7 @@ int main(int, char**) {
                 }
             }
         } {//update
+            process_physics();
         } {//rendering
             SDL_RenderClear(renderer);
             SDL_RenderPresent(renderer);
