@@ -1,4 +1,4 @@
-#include "util.h"
+#include "common.h"
 #include <luacode.h>
 #include <fstream>
 #ifdef _WIN32
@@ -7,7 +7,6 @@
 #endif
 constexpr static lua_CompileOptions compile_opts{};
 namespace fs = std::filesystem;
-namespace util {
 std::optional<std::string> read_file(const fs::path &path) {
     if (not fs::exists(path)) {
         return std::nullopt;
@@ -34,7 +33,6 @@ std::string compile_source(std::string_view source) {
     }
     free(temp);
     return bytecode;
-}
 }
 #ifdef _WIN32
 void attach_console() {

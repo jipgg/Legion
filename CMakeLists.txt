@@ -9,14 +9,14 @@ find_package(SDL2_ttf REQUIRED)
 find_package(SDL2_image REQUIRED)
 find_package(SDL2_mixer REQUIRED)
 find_package(blaze)
-add_subdirectory(extern/Luau)
+add_subdirectory(ext/Luau)
 file(GLOB SOURCES src/*.cpp)
 if (LINUX)
     add_executable(Legion ${SOURCES})
 elseif(WIN32)
     add_executable(Legion WIN32 ${SOURCES})
 endif()
-target_include_directories(Legion PRIVATE src)
+#target_include_directories(Legion PRIVATE ${CMAKE_SOURCE_DIR}/inc)
 target_link_libraries(Legion PRIVATE
     SDL2::SDL2main
     SDL2::SDL2

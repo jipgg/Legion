@@ -1,30 +1,22 @@
-#pragma once
+#include <SDL.h>
+#include <SDL_ttf.h>
 #include "common.h"
-#include "ECS.h"
-//components
-struct Position: ECS::Component {
-    V2 v{0, 0};
+#include <iostream>
+template <class ...Ts>
+void print(Ts&&...args) {
+    ((std::cout << args << ' '), ...) << '\n';
+}
+namespace engine {
+struct Start_options {
+    std::string window_name{"Legion"};
+    V2i window_size{1240, 720};
+    bool window_resizable{false};
+    bool hardware_accelerated{true};
+    bool vsync_enabled{true};
 };
-struct Velocity: ECS::Component  {
-    V2 v{0, 0};
-};
-struct Acceleration: ECS::Component {
-    V2 v{0, 0};
-};
-struct CollisionRect: ECS::Component {
-    V2 offset;
-    V2 size;
-};
-struct Transform: ECS::Component {
-    M3x3 value{};
-};
-struct PhysicalProperties: ECS::Component {
-    float mass{10.f};
-    float elasticity{.3f};
-    float friction{.4f};
-};
-//systems
-struct PhysicsSystem: ECS::System<Position, Velocity, Acceleration, PhysicalProperties, CollisionRect> {
-    float gravity{.6f};
-    void operator()() override;
-};
+int bootstrap(Start_options opts = {});
+namespace core {
+void start(Start_options opts = {});
+void run();
+void shutdown();}
+}

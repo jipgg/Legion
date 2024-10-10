@@ -4,13 +4,19 @@
         {
             "name": "default",
             "hidden": false,
-            "binaryDir": "${sourceDir}/build"
+            "generator": "Visual Studio 17",
+            "binaryDir": "${sourceDir}/cmake-out",
+            "cacheVariables": {
+                "CMAKE_RUNTIME_OUTPUT_DIRECTORY": "${sourceDir}/bin/runtime",
+                "CMAKE_LIBRARY_OUTPUT_DIRECTORY": "${sourceDir}/bin/lib",
+                "CMAKE_ARCHIVE_OUTPUT_DIRECTORY": "${sourceDir}/bin/archive"
+            }
         },
         {
-            "name": "_win_clangd",
+            "name": ".compilation-database",
             "hidden": false,
             "generator": "Ninja",
-            "binaryDir": "${sourceDir}/.compilation_database"
+            "binaryDir": "${sourceDir}/.compilation-database"
         }
     ]
 }

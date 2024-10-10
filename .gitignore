@@ -1,3 +1,4 @@
-.compilation_database/
-build/
+.compilation-database/
+cmake-out/
+bin/
 *.ps1
