@@ -16,7 +16,6 @@ if (LINUX)
 elseif(WIN32)
     add_executable(Legion WIN32 ${SOURCES})
 endif()
-#target_include_directories(Legion PRIVATE ${CMAKE_SOURCE_DIR}/inc)
 target_link_libraries(Legion PRIVATE
     SDL2::SDL2main
     SDL2::SDL2
@@ -30,4 +29,4 @@ target_link_libraries(Legion PRIVATE
     Luau.CodeGen
 )
 target_link_libraries(Legion INTERFACE blaze::blaze )
-
+target_include_directories(Legion PRIVATE ${CMAKE_SOURCE_DIR}/inc)
