@@ -17,7 +17,8 @@ struct Event_data {
     int i{0};
     std::string hello{"hello world"};
 };
-static std::shared_ptr<event::Event<Event_data>> my_event{std::make_shared<event::Event<Event_data>>()};
+static event::Event<Event_data> my_event{};
+static event::Event<void> my_void_event{};
 static event::Connection<Event_data>* my_connection;
 void on_render() {
     rnd::set_color(0x0);
@@ -33,19 +34,26 @@ void on_start() {
     auto fn = [](const Event_data& data) {
         print("yooooooooo", data.hello);
     };
-    my_connection = &my_event->connect(on_event);
+    my_connection = &my_event.connect(on_event);
+    my_event.connect([](const Event_data& data){
+        print("im only temporary", data.i);
+    });
+    my_void_event.connect([] {
+        print("im void event");
+    });
     //my_connection = new event::Connection<Event_data>(fn, my_event);
 }
 static double accumulated = 0;
 void on_update(double delta_s) {
-    event::handle_event_stack();
+    event::handle_event_stack(5);
     accumulated += delta_s;
     if (accumulated > 5) {
         accumulated = 0;
         print("calling event");
-        my_event->data = Event_data{.i = 1000, .hello = "WWYFWAFWAJFAWK:F"};
-        my_event->fire();
-        my_event->signal_->disconnect(my_connection);
+        my_event.data = Event_data{.i = 1000, .hello = "Hello event"};
+        my_event.send();
+        my_event.signal->disconnect(my_connection);
+        my_void_event.send();
     }
 }
 
