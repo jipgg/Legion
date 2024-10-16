@@ -1,6 +1,7 @@
 #include "legion/engine.h"
 #include "legion/ecs.core.h"
 #include "legion/systems.h"
+#include "legion/common.h"
 #include <SDL.h>
 #include <SDL_ttf.h>
 #include <SDL_image.h>
@@ -10,6 +11,7 @@
 #include <luaconf.h>
 #include <luacode.h>
 #include <luacodegen.h>
+#include "legion/event.h"
 namespace ch = std::chrono;
 namespace ec = ecs::core;
 enum class Procedure {
@@ -102,6 +104,7 @@ void core::run() {
                     quitting = true;
                 }
             }
+            event::intern::process_pushed_events(5);
         } {//updating
             const auto curr_tp = ch::steady_clock::now();
             const double delta_s = ch::duration<double>(curr_tp - cached_last_tp).count();

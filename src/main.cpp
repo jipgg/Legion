@@ -41,11 +41,9 @@ void on_start() {
     my_void_event.connect([] {
         print("im void event");
     });
-    //my_connection = new event::Connection<Event_data>(fn, my_event);
 }
 static double accumulated = 0;
 void on_update(double delta_s) {
-    event::handle_event_stack(5);
     accumulated += delta_s;
     if (accumulated > 5) {
         accumulated = 0;

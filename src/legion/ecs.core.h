@@ -18,7 +18,7 @@ struct Registry_entry_interface {
 template <class Component_t>
 using Component_storage = Sparse_set<Entity_t, Component_t>;
 using Storage_registry = std::unordered_map<std::type_index, std::unique_ptr<Registry_entry_interface>>;
-static Storage_registry component_storage_registry;
+inline Storage_registry component_storage_registry;
 template <Enum Flag, size_t Count>
 struct Entity_bundle {
     Entity_t entity;

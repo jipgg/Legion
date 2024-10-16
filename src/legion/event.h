@@ -5,75 +5,61 @@
 #include <vector>
 #include <memory>
 namespace event {
-namespace base {struct Connection; struct Event;}//forward declarations
+namespace intern {
+struct Connection;
+struct Event;
 struct Event_stack_entry {
     int32_t pool_address;
     void* data;
 };
-static Flat_stack<Event_stack_entry> event_stack;
-static Lazy_pool<base::Connection*> connection_pool;
-
+void process_pushed_events(int amount = 10);
+inline Flat_stack<Event_stack_entry> event_stack;
+inline Lazy_pool<Connection*> connection_pool;
 struct Signal {
     virtual ~Signal() = default;
-    std::vector<std::unique_ptr<base::Connection>> connections;
-    void disconnect(base::Connection* p) {
-        auto it = std::find_if(
-            connections.begin(),
-            connections.end(),
-            [&p](auto& e){return e.get() == p;}
-        );
-        if (it != connections.end()) {
-            connections.back().swap(*it);
-            connections.pop_back();
-        } else {
-            printerr("connection has already been destroyed.");
-        }
-    }
+    std::vector<std::unique_ptr<Connection>> connections;
+    void disconnect(Connection* p);
 };
-struct base::Event {
+struct Event {
     virtual ~Event() = default;
-    Event(): signal(std::make_shared<Signal>()) {}
+    Event();
     std::shared_ptr<Signal> signal;
 };
-struct base::Connection {
+struct Connection {
     virtual ~Connection() = default;//maybe add raii after having customized the copy and move semantics
     uintptr_t opaque_handler;//casting the function pointer to a uintptr_t as generic address, more platform independent approach compared to void*
     std::weak_ptr<Signal> signal;
-    Connection(const std::shared_ptr<Signal>& signal, uintptr_t opaque_handler):
-        signal(signal),
-        opaque_handler(opaque_handler) {}
-    void disconnect() {
-        if (auto e = signal.lock()) {
-            e->disconnect(this);
-        }
-    }
+    Connection(const std::shared_ptr<Signal>& signal, uintptr_t opaque_handler);
+    void disconnect();
     virtual void receive(void* data) = 0;
 };
+}/*intern end*/
+
 template <class Data>
-struct Connection: public base::Connection {
+struct Connection: public intern::Connection {
     using Handler = void(*)(const Data&);
-    Connection(Handler fn, const std::shared_ptr<Signal>& signal): base::Connection(signal, reinterpret_cast<uintptr_t>(fn)) {}
+    Connection(Handler fn, const std::shared_ptr<intern::Signal>& signal): intern::Connection(signal, reinterpret_cast<uintptr_t>(fn)) {}
     virtual void receive(void* data) override {
         print("received");
         reinterpret_cast<Handler>(opaque_handler)(*static_cast<Data*>(data));
     }
 };
 template <>
-struct Connection<void>: public base::Connection {
+struct Connection<void>: public intern::Connection {
     using Handler = void(*)();
-    Connection(Handler fn, const std::shared_ptr<Signal>& signal): base::Connection(signal, reinterpret_cast<uintptr_t>(fn)) {}
+    Connection(Handler fn, const std::shared_ptr<intern::Signal>& signal): intern::Connection(signal, reinterpret_cast<uintptr_t>(fn)) {}
     virtual void receive(void* data) override {
         print("received");
         reinterpret_cast<Handler>(opaque_handler)();
     }
 };
 template <class Data>
-struct Event: public base::Event {
+struct Event: public intern::Event {
     Data data;
     void send() {
         for (auto& connection : signal->connections) {
-            const size_t old_capacity = event_stack.capacity();
-            event_stack.push({.pool_address = connection_pool.allocate([&connection](base::Connection*& p){
+            const size_t old_capacity = intern::event_stack.capacity();
+            intern::event_stack.push({.pool_address = intern::connection_pool.allocate([&connection](intern::Connection*& p){
                 if (p == nullptr) {
                     p = new Connection<Data>{*static_cast<Connection<Data>*>(connection.get())};
                 } else {
@@ -89,11 +75,11 @@ struct Event: public base::Event {
     }
 };
 template <>
-struct Event<void>: public base::Event {
+struct Event<void>: public intern::Event {
     void send() {
         for (auto& connection : signal->connections) {
-            const size_t old_capacity = event_stack.capacity();
-            event_stack.push({.pool_address = connection_pool.allocate([&connection](base::Connection*& p){
+            const size_t old_capacity = intern::event_stack.capacity();
+            intern::event_stack.push({.pool_address = intern::connection_pool.allocate([&connection](intern::Connection*& p){
                 if (p == nullptr) {
                     p = new Connection<void>{*static_cast<Connection<void>*>(connection.get())};
                 } else {
@@ -108,15 +94,4 @@ struct Event<void>: public base::Event {
         return static_cast<Connection<void>&>(*signal->connections.back());
     }
 };
-inline void handle_event_stack(int max_per_frame = 10) {
-    while(not event_stack.empty() and --max_per_frame >= 0) {
-        auto& [address, data] = event_stack.top();
-        base::Connection* connection = connection_pool.at(address);
-        if (not connection->signal.expired()) {
-            connection->receive(data);
-        }
-        connection_pool.free(address);
-        event_stack.pop();
-    }
 }
-}//event
