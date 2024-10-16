@@ -2,6 +2,9 @@
 #include <cstring>
 #include <cassert>
 #include <bit>
+static constexpr size_t calc_total_bytes_needed(size_t bit_count) {
+    return (bit_count + (bits_in_byte_count - 1)) / bits_in_byte_count;
+}
 Dynamic_bitset::Dynamic_bitset(size_t bitsize) noexcept:
     bitsize_(bitsize),
     capacity_(calc_total_bytes_needed(bitsize)),

@@ -5,6 +5,7 @@
 #include <vector>
 #include <memory>
 namespace event {
+void process_pushed_events(int amount = 10);
 namespace intern {
 struct Connection;
 struct Event;
@@ -12,7 +13,6 @@ struct Event_stack_entry {
     int32_t pool_address;
     void* data;
 };
-void process_pushed_events(int amount = 10);
 inline Flat_stack<Event_stack_entry> event_stack;
 inline Lazy_pool<Connection*> connection_pool;
 struct Signal {
@@ -38,7 +38,9 @@ struct Connection {
 template <class Data>
 struct Connection: public intern::Connection {
     using Handler = void(*)(const Data&);
-    Connection(Handler fn, const std::shared_ptr<intern::Signal>& signal): intern::Connection(signal, reinterpret_cast<uintptr_t>(fn)) {}
+    Connection(Handler fn, const std::shared_ptr<intern::Signal>& signal):
+        intern::Connection(signal, reinterpret_cast<uintptr_t>(fn)) {
+    }
     virtual void receive(void* data) override {
         print("received");
         reinterpret_cast<Handler>(opaque_handler)(*static_cast<Data*>(data));
@@ -47,7 +49,9 @@ struct Connection: public intern::Connection {
 template <>
 struct Connection<void>: public intern::Connection {
     using Handler = void(*)();
-    Connection(Handler fn, const std::shared_ptr<intern::Signal>& signal): intern::Connection(signal, reinterpret_cast<uintptr_t>(fn)) {}
+    Connection(Handler fn, const std::shared_ptr<intern::Signal>& signal):
+        intern::Connection(signal, reinterpret_cast<uintptr_t>(fn)) {
+    }
     virtual void receive(void* data) override {
         print("received");
         reinterpret_cast<Handler>(opaque_handler)();

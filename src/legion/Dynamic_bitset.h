@@ -2,9 +2,6 @@
 #include <cstdint>
 #include <cstddef>
 constexpr int bits_in_byte_count = 8;
-[[nodiscard]] constexpr size_t calc_total_bytes_needed(size_t bit_count) {
-    return (bit_count + (bits_in_byte_count - 1)) / bits_in_byte_count;
-}
 class Dynamic_bitset {
     std::size_t bitsize_;
     std::size_t capacity_;

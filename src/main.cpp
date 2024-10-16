@@ -1,6 +1,6 @@
 #include <cassert>
 #include "legion/engine.h"
-#include "legion/datatypes.h"
+#include "legion/components.h"
 #include "legion/event.h"
 #include <lua.h>
 #include <lualib.h>

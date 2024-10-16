@@ -10,14 +10,6 @@ class Lazy_pool {
     std::vector<T> data_;
     Dynamic_bitset unused_;
 public:
-    /*
-    class Entry {
-        Lazy_pool* pool;
-        std::size_t address;
-        T& operator*() {return pool->at(address);}
-        T* operator->() {return &pool->at(address);}
-    };
-*/
     inline static auto default_init = [](T& v) {v = T{};};
     constexpr Lazy_pool(int initial_size = 0): data_(), unused_(initial_size) {
         if (initial_size > 0) data_.reserve(initial_size);

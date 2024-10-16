@@ -1,4 +1,4 @@
-#include "legion/datatypes.h"
+#include "legion/components.h"
 #include "legion/engine.h"
 #include <lua.h>
 #include <lualib.h>
@@ -6,6 +6,7 @@
 #include <luacode.h>
 #include <luacodegen.h>
 #include <exception>
+#include <string_view>
 using namespace std::string_literals;
 namespace fs = std::filesystem;
 

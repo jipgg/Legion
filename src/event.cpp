@@ -1,6 +1,5 @@
 #include "legion/event.h"
 namespace event {
-namespace intern {
 void process_pushed_events(int amount) {
     while(not intern::event_stack.empty() and --amount >= 0) {
         auto& [address, data] = intern::event_stack.top();
@@ -12,6 +11,7 @@ void process_pushed_events(int amount) {
         intern::event_stack.pop();
     }
 }
+namespace intern {
 Event::Event(): signal(std::make_shared<Signal>()) {
 }
 Connection::Connection(const std::shared_ptr<Signal>& signal, uintptr_t opaque_handler):

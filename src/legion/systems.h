@@ -2,7 +2,7 @@
 #include "common.h"
 #include <array>
 #include <span>
-#include "datatypes.h"
+#include "components.h"
 namespace systems {
 void render(std::span<Renderable> components);
 void update(std::span<Updatable> components, double delta_s);

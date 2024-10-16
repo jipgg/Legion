@@ -104,7 +104,7 @@ void core::run() {
                     quitting = true;
                 }
             }
-            event::intern::process_pushed_events(5);
+            event::process_pushed_events(5);
         } {//updating
             const auto curr_tp = ch::steady_clock::now();
             const double delta_s = ch::duration<double>(curr_tp - cached_last_tp).count();

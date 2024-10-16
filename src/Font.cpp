@@ -1,5 +1,4 @@
-#include "legion/common.h"
-#include "legion/datatypes.h"
+#include "legion/components.h"
 #include <SDL_ttf.h>
 namespace fs = std::filesystem;
 Font::Font(const fs::path& ttfpath, int ptsize) noexcept:

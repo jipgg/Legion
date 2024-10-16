@@ -1,4 +1,4 @@
-#include "legion/datatypes.h"
+#include "legion/components.h"
 #include "legion/engine.h"
 #include <SDL.h>
 #include <SDL_image.h>
