@@ -1,21 +1,23 @@
 #pragma once
-#include <blaze/Blaze.h>
 #include <cstdint>
 #include <cstddef>
 #include <cassert>
-#include <span>
 #include <optional>
 #include <utility>
+#include <iostream>
 #include <functional>
+#include <span>
+#include <string_view>
 #include <filesystem>
 #include <stdexcept>
+#include <array>
+#include <blaze/Blaze.h>
 #define EXPECTS(precondition) assert(precondition and "unexpected.")
 #define ENSURES(postcondition) assert(postcondition and "was not ensured.")
 using Vec2f = blaze::StaticVector<float, 2>;
 using Vec2d = blaze::StaticVector<double, 2>;
 using Vec2i16 = blaze::StaticVector<int16_t, 2>;
 using Vec2i = blaze::StaticVector<int, 2>;
-constexpr int bits_in_byte_count = 8;
 struct defer {
     std::function<void()> f;
     ~defer() {f();};
@@ -32,55 +34,26 @@ void enable_ansi_escape_sequences();
 #endif
 [[nodiscard]] std::optional<std::string> read_file(const std::filesystem::path& path);
 [[nodiscard]] std::string compile_source(std::string_view string);
-[[nodiscard]] constexpr size_t calc_total_bytes_needed(size_t bit_count) {
-    return (bit_count + (bits_in_byte_count - 1)) / bits_in_byte_count;
-}
 [[nodiscard]] constexpr std::array<uint8_t, 4> to_lil_endian_bytes(uint32_t v) {
+    constexpr int byte_bitsize = 8;
     return {
-        static_cast<uint8_t>(v >> (0 * bits_in_byte_count) & UINT8_MAX),
-        static_cast<uint8_t>(v >> (1 * bits_in_byte_count) & UINT8_MAX),
-        static_cast<uint8_t>(v >> (2 * bits_in_byte_count) & UINT8_MAX),
-        static_cast<uint8_t>(v >> (3 * bits_in_byte_count) & UINT8_MAX),
+        static_cast<uint8_t>(v >> (0 * byte_bitsize) & UINT8_MAX),
+        static_cast<uint8_t>(v >> (1 * byte_bitsize) & UINT8_MAX),
+        static_cast<uint8_t>(v >> (2 * byte_bitsize) & UINT8_MAX),
+        static_cast<uint8_t>(v >> (3 * byte_bitsize) & UINT8_MAX),
     };
 }
 [[nodiscard]] constexpr std::array<uint8_t, 4> to_big_endian_bytes(uint32_t v) {
+    constexpr int byte_bitsize = 8;
     return {
-        static_cast<uint8_t>(v >> (3 * bits_in_byte_count) & UINT8_MAX),
-        static_cast<uint8_t>(v >> (2 * bits_in_byte_count) & UINT8_MAX),
-        static_cast<uint8_t>(v >> (1 * bits_in_byte_count) & UINT8_MAX),
-        static_cast<uint8_t>(v >> (0 * bits_in_byte_count) & UINT8_MAX),
+        static_cast<uint8_t>(v >> (3 * byte_bitsize) & UINT8_MAX),
+        static_cast<uint8_t>(v >> (2 * byte_bitsize) & UINT8_MAX),
+        static_cast<uint8_t>(v >> (1 * byte_bitsize) & UINT8_MAX),
+        static_cast<uint8_t>(v >> (0 * byte_bitsize) & UINT8_MAX),
     };
 }
 
 //classes
-class Dynamic_bitset {
-    size_t bitsize_;
-    size_t capacity_;
-    uint8_t* data_;
-public:
-    Dynamic_bitset(size_t bit_count = 0) noexcept;
-    ~Dynamic_bitset() noexcept;
-    Dynamic_bitset(const Dynamic_bitset& a);
-    Dynamic_bitset& operator=(const Dynamic_bitset& a);
-    Dynamic_bitset(Dynamic_bitset&& a) noexcept;
-    Dynamic_bitset& operator=(Dynamic_bitset&& a) noexcept;
-    void set(size_t i);
-    void set();
-    void reset();
-    void reset(size_t i);
-    void reserve(size_t bit_count);
-    void append(bool bit = 0);
-    void shrink_to_fit();
-    void resize(size_t bit_count);
-    [[nodiscard]] size_t count() const;
-    [[nodiscard]] size_t size() const;
-    [[nodiscard]] size_t capacity() const;
-    [[nodiscard]] bool test(size_t i) const;
-    [[nodiscard]] bool none() const;
-    [[nodiscard]] bool all() const;
-private:
-    void reallocate(size_t new_capacity);
-};
 //templated classes
 template <class Key, class Val>
 class Sparse_set {
@@ -116,7 +89,8 @@ public:
     }
     [[nodiscard]] constexpr std::optional<std::reference_wrapper<Val>> at_if(Key key) {
         auto found = sparse_.find(key);
-        return found == sparse_.end() ? std::nullopt : dense_.at(found->second);
+        if (found == sparse_.end()) return std::nullopt;
+        else return dense_.at(found->second);
     }
     [[nodiscard]] constexpr const Val& at(const Key key) const {
         return dense_.at(sparse_.at(key));
@@ -183,6 +157,9 @@ public:
         }
         return insert(std::make_pair(key, Val_t{}))->second;
     }
+    void erase(const Key_t& key) {
+        data_.erase(search_for(key));
+    }
 private:
     [[nodiscard]] Const_iterator search_for(const Key_t& key) const {
         constexpr Pair_t dummy = std::make_pair(key, Val_t{});
@@ -190,6 +167,36 @@ private:
             [](const auto& lhs, const auto& rhs) {return lhs.first < rhs.first;});
     }
     Container_t data_; 
+};
+template <class T>
+class Flat_stack {
+public:
+    using Container_t = std::vector<T>;
+    using Iterator = typename Container_t::iterator;
+    using Const_iterator = typename Container_t::const_iterator;
+    using Reverse_iterator = typename Container_t::reverse_iterator;
+    using Const_reverse_iterator = typename Container_t::const_reverse_iterator;
+    Iterator begin() { return data_.begin(); }
+    Const_iterator begin() const { return data_.begin(); }
+    Iterator end() { return data_.end(); }
+    Const_iterator end() const { return data_.end(); }
+    Reverse_iterator rbegin() { return data_.rbegin(); }
+    Const_reverse_iterator rbegin() const { return data_.rbegin(); }
+    Reverse_iterator rend() { return data_.rend(); }
+    Const_reverse_iterator rend() const { return data_.rend(); }
+    T& at(size_t idx) {return data_.at(idx);}
+    const T& at(size_t idx) const {return data_.at(idx);}
+    T& operator[](size_t idx) {return data_[idx];}
+    T& emplace(T&& v) {return data_.emplace_back(std::forward<T&&>(v));}
+    void push(const T& v) {data_.push_back(v);}
+    void pop() {data_.pop_back();}
+    T& top() {return data_.back();}
+    size_t size() const {data_.size();}
+    void reserve(size_t amount) {data_.reserve(amount);}
+    bool empty() const {return data_.empty();}
+    size_t capacity() const {return data_.capacity();}
+private:
+    std::vector<T> data_;
 };
 // constexpr structs
 struct Recti64 {
@@ -242,3 +249,12 @@ struct Sizei32 {
 private:
     static constexpr int shift_increment = 16;
 };
+template <class ...Ts>
+void print(Ts&&...args) {
+    ((std::cout << args << ' '), ...) << '\n';
+}
+template <class ...Ts>
+void printerr(Ts&&...args) {
+    std::cerr << "\033[31m";//red
+    ((std::cerr << args << ' '), ...) << "\033[0m\n";
+}

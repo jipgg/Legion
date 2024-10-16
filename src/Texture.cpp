@@ -1,7 +1,8 @@
-#include "Legion.h"
+#include "legion/datatypes.h"
+#include "legion/engine.h"
 #include <SDL.h>
 #include <SDL_image.h>
-
+namespace fs = std::filesystem;
 Texture::Texture(const fs::path& img_path) noexcept: src_size_(0) {
     SDL_Surface* surface = IMG_Load(img_path.string().c_str());
     defer _{ [&surface] {SDL_FreeSurface(surface);} };

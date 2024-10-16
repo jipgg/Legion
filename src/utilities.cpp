@@ -1,4 +1,4 @@
-#include "common.h"
+#include "legion/common.h"
 #include <luacode.h>
 #include <lua.h>
 #include <fstream>
@@ -23,20 +23,6 @@ std::optional<std::string> read_file(const fs::path &path) {
         file_stream << curr_line << '\n';
     }
     return file_stream.str();
-}
-std::string compile_source(std::string_view source) {
-    size_t outsize{};
-    char* temp = luau_compile(source.data(), source.size(), const_cast<lua_CompileOptions*>(&compile_opts), &outsize);
-    std::string bytecode{};
-    bytecode.resize(outsize);
-    for (size_t i{}; i < outsize; ++i) {
-        bytecode.push_back(*temp);
-    }
-    free(temp);
-    return bytecode;
-}
-std::string get_lua_error(lua_State* L) {
-    return lua_tostring(L, 1);
 }
 #ifdef _WIN32
 void attach_console() {

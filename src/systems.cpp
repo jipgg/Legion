@@ -1,10 +1,8 @@
-#include "Legion.h"
+#include "legion/systems.h"
 namespace slv = solvers;
 #include <SDL.h>
-#include "ECS.h"
 
-//batch systems
-void physics_system(std::span<Physical> components, double delta_s) {
+void systems::physics(std::span<Physical> components, double delta_s) {
     constexpr float big_mass{1e25};
     constexpr float gravity = .3f;
     constexpr int x = 0;
@@ -74,21 +72,20 @@ void physics_system(std::span<Physical> components, double delta_s) {
         }
     }
 }
-void render_system(std::span<Renderable> components) {
+void systems::render(std::span<Renderable> components) {
     for (auto& e : components) e.render_fn();
 }
-void update_system(std::span<Updatable> components, double delta_s) {
+void systems::update(std::span<Updatable> components, double delta_s) {
     for (auto& e : components) e.update_fn(delta_s);
 }
 //single systems
-void player_input_system(const Playable& plr, Physical& phys, double delta_s) {
+void systems::player_input(const Playable& plr, Physical& phys, double delta_s) {
     constexpr float jump_power = 10;
     const uint8_t* key_states = SDL_GetKeyboardState(nullptr);
     int direction{0};
     if (key_states[plr.right]) ++direction;
     if (key_states[plr.left]) --direction;
     if (phys.falling) return;
-
     if (key_states[plr.jump]) {
         phys.velocity.at(2) += plr.jump_power;
     };

@@ -1,4 +1,5 @@
-#include "Legion.h"
+#include "legion/datatypes.h"
+#include "legion/engine.h"
 #include <lua.h>
 #include <lualib.h>
 #include <luaconf.h>
@@ -6,6 +7,7 @@
 #include <luacodegen.h>
 #include <exception>
 using namespace std::string_literals;
+namespace fs = std::filesystem;
 
 Script::Script(const fs::path& file):
     script_thread_(lua_newthread(engine::core::get_lua_state()), lua_close) {

@@ -1,5 +1,4 @@
-#include "Legion.h"
-
+#include "legion/systems.h"
 float solvers::effective_elasticity(float e1, float e2) {
     return (e1 + e2) / 2.f;
 }

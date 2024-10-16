@@ -1,9 +1,10 @@
-#include "Legion.h"
+#include "legion/engine.h"
+#include "legion/ecs.core.h"
+#include "legion/systems.h"
 #include <SDL.h>
 #include <SDL_ttf.h>
 #include <SDL_image.h>
 #include <chrono>
-#include "ECS.h"
 #include <lua.h>
 #include <lualib.h>
 #include <luaconf.h>
@@ -16,6 +17,7 @@ enum class Procedure {
     Physical_position_changed,
     count_
 };
+using Entity_data = ec::Entity_bundle<Procedure, size_t(Procedure::count_)>;
 namespace engine {
 struct Passed_functions {
     Update_fn update{nullptr};
@@ -25,12 +27,11 @@ struct Passed_functions {
 //states
 static SDL_Window* window_ptr{nullptr};
 static SDL_Renderer* renderer_ptr{nullptr};
-static bool quit{false};
+static bool quitting{false};
 static bool paused{false};
 static SDL_Event sdl_event_dummy{};
 static SDL_Rect sdl_rect_dummy{};
 static Passed_functions fns{};
-using Entity_data = ec::Entity_bundle<Procedure, size_t(Procedure::count_)>;
 static std::vector<Entity_data> active_entities;
 static lua_State* main_state;
 //helpers
@@ -46,6 +47,9 @@ int bootstrap(Start_options opts) {
     core::run();
     core::shutdown();
     return 0;
+}
+void quit() {
+    quitting = true;
 }
 void renderer::clear_frame() {
     SDL_RenderClear(renderer_ptr);
@@ -86,16 +90,16 @@ void core::start(Start_options opts) {
     fns.render = opts.render_function ? opts.render_function : nullptr;
     fns.update = opts.update_function ? opts.update_function : nullptr;
     fns.shutdown = opts.shutdown_function ? opts.shutdown_function : nullptr;
-    if (opts.start_function) opts.start_function();
+    if (opts.start_function) [[likely]] opts.start_function();
 }
 void core::run() {
     auto cached_last_tp = ch::steady_clock::now();
     std::vector<std::pair<Procedure, std::reference_wrapper<Entity_data>>> flagged_entities;
-    while (not quit) {
+    while (not quitting) {
         {// event handling
             while (SDL_PollEvent(&sdl_event_dummy)) {
                 if (sdl_event_dummy.type == SDL_QUIT) {
-                    quit = true;
+                    quitting = true;
                 }
             }
         } {//updating
@@ -108,20 +112,18 @@ void core::run() {
                         flagged_entities.emplace_back(std::make_pair(Procedure(i), std::ref(data)));
                     }
                 }
-                /*
                 const Entity_t entity = data.entity;
-                if (auto plr = ec::get_if<Playable>(entity); auto phys = ec::get_if<Physical>(entity)) {
-                    player_input_system(plr->get(), phys->get(), delta_s);
-                }
-                */
+                auto plr = ec::get_if<Playable>(entity);
+                auto phys = ec::get_if<Physical>(entity);
+                if (plr and phys) systems::player_input(*plr, *phys, delta_s);
             }
-            physics_system(ec::component_storage<Physical>().span(), delta_s);
-            update_system(ec::component_storage<Updatable>().span(), delta_s);
+            systems::physics(ec::component_storage<Physical>().span(), delta_s);
+            systems::update(ec::component_storage<Updatable>().span(), delta_s);
             if (fns.update) [[likely]] fns.update(delta_s);
         } {//rendering
             SDL_SetRenderDrawColor(renderer_ptr, 0x00, 0x00, 0x00, 0xff);
             SDL_RenderClear(renderer_ptr);
-            render_system(ec::component_storage<Renderable>().span());
+            systems::render(ec::component_storage<Renderable>().span());
             if (fns.render) [[likely]] fns.render();
             SDL_RenderPresent(renderer_ptr);
         } {//flag processing
@@ -151,7 +153,7 @@ void core::run() {
 void core::shutdown() {
     if (fns.shutdown) [[unlikely]] fns.shutdown();
     ec::component_storage_registry.clear();
-    lua_close(main_state);
+    lua_close(main_state); //this slows down shutdown time significantly
     SDL_DestroyRenderer(renderer_ptr);
     SDL_DestroyWindow(window_ptr);
     IMG_Quit();
