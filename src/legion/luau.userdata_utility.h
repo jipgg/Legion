@@ -3,7 +3,7 @@
 #include <lualib.h>
 #include <luaconf.h>
 #include <typeinfo>
-namespace luaulib {
+namespace luau {
 namespace intern {
 inline int unique_tag_incr{0};
 }
@@ -11,6 +11,10 @@ template <class T>
 int type_tag() {
     static const int tag = intern::unique_tag_incr++; 
     return tag;
+}
+template <class T>
+bool is_type(lua_State* L, int idx) {
+    return lua_userdatatag(L, idx) == type_tag<T>();
 }
 template<class T>
 const char* metatable_name() {
