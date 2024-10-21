@@ -27,10 +27,10 @@ void Rect::init_metadata(lua_State* L) {
 }
 int Rect::ctor(lua_State *L) {
     int16_t x{}, y{}, width{}, height{};
-    if (lua_isnumber(L, 1)) x = luaL_checknumber(L, 1);
-    if (lua_isnumber(L, 2)) y = luaL_checknumber(L, 2);
-    if (lua_isnumber(L, 3)) width = luaL_checknumber(L, 3);
-    if (lua_isnumber(L, 4)) height = luaL_checknumber(L, 4);
+    if (lua_isnumber(L, 1)) x = luaL_checkinteger(L, 1);
+    if (lua_isnumber(L, 2)) y = luaL_checkinteger(L, 2);
+    if (lua_isnumber(L, 3)) width = luaL_checkinteger(L, 3);
+    if (lua_isnumber(L, 4)) height = luaL_checkinteger(L, 4);
     init<Recti64>(L) = {x, y, width, height};
     return 1;
 }
@@ -53,17 +53,17 @@ int Rect::index(lua_State *L) {
         if (field.name == key) {
             switch (static_cast<Field>(field.index)) {
                 case Field::x:
-                    lua_pushnumber(L, self.x());
-                return 1;
+                    lua_pushinteger(L, self.x());
+                    return 1;
                 case Field::y:
-                    lua_pushnumber(L, self.y());
-                return 1;
+                    lua_pushinteger(L, self.y());
+                    return 1;
                 case Field::width:
-                    lua_pushnumber(L, self.width());
-                return 1;
+                    lua_pushinteger(L, self.width());
+                    return 1;
                 case Field::height:
-                    lua_pushnumber(L, self.height());
-                return 1;
+                    lua_pushinteger(L, self.height());
+                    return 1;
             }
         }
     }
