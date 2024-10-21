@@ -31,28 +31,8 @@ void on_event(const Event_data& data) {
 }
 void on_start() {
     Script script{fs::path("test.luau")};
-    auto fn = [](const Event_data& data) {
-        print("yooooooooo", data.hello);
-    };
-    my_connection = &my_event.connect(on_event);
-    my_event.connect([](const Event_data& data){
-        print("im only temporary", data.i);
-    });
-    my_void_event.connect([] {
-        print("im void event");
-    });
 }
-static double accumulated = 0;
 void on_update(double delta_s) {
-    accumulated += delta_s;
-    if (accumulated > 5) {
-        accumulated = 0;
-        print("calling event");
-        my_event.data = Event_data{.i = 1000, .hello = "Hello event"};
-        my_event.send();
-        my_event.signal->disconnect(my_connection);
-        my_void_event.send();
-    }
 }
 
 int main(int, char**) {

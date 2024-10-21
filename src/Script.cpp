@@ -7,11 +7,13 @@
 #include <luacodegen.h>
 #include <exception>
 #include <string_view>
+#include "legion/luau.types.h"
 using namespace std::string_literals;
 namespace fs = std::filesystem;
 
 Script::Script(const fs::path& file):
     script_thread_(lua_newthread(engine::core::get_lua_state()), lua_close) {
+    luau::vec2::init_metadata(script_thread_.get());
     luaL_sandboxthread(script_thread_.get());
     load_file(file);
 }
