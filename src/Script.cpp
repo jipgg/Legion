@@ -13,7 +13,8 @@ namespace fs = std::filesystem;
 
 Script::Script(const fs::path& file):
     script_thread_(lua_newthread(engine::core::get_lua_state()), lua_close) {
-    luau::vec2::init_metadata(script_thread_.get());
+    luau::V2::init_metadata(script_thread_.get());
+    luau::Rect::init_metadata(script_thread_.get());
     luaL_sandboxthread(script_thread_.get());
     load_file(file);
 }

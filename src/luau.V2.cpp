@@ -8,8 +8,9 @@
 #include <luacodegen.h>
 #include "legion/comptime_enum.h"
 namespace ct = comptime;
+using namespace std::string_literals;
 namespace luau {
-void vec2::init_metadata(lua_State* L) {
+void V2::init_metadata(lua_State* L) {
     luaL_newmetatable(L, metatable_name<Vec2d>());
     const luaL_Reg metadata [] = {
         {"__index", index},
@@ -25,10 +26,10 @@ void vec2::init_metadata(lua_State* L) {
     };
     luaL_register(L, nullptr, metadata);
     lua_pop(L, 1);
-    lua_pushcfunction(L, ctor, "V2");
-    lua_setglobal(L, "V2");
+    lua_pushcfunction(L, ctor, type_name);
+    lua_setglobal(L, type_name);
 }
-int vec2::ctor(lua_State *L) {
+int V2::ctor(lua_State *L) {
     double x{}, y{};
     if (lua_isnumber(L, 1)) x = luaL_checknumber(L, 1);
     if (lua_isnumber(L, 2)) y = luaL_checknumber(L, 2);
@@ -39,29 +40,28 @@ int vec2::ctor(lua_State *L) {
     };
     return 1;
 }
-int vec2::add(lua_State* L) {
+int V2::add(lua_State* L) {
     const auto& a = ref<Vec2d>(L, 1);
     const auto& b = ref<Vec2d>(L, 2);
     auto& v = init<Vec2d>(L);
     v = a + b;
     return 1;
 }
-static const auto& property_array() {
-    namespace v2 = luau::vec2;
-    static constexpr auto array = ct::to_array<v2::Property, ct::count<v2::Property, v2::Property::y>()>();
+static const auto& fields() {
+    static constexpr auto array = ct::to_array<luau::V2::Field, ct::count<luau::V2::Field, luau::V2::Field::y>()>();
     return array;
 }
-int vec2::index(lua_State *L) {
-    auto& array = property_array();
+int V2::index(lua_State *L) {
+    auto& array = fields();
     auto& self = ref<Vec2d>(L, 1);
     const std::string_view field_name = luaL_checkstring(L, 2);
     for (const auto& v : array) {
         if (v.name == field_name) {
-            switch (static_cast<Property>(v.index)) {
-                case Property::x:
+            switch (static_cast<Field>(v.index)) {
+                case Field::x:
                     lua_pushnumber(L, self.at(0));
                     break;
-                case Property::y:
+                case Field::y:
                     lua_pushnumber(L, self.at(1));
                     break;
             }
@@ -71,18 +71,18 @@ int vec2::index(lua_State *L) {
     printerr("invalid index");
     return 0;
 }
-int vec2::newindex(lua_State *L) {
-    auto& array = property_array();
+int V2::newindex(lua_State *L) {
+    auto& array = fields();
     auto& self = ref<Vec2d>(L, 1);
     const std::string_view field_name = luaL_checkstring(L, 2);
     const double n = luaL_checknumber(L, 3);
     for (const auto& v : array) {
         if (v.name == field_name) {
-            switch (static_cast<Property>(v.index)) {
-                case Property::x:
+            switch (static_cast<Field>(v.index)) {
+                case Field::x:
                     self.at(0) = n;
                     return 0;
-                case Property::y:
+                case Field::y:
                     self.at(1) = n;
                     return 0;
             }
@@ -90,31 +90,30 @@ int vec2::newindex(lua_State *L) {
     }
     return 0;
 }
-int vec2::mul(lua_State *L) {
+int V2::mul(lua_State *L) {
     const auto& a = ref<Vec2d>(L, 1);
     assert(lua_isnumber(L, 2));
     double scalar = luaL_checknumber(L, 2);
     init<Vec2d>(L) = a * scalar;
     return 1;
 }
-int vec2::tostring(lua_State *L) {
+int V2::tostring(lua_State *L) {
     auto& self = ref<Vec2d>(L, 1);
-    std::string str{"{"}; 
-    str += std::to_string(self.at(0)) + ", " + std::to_string(self.at(1)) + "}";
+    std::string str = type_name + "{"s + std::to_string(self.at(0)) + ", " + std::to_string(self.at(1)) + "}";
     lua_pushlstring(L, str.data(), str.size());
     return 1;
 }
-int vec2::sub(lua_State* L) {
+int V2::sub(lua_State* L) {
     return 0;
 }
-int vec2::div(lua_State *L) {
+int V2::div(lua_State *L) {
     return 0;
 }
-int vec2::unm(lua_State* L) {
+int V2::unm(lua_State* L) {
     init<Vec2d>(L) = -ref<Vec2d>(L, 1);
     return 1;
 }
-int vec2::namecall(lua_State *L) {
+int V2::namecall(lua_State *L) {
     auto& self = ref<Vec2d>(L, 1);
     int atom;
     lua_namecallatom(L, &atom);
