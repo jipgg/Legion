@@ -11,15 +11,16 @@
 #include <windows.h>
 #endif
 using namespace std::string_view_literals;
+using namespace legion;
 namespace rnd = engine::renderer;
 namespace fs = std::filesystem;
 struct Event_data {
     int i{0};
     std::string hello{"hello world"};
 };
-static event::Event<Event_data> my_event{};
-static event::Event<void> my_void_event{};
-static event::Connection<Event_data>* my_connection;
+static Event<Event_data> my_event{};
+static Event<void> my_void_event{};
+static Connection<Event_data>* my_connection;
 void on_render() {
     rnd::set_color(0x0);
     rnd::clear_frame();

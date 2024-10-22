@@ -1,21 +1,58 @@
-declare class V2
+declare class Vec2d
     x: number
     y: number
-    function dot(self, a: V2): number
-    function unit(self): V2
+    function dot(self, a: Vec2d): number
+    function unit(self): Vec2d
     function magnitude(self): number
-    function abs(self): V2
-    function __add(self, a: V2): V2
-    function __mul(self, scalar: number): V2
-    function __div(self, scalar: number): V2
-    function __sub(self, a: V2): V2
-    function __unm(self): V2
+    function abs(self): Vec2d
+    function __add(self, a: Vec2d): Vec2d
+    function __mul(self, scalar: number): Vec2d
+    function __div(self, scalar: number): Vec2d
+    function __sub(self, a: Vec2d): Vec2d
+    function __unm(self): Vec2d
 end
-declare function V2(x : number?, y: number?): V2
-declare class Rect
+declare function Vec2d(x : number?, y: number?): Vec2d
+
+declare class Vec2i
+    x: number
+    y: number
+    function dot(self, a: Vec2i): number
+    function unit(self): Vec2i
+    function magnitude(self): number
+    function abs(self): Vec2i
+    function __add(self, a: Vec2i): Vec2i
+    function __mul(self, scalar: number): Vec2i
+    function __div(self, scalar: number): Vec2i
+    function __sub(self, a: Vec2i): Vec2i
+    function __unm(self): Vec2i
+end
+declare function Vec2i(x : number?, y: number?): Vec2i
+
+declare class Recti64
     x: number
     y: number
     width: number
     height: number
 end
-declare function Rect(x: number?, y: number?, w: number?, h: number?): Rect
+declare function Recti64(x: number?, y: number?, w: number?, h: number?): Recti64
+
+declare class Sizei32
+    width: number
+    height: number
+end
+declare function Sizei32(w: number?, h: number?): Sizei32
+
+declare class Vec2f
+    x: number
+    y: number
+    function dot(self, a: Vec2f): number
+    function unit(self): Vec2f
+    function magnitude(self): number
+    function abs(self): Vec2f
+    function __add(self, a: Vec2f): Vec2f
+    function __mul(self, scalar: number): Vec2f
+    function __div(self, scalar: number): Vec2f
+    function __sub(self, a: Vec2f): Vec2f
+    function __unm(self): Vec2f
+end
+declare function Vec2f(x: number?, y: number?): Vec2f

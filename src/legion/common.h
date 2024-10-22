@@ -12,6 +12,7 @@
 #include <stdexcept>
 #include <array>
 #include <blaze/Blaze.h>
+namespace legion {
 #define EXPECTS(precondition) assert(precondition and "unexpected.")
 #define ENSURES(postcondition) assert(postcondition and "was not ensured.")
 using Vec2f = blaze::StaticVector<float, 2>;
@@ -257,4 +258,5 @@ template <class ...Ts>
 void printerr(Ts&&...args) {
     std::cerr << "\033[31m";//red
     ((std::cerr << args << ' '), ...) << "\033[0m\n";
+}
 }

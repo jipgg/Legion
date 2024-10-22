@@ -3,6 +3,7 @@
 #include <SDL.h>
 #include <SDL_image.h>
 namespace fs = std::filesystem;
+namespace legion {
 Texture::Texture(const fs::path& img_path) noexcept: src_size_(0) {
     SDL_Surface* surface = IMG_Load(img_path.string().c_str());
     defer _{ [&surface] {SDL_FreeSurface(surface);} };
@@ -23,4 +24,5 @@ Texture::~Texture() noexcept {
 }
 Sizei32 Texture::src_size() const {
     return src_size_;
+}
 }

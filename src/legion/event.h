@@ -4,7 +4,7 @@
 #include <cstdint>
 #include <vector>
 #include <memory>
-namespace event {
+namespace legion {
 void process_pushed_events(int amount = 10);
 namespace intern {
 struct Connection;
@@ -26,7 +26,11 @@ struct Event {
     std::shared_ptr<Signal> signal;
 };
 struct Connection {
-    virtual ~Connection() = default;//maybe add raii after having customized the copy and move semantics
+    virtual ~Connection();//maybe add raii after having customized the copy and move semantics
+    Connection(const Connection& other) = delete;
+    Connection& operator=(const Connection& other) = delete;
+    Connection(Connection&& other) noexcept;
+    Connection& operator=(Connection&& other) noexcept;
     uintptr_t opaque_handler;//casting the function pointer to a uintptr_t as generic address, more platform independent approach compared to void*
     std::weak_ptr<Signal> signal;
     Connection(const std::shared_ptr<Signal>& signal, uintptr_t opaque_handler);

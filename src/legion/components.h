@@ -3,11 +3,12 @@
 #include <filesystem>
 #include <SDL_scancode.h>
 #include <string_view>
-using Entity_t = std::uint32_t;
-// forward declarations
 struct _TTF_Font;
 struct SDL_Texture;
 struct lua_State;
+namespace legion {
+using Entity_t = std::uint32_t;
+// forward declarations
 //components
 class Script {
     std::unique_ptr<lua_State, void(*)(lua_State*)> script_thread_;
@@ -76,3 +77,4 @@ struct Physical {
     return {left, right, top, bottom};
 }
 };
+}

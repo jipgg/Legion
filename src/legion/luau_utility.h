@@ -3,7 +3,8 @@
 #include <lualib.h>
 #include <luaconf.h>
 #include <typeinfo>
-namespace luau {
+namespace legion {
+namespace lutil {
 namespace intern {
 inline int unique_tag_incr{0};
 }
@@ -45,5 +46,6 @@ template <class T>
 T& ref(lua_State* L, int objindex) {
     void* ud = lua_touserdatatagged(L, objindex, type_tag<T>());
     return *static_cast<T*>(ud);
+}
 }
 }

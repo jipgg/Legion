@@ -7,15 +7,19 @@
 #include <luacodegen.h>
 #include <exception>
 #include <string_view>
-#include "legion/luau.types.h"
+#include "legion/luau_types.h"
 using namespace std::string_literals;
 namespace fs = std::filesystem;
-
+namespace legion {
 Script::Script(const fs::path& file):
     script_thread_(lua_newthread(engine::core::get_lua_state()), lua_close) {
-    luau::V2::init_metadata(script_thread_.get());
-    luau::Rect::init_metadata(script_thread_.get());
-    luaL_sandboxthread(script_thread_.get());
+    lua_State* L = script_thread_.get();
+    Lu_vec2d::init_metadata(L);
+    Lu_vec2f::init_metadata(L);
+    Lu_vec2i::init_metadata(L);
+    Lu_recti64::init_metadata(L);
+    Lu_sizei32::init_metadata(L);
+    luaL_sandboxthread(L);
     load_file(file);
 }
 Script::Script(std::string_view string):
@@ -47,4 +51,5 @@ void Script::call(int argc, int retc) {
     } catch (std::exception& e) {
         printerr("Luau error:", e.what());
     }
+}
 }

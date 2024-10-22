@@ -8,6 +8,7 @@
 #include <utility>
 #include <cassert>
 #include <bitset>
+namespace legion {
 using Entity_t = uint32_t;
 namespace ecs {
 namespace core {
@@ -75,6 +76,7 @@ std::optional<std::reference_wrapper<Component_t>> get_if(Entity_t entity) {
 [[nodiscard]] inline Entity_t create_entity() noexcept {
     static Entity_t curr_id{};
     return curr_id++;
+}
 }
 }
 }

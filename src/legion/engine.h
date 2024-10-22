@@ -1,8 +1,10 @@
 #pragma once
 #include <string>
 #include "common.h"
+#include "components.h"
 struct SDL_Window;
 struct lua_State;
+namespace legion {
 namespace engine {
 using Update_fn = void(*)(double delta_time);//maybe use std::function for these
 using Render_fn = void(*)();
@@ -41,4 +43,5 @@ void shutdown();
 SDL_Window* get_window();// not preferrable, but need it for textures
 lua_State* get_lua_state();
 }//core end
+}
 }

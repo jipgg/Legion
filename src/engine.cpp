@@ -13,6 +13,7 @@
 #include <luacodegen.h>
 #include "legion/event.h"
 namespace ch = std::chrono;
+namespace legion {
 namespace ec = ecs::core;
 enum class Procedure {
     Destruction,
@@ -104,7 +105,7 @@ void core::run() {
                     quitting = true;
                 }
             }
-            event::process_pushed_events(5);
+            process_pushed_events(5);
         } {//updating
             const auto curr_tp = ch::steady_clock::now();
             const double delta_s = ch::duration<double>(curr_tp - cached_last_tp).count();
@@ -162,5 +163,6 @@ void core::shutdown() {
     IMG_Quit();
     TTF_Quit();
     SDL_Quit();
+}
 }
 }

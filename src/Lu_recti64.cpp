@@ -1,6 +1,6 @@
-#include "legion/luau.types.h"
+#include "legion/luau_types.h"
 #include "legion/common.h"
-#include "legion/luau.userdata_utility.h"
+#include "legion/luau_utility.h"
 #include <lua.h>
 #include <lualib.h>
 #include <luaconf.h>
@@ -9,11 +9,12 @@
 #include "legion/comptime_enum.h"
 using namespace std::string_literals;
 namespace ct = comptime;
+using namespace legion::lutil;
+namespace legion {
 static Recti64& rself(lua_State* L) {
-    return luau::ref<Recti64>(L, 1);
+    return lutil::ref<Recti64>(L, 1);
 }
-namespace luau {
-void Rect::init_metadata(lua_State* L) {
+void Lu_recti64::init_metadata(lua_State* L) {
     luaL_newmetatable(L, metatable_name<Recti64>());
     const luaL_Reg metadata [] = {
         {"__index", index},
@@ -25,7 +26,7 @@ void Rect::init_metadata(lua_State* L) {
     lua_pushcfunction(L, ctor, type_name);
     lua_setglobal(L, type_name);
 }
-int Rect::ctor(lua_State *L) {
+int Lu_recti64::ctor(lua_State *L) {
     int16_t x{}, y{}, width{}, height{};
     if (lua_isnumber(L, 1)) x = luaL_checkinteger(L, 1);
     if (lua_isnumber(L, 2)) y = luaL_checkinteger(L, 2);
@@ -34,7 +35,7 @@ int Rect::ctor(lua_State *L) {
     init<Recti64>(L) = {x, y, width, height};
     return 1;
 }
-int Rect::tostring(lua_State *L) {
+int Lu_recti64::tostring(lua_State *L) {
     auto& self = rself(L);
     const std::string str{type_name + "{"s
         + std::to_string(self.x()) + ", "
@@ -44,7 +45,7 @@ int Rect::tostring(lua_State *L) {
     lua_pushstring(L, str.c_str());
     return 1;
 }
-int Rect::index(lua_State *L) {
+int Lu_recti64::index(lua_State *L) {
     static constexpr auto count = ct::count<Field, Field::height>();
     static constexpr auto fields = ct::to_array<Field, count>();
     auto& self = rself(L);

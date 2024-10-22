@@ -1,5 +1,5 @@
 #include "legion/event.h"
-namespace event {
+namespace legion {
 void process_pushed_events(int amount) {
     while(not intern::event_stack.empty() and --amount >= 0) {
         auto& [address, data] = intern::event_stack.top();
@@ -13,6 +13,19 @@ void process_pushed_events(int amount) {
 }
 namespace intern {
 Event::Event(): signal(std::make_shared<Signal>()) {
+}
+Connection::~Connection() {
+    disconnect();
+}
+Connection::Connection(Connection&& other) noexcept:
+    signal(other.signal),
+    opaque_handler(other.opaque_handler) {
+    other.signal.reset();
+}
+Connection& Connection::operator=(Connection&& other) noexcept {
+    signal.swap(other.signal);
+    opaque_handler = other.opaque_handler;
+    return *this;
 }
 Connection::Connection(const std::shared_ptr<Signal>& signal, uintptr_t opaque_handler):
     signal(signal),
@@ -38,4 +51,4 @@ void Signal::disconnect(Connection* p) {
     }
 }
 }//intern end
-}//event end
+}//legion end

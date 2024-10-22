@@ -1,4 +1,5 @@
 #include "legion/systems.h"
+namespace legion {
 float solvers::effective_elasticity(float e1, float e2) {
     return (e1 + e2) / 2.f;
 }
@@ -25,4 +26,5 @@ bool solvers::is_in_bounds(const Vec2i16& point, const Recti64& bounds) {
         and point.at(0) <= bounds.x() + bounds.width()
         and point.at(1) >= bounds.y() 
         and point.at(1) <= bounds.y() + bounds.height();
+}
 }

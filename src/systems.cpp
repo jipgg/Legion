@@ -1,7 +1,7 @@
 #include "legion/systems.h"
-namespace slv = solvers;
 #include <SDL.h>
-
+namespace legion {
+namespace slv = solvers;
 void systems::physics(std::span<Physical> components, double delta_s) {
     constexpr float big_mass{1e25};
     constexpr float gravity = .3f;
@@ -92,4 +92,5 @@ void systems::player_input(const Playable& plr, Physical& phys, double delta_s) 
     if (direction) {
         phys.velocity.at(0) = direction * plr.walk_speed * delta_s;
     }
+}
 }

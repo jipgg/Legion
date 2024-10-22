@@ -8,6 +8,7 @@
 #endif
 constexpr static lua_CompileOptions compile_opts{};
 namespace fs = std::filesystem;
+namespace legion {
 std::optional<std::string> read_file(const fs::path &path) {
     if (not fs::exists(path)) [[unlikely]] {
         return std::nullopt;
@@ -46,3 +47,4 @@ void enable_ansi_escape_sequences() {
     SetConsoleMode(hout, mode);
 }
 #endif//_WIN32
+}
