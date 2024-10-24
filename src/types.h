@@ -3,11 +3,12 @@
 #include <filesystem>
 #include <SDL_scancode.h>
 #include <string_view>
+#include "event.h"
+#include <SDL_mouse.h>
 struct _TTF_Font;
 struct SDL_Texture;
 struct lua_State;
-namespace legion {
-using Entity_t = std::uint32_t;
+namespace types {
 // forward declarations
 //components
 class Script {
@@ -31,7 +32,7 @@ public:
 };
 class Texture {
     SDL_Texture* texture_;
-    Sizei32 src_size_;
+    common::Sizei32 src_size_;
 public:
     Texture(const std::filesystem::path& path) noexcept;
     Texture(const Texture& a) = delete;
@@ -39,11 +40,22 @@ public:
     Texture(Texture&& a) noexcept;
     Texture& operator=(Texture&& a) noexcept;
     ~Texture() noexcept;
-    Sizei32 src_size() const;
+    common::Sizei32 src_size() const;
 };
 struct Playable {
     float jump_power, walk_speed;
     SDL_Scancode up, down, left, right, jump;
+};
+struct Clickable {
+    enum class Button {
+        Left = SDL_BUTTON_LEFT,
+        Right = SDL_BUTTON_RIGHT,
+        Middle = SDL_BUTTON_MIDDLE,
+    };
+    common::Recti64 hit;
+    using Mouse_event = event::Async<Button, common::Vec2i>;
+    Mouse_event on_mouse_up;
+    Mouse_event on_mouse_down;
 };
 struct Renderable {
     std::function<void()> render_fn;
@@ -52,29 +64,30 @@ struct Updatable {
     std::function<void(double delta_s)> update_fn;
 };
 struct Physical {
-    Vec2f position{0, 0};
-    Vec2f velocity{0, 0};
-    Vec2f acceleration{0, 0};
+    common::Vec2f position{0, 0};
+    common::Vec2f velocity{0, 0};
+    common::Vec2f acceleration{0, 0};
     bool welded{true};//maybe put these in a bitset
     bool falling{true};
     bool obstructed{true};
     float elasticity_coeff{.3f};
     float friction_coeff{.3f};
     float mass{1.f};
-    Sizei32 size{100, 100};
-    Recti64 bounds() const {
+    common::Sizei32 size{100, 100};
+    common::Recti64 bounds() const {
         return {
             static_cast<int16_t>(position.at(0)),
             static_cast<int16_t>(position.at(1)),
             size.width(), size.height()
         };
     }
-    std::array<Vec2f, 4> corner_points() const {
-    Vec2f left = position + Vec2f{0, size.height() / 2.f};
-    Vec2f right = position + Vec2f{static_cast<float>(size.width()), size.height() / 2.f};
-    Vec2f top = position + Vec2f {size.width() / 2.f, 0};
-    Vec2f bottom = position + Vec2f{size.width() / 2.f, static_cast<float>(size.height())};
-    return {left, right, top, bottom};
-}
+    std::array<common::Vec2f, 4> corner_points() const {
+        using V2 = common::Vec2f;
+        V2 left = position + V2{0, size.height() / 2.f};
+        V2 right = position + V2{static_cast<float>(size.width()), size.height() / 2.f};
+        V2 top = position + V2{size.width() / 2.f, 0};
+        V2 bottom = position + V2{size.width() / 2.f, static_cast<float>(size.height())};
+        return {left, right, top, bottom};
+    }
 };
 }

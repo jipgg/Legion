@@ -1,3 +1,4 @@
+//common
 #pragma once
 #include <cstdint>
 #include <cstddef>
@@ -12,22 +13,29 @@
 #include <stdexcept>
 #include <array>
 #include <blaze/Blaze.h>
-namespace legion {
-#define EXPECTS(precondition) assert(precondition and "unexpected.")
-#define ENSURES(postcondition) assert(postcondition and "was not ensured.")
+namespace common {
 using Vec2f = blaze::StaticVector<float, 2>;
 using Vec2d = blaze::StaticVector<double, 2>;
 using Vec2i16 = blaze::StaticVector<int16_t, 2>;
 using Vec2i = blaze::StaticVector<int, 2>;
-struct defer {
+struct Deferred {
     std::function<void()> f;
-    ~defer() {f();};
+    ~Deferred() {f();};
 };
 //concepts
 template <class T>
 concept Comparable_to_nullptr = std::is_convertible_v<decltype(std::declval<T>() != nullptr), bool>;
 template <class T>
 concept Enum = std::is_enum_v<T>;
+template <class T, class Element>
+concept Has_span_method = requires(T& obj) {
+    {obj.span()} -> std::same_as<std::span<Element>>;
+};
+template <class T, Has_span_method<T> Obj>
+std::span<T> view(Obj&& obj) {
+    return obj.span();
+}
+
 //free functions
 #ifdef _WIN32
 void attach_console();
@@ -61,10 +69,11 @@ class Sparse_set {
     std::unordered_map<Key, size_t> sparse_; //maybe make a sparse array for this for better cache locality
     std::vector<Val> dense_;
 public:
-    constexpr void emplace_back(Key key, Val&& val) {
-        dense_.emplace_back(std::forward<Val&&>(val));
+    constexpr Val& emplace_back(Key key, Val&& val) {
+        Val& v = dense_.emplace_back(std::forward<Val&&>(val));
         const size_t index = dense_.size() - 1;
         sparse_.insert(std::make_pair(key, index));
+        return v;
     }
     constexpr void push_back(Key key, const Val& val) {
         emplace_back(key, Val{val});
@@ -88,10 +97,10 @@ public:
     [[nodiscard]] constexpr Val& operator[](Key key) {
         return dense_[sparse_[key]];
     }
-    [[nodiscard]] constexpr std::optional<std::reference_wrapper<Val>> at_if(Key key) {
+    [[nodiscard]] constexpr Val* at_if(Key key) {
         auto found = sparse_.find(key);
-        if (found == sparse_.end()) return std::nullopt;
-        else return dense_.at(found->second);
+        if (found == sparse_.end()) return nullptr;
+        else return &dense_.at(found->second);
     }
     [[nodiscard]] constexpr const Val& at(const Key key) const {
         return dense_.at(sparse_.at(key));
@@ -249,6 +258,74 @@ struct Sizei32 {
     [[nodiscard]] constexpr int16_t height() const {return data >> shift_increment & 0xffffi16;}
 private:
     static constexpr int shift_increment = 16;
+};
+constexpr int bits_in_byte_count = 8;
+class Dynamic_bitset {
+    std::size_t bitsize_;
+    std::size_t capacity_;
+    std::uint8_t* data_;
+public:
+    Dynamic_bitset(std::size_t bit_count = 0) noexcept;
+    ~Dynamic_bitset() noexcept;
+    Dynamic_bitset(const Dynamic_bitset& a);
+    Dynamic_bitset& operator=(const Dynamic_bitset& a);
+    Dynamic_bitset(Dynamic_bitset&& a) noexcept;
+    Dynamic_bitset& operator=(Dynamic_bitset&& a) noexcept;
+    void set(std::size_t i);
+    void set();
+    void reset();
+    void reset(std::size_t i);
+    void reserve(std::size_t bit_count);
+    void append(bool bit = 0);
+    void shrink_to_fit();
+    void resize(std::size_t bit_count);
+    [[nodiscard]] std::size_t count() const;
+    [[nodiscard]] std::size_t size() const;
+    [[nodiscard]] std::size_t capacity() const;
+    [[nodiscard]] bool test(std::size_t i) const;
+    [[nodiscard]] bool none() const;
+    [[nodiscard]] bool all() const;
+private:
+    void reallocate(std::size_t new_capacity);
+};
+template <class T>
+class Lazy_pool {
+    std::vector<T> data_;
+    Dynamic_bitset unused_;
+public:
+    inline static auto default_init = [](T& v) {v = T{};};
+    constexpr Lazy_pool(int initial_size = 0): data_(), unused_(initial_size) {
+        if (initial_size > 0) data_.reserve(initial_size);
+        unused_.set();
+
+    }
+    constexpr int32_t allocate(const std::function<void(T&)>& ctor = default_init) {
+        if (unused_.none()) {
+            auto& v = data_.emplace_back(T{});
+            unused_.append(0);
+            ctor(v);
+            return data_.size() - 1;
+        }
+        for (int i{}; i < unused_.size(); ++i) {
+            if (unused_.test(i)) {
+                ctor(data_.at(i));
+                return i;
+            }
+        }
+        assert(false);
+        return -1;
+    }
+    constexpr void free(std::size_t address) {
+        unused_.reset(address);
+    }
+    constexpr T& at(std::size_t address) {
+        assert(not unused_.test(address));
+        return data_.at(address);
+    }
+    constexpr const T& at(std::size_t address) const {
+        assert(not unused_.test(address));
+        return data_.at(address);
+    }
 };
 template <class ...Ts>
 void print(Ts&&...args) {

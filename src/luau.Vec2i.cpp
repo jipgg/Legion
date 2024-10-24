@@ -1,34 +1,32 @@
-#include "legion/luau_types.h"
-#include "legion/common.h"
-#include "legion/luau_utility.h"
+#include "luau.defs.h"
+#include "common.h"
+#include "luau.h"
 #include <lua.h>
 #include <lualib.h>
 #include <luaconf.h>
 #include <luacode.h>
 #include <luacodegen.h>
-#include "legion/comptime_enum.h"
-namespace ct = comptime;
-using namespace legion;
+#include "comptime.h"
 using namespace std::string_literals;
-using namespace lutil;
-static constexpr auto field_count = ct::count<Lu_vec2d::Field, Lu_vec2d::Field::y>();
-static Vec2d& self(lua_State* L) {
-    return ref<Vec2d>(L, 1);
+using Self = common::Vec2i;
+static constexpr auto field_count = comptime::count<luau::Vec2i::Field, luau::Vec2i::Field::y>();
+static Self& self(lua_State* L) {
+    return luau::ref<Self>(L, 1);
 }
-static Vec2d& init_t(lua_State* L) {
-    return init<Vec2d>(L);
+static Self& init_t(lua_State* L) {
+    return luau::init<Self>(L);
 }
 static bool type_t(lua_State* L, int idx) {
-    return is_type<Vec2d>(L, idx);
+    return luau::is_type<Self>(L, idx);
 }
-static Vec2d& ref_t(lua_State* L, int idx) {
-    return ref<legion::Vec2d>(L, idx);
+static Self& ref_t(lua_State* L, int idx) {
+    return luau::ref<Self>(L, idx);
 }
-static Vec2d& other(lua_State* L) {
-    return ref<Vec2d>(L, 2);
+static Self& other(lua_State* L) {
+    return luau::ref<Self>(L, 2);
 }
-void Lu_vec2d::init_metadata(lua_State* L) {
-    luaL_newmetatable(L, metatable_name<Vec2d>());
+void luau::Vec2i::init_type(lua_State* L) {
+    luaL_newmetatable(L, metatable_name<Self>());
     const luaL_Reg metadata [] = {
         {"__index", index},
         {"__add", add},
@@ -46,23 +44,23 @@ void Lu_vec2d::init_metadata(lua_State* L) {
     lua_pushcfunction(L, ctor, type_name);
     lua_setglobal(L, type_name);
 }
-int Lu_vec2d::ctor(lua_State *L) {
-    double x{}, y{};
+int luau::Vec2i::ctor(lua_State *L) {
+    int x{}, y{};
     if (lua_isnumber(L, 1)) x = luaL_checknumber(L, 1);
     if (lua_isnumber(L, 2)) y = luaL_checknumber(L, 2);
     init_t(L) = {x, y};
     lua_callbacks(L)->useratom = [](const char* name, size_t idk) {
-        static constexpr auto count = ct::count<Method, Method::magnitude>();
-        return static_cast<int16_t>(ct::enum_item<Method, count>(name).index);
+        static constexpr auto count = comptime::count<Method, Method::magnitude>();
+        return static_cast<int16_t>(comptime::enum_item<Method, count>(name).index);
     };
     return 1;
 }
-int Lu_vec2d::add(lua_State* L) {
+int luau::Vec2i::add(lua_State* L) {
     init_t(L) = self(L) + other(L);
     return 1;
 }
-int Lu_vec2d::index(lua_State *L) {
-    static constexpr auto array = ct::to_array<Field, field_count>();
+int luau::Vec2i::index(lua_State *L) {
+    static constexpr auto array = comptime::to_array<Field, field_count>();
     const std::string_view field_name = luaL_checkstring(L, 2);
     for (const auto& v : array) {
         if (v.name == field_name) {
@@ -77,11 +75,11 @@ int Lu_vec2d::index(lua_State *L) {
             return 1;
         }
     }
-    printerr("invalid index");
+    common::printerr("invalid index");
     return 0;
 }
-int Lu_vec2d::newindex(lua_State *L) {
-    static constexpr auto array = ct::to_array<Field, field_count>();
+int luau::Vec2i::newindex(lua_State *L) {
+    static constexpr auto array = comptime::to_array<Field, field_count>();
     const std::string_view field_name = luaL_checkstring(L, 2);
     const double n = luaL_checknumber(L, 3);
     for (const auto& v : array) {
@@ -98,30 +96,30 @@ int Lu_vec2d::newindex(lua_State *L) {
     }
     return 0;
 }
-int Lu_vec2d::mul(lua_State *L) {
+int luau::Vec2i::mul(lua_State *L) {
     assert(lua_isnumber(L, 2));
     double scalar = luaL_checknumber(L, 2);
     init_t(L) = self(L) * scalar;
     return 1;
 }
-int Lu_vec2d::tostring(lua_State *L) {
+int luau::Vec2i::tostring(lua_State *L) {
     std::string str = type_name + "{"s
         + std::to_string(self(L).at(0)) + ", "
         + std::to_string(self(L).at(1)) + "}";
     lua_pushlstring(L, str.data(), str.size());
     return 1;
 }
-int Lu_vec2d::sub(lua_State* L) {
+int luau::Vec2i::sub(lua_State* L) {
     return 0;
 }
-int Lu_vec2d::div(lua_State *L) {
+int luau::Vec2i::div(lua_State *L) {
     return 0;
 }
-int Lu_vec2d::unm(lua_State* L) {
+int luau::Vec2i::unm(lua_State* L) {
     init_t(L) = -self(L);
     return 1;
 }
-int Lu_vec2d::namecall(lua_State *L) {
+int luau::Vec2i::namecall(lua_State *L) {
     int atom;
     lua_namecallatom(L, &atom);
     switch(static_cast<Method>(atom)) {

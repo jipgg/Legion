@@ -1,14 +1,13 @@
-#include "legion/luau_types.h"
-#include "legion/comptime_enum.h"
-#include "legion/luau_utility.h"
-#include "legion/common.h"
+#include "luau.defs.h"
+#include "comptime.h"
+#include "luau.h"
+#include "common.h"
 #include <lualib.h>
-using namespace legion;
 using namespace std::string_literals;
-using namespace lutil;
+using Self = common::Sizei32;
 
-void Lu_sizei32::init_metadata(lua_State *L) {
-    luaL_newmetatable(L, metatable_name<Sizei32>());
+void luau::Sizei32::init_type(lua_State *L) {
+    luaL_newmetatable(L, metatable_name<Self>());
     const luaL_Reg metadata[] = {
         {"__index", index},
         {"__tostring", tostring},
@@ -19,17 +18,17 @@ void Lu_sizei32::init_metadata(lua_State *L) {
     lua_pushcfunction(L, ctor, type_name);
     lua_setglobal(L, type_name);
 }
-int Lu_sizei32::ctor(lua_State *L) {
+int luau::Sizei32::ctor(lua_State *L) {
     int16_t width{}, height{};
     if (lua_isnumber(L, 1)) width = luaL_checkinteger(L, 1);
     if (lua_isnumber(L, 2)) height = luaL_checkinteger(L, 2);
-    init<Sizei32>(L) = {width, height};
+    init<Self>(L, 0ui8, 0ui8) = {width, height};
     return 1;
 }
-int Lu_sizei32::index(lua_State *L) {
+int luau::Sizei32::index(lua_State *L) {
     static constexpr auto count = comptime::count<Field, Field::height>();
     static constexpr auto fields = comptime::to_array<Field, count>();
-    auto& self = ref<Sizei32>(L, 1);
+    auto& self = ref<Self>(L, 1);
     const std::string_view key = luaL_checkstring(L, 2);
     for (const auto& field : fields) {
         if (field.name == key) {
@@ -45,8 +44,8 @@ int Lu_sizei32::index(lua_State *L) {
     }
     return 0;
 }
-int Lu_sizei32::tostring(lua_State *L) {
-    auto& self = ref<Sizei32>(L, 1);
+int luau::Sizei32::tostring(lua_State *L) {
+    auto& self = ref<Self>(L, 1);
     const std::string str{type_name + "{"s + std::to_string(self.width())
         + ", " + std::to_string(self.height()) + "}"};
     lua_pushstring(L, str.c_str());

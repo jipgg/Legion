@@ -1,7 +1,6 @@
 #include <cassert>
-#include "legion/engine.h"
-#include "legion/components.h"
-#include "legion/event.h"
+#include "engine.h"
+#include "types.h"
 #include <lua.h>
 #include <lualib.h>
 #include <blaze/Blaze.h>
@@ -11,35 +10,26 @@
 #include <windows.h>
 #endif
 using namespace std::string_view_literals;
-using namespace legion;
 namespace rnd = engine::renderer;
 namespace fs = std::filesystem;
-struct Event_data {
-    int i{0};
-    std::string hello{"hello world"};
-};
-static Event<Event_data> my_event{};
-static Event<void> my_void_event{};
-static Connection<Event_data>* my_connection;
+namespace ty = types;
 void on_render() {
     rnd::set_color(0x0);
     rnd::clear_frame();
     rnd::set_color(0xFFAA1FFF);
-    rnd::fill(Recti64{100, 100, 200, 100});
+    rnd::fill(common::Recti64{100, 100, 200, 100});
 }
-void on_event(const Event_data& data) {
-    print("yoooooo", data.hello);
-}
+ty::Script* script;
 void on_start() {
-    Script script{fs::path("test.luau")};
+    script = new ty::Script{fs::path("test.luau")};
 }
 void on_update(double delta_s) {
 }
 
 int main(int, char**) {
     #ifdef _WIN32
-    attach_console();
-    enable_ansi_escape_sequences();
+    common::attach_console();
+    common::enable_ansi_escape_sequences();
     #endif
     const engine::Start_options opts {
         .window_name{"Legion"},

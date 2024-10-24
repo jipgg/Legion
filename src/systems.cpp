@@ -1,14 +1,17 @@
-#include "legion/systems.h"
+#include "systems.h"
 #include <SDL.h>
-namespace legion {
-namespace slv = solvers;
-void systems::physics(std::span<Physical> components, double delta_s) {
+#include <ranges>
+#include <span>
+namespace slv = systems::solvers;
+namespace vws = std::views;
+namespace ty = types;
+void systems::physics(std::span<ty::Physical> components, double delta_s) {
     constexpr float big_mass{1e25};
-    constexpr float gravity = .3f;
+    constexpr float gravity = -120.f;
     constexpr int x = 0;
     constexpr int y = 1;
     constexpr float deadzone = .1f;
-    for (Physical& a : components) {
+    for (ty::Physical& a : components) {
         if (a.welded) continue;
         if (a.falling) {
             a.acceleration = {0, -gravity};
@@ -22,7 +25,7 @@ void systems::physics(std::span<Physical> components, double delta_s) {
         a.velocity += a.acceleration * delta_s;
         a.position += a.velocity * delta_s;
         const auto [a_left, a_right, a_top, a_bottom] = a.corner_points();
-        for (Physical& b : components) {
+        for (ty::Physical& b : components) {
             if (&a == &b) continue;
             const float b_mass = b.welded ? big_mass : b.mass;
             auto [a_vel, b_vel] = slv::velocities_after_collision(
@@ -30,7 +33,7 @@ void systems::physics(std::span<Physical> components, double delta_s) {
                 a.mass, a.velocity,
                 b.elasticity_coeff,
                 b_mass, b.velocity);
-            const Recti64 b_bounds = b.bounds();
+            const common::Recti64 b_bounds = b.bounds();
             if (slv::is_in_bounds(a_left, b_bounds)) {
                 if (a.velocity.at(x) < 0) {
                     a.obstructed = true;
@@ -72,14 +75,32 @@ void systems::physics(std::span<Physical> components, double delta_s) {
         }
     }
 }
-void systems::render(std::span<Renderable> components) {
+void systems::render(std::span<ty::Renderable> components) {
     for (auto& e : components) e.render_fn();
 }
-void systems::update(std::span<Updatable> components, double delta_s) {
+void systems::update(std::span<ty::Updatable> components, double delta_s) {
     for (auto& e : components) e.update_fn(delta_s);
 }
+void systems::process_mouse_up(std::span<ty::Clickable> cmps, const SDL_MouseButtonEvent& e) {
+    const common::Vec2i pos = {e.x, e.y};
+    for (auto& self : cmps | vws::reverse) {
+        if (slv::is_in_bounds(pos, self.hit)) {
+            self.on_mouse_up.fire(static_cast<ty::Clickable::Button>(e.button), pos);
+            return;
+        }
+    }
+}
+void systems::process_mouse_down(std::span<ty::Clickable> cmps, const SDL_MouseButtonEvent& e) {
+    const common::Vec2i pos = {e.x, e.y};
+    for (auto& self : cmps | vws::reverse) {
+        if (slv::is_in_bounds(pos, self.hit)) {
+            self.on_mouse_down.fire(static_cast<ty::Clickable::Button>(e.button), pos);
+            return;
+        }
+    }
+}
 //single systems
-void systems::player_input(const Playable& plr, Physical& phys, double delta_s) {
+void systems::player_input(const ty::Playable& plr, ty::Physical& phys, double delta_s) {
     constexpr float jump_power = 10;
     const uint8_t* key_states = SDL_GetKeyboardState(nullptr);
     int direction{0};
@@ -92,5 +113,4 @@ void systems::player_input(const Playable& plr, Physical& phys, double delta_s) 
     if (direction) {
         phys.velocity.at(0) = direction * plr.walk_speed * delta_s;
     }
-}
 }

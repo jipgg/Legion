@@ -1,5 +1,5 @@
-#include "legion/components.h"
-#include "legion/engine.h"
+#include "types.h"
+#include "engine.h"
 #include <lua.h>
 #include <lualib.h>
 #include <luaconf.h>
@@ -7,18 +7,23 @@
 #include <luacodegen.h>
 #include <exception>
 #include <string_view>
-#include "legion/luau_types.h"
+#include "luau.defs.h"
 using namespace std::string_literals;
 namespace fs = std::filesystem;
-namespace legion {
+namespace types {
 Script::Script(const fs::path& file):
     script_thread_(lua_newthread(engine::core::get_lua_state()), lua_close) {
     lua_State* L = script_thread_.get();
-    Lu_vec2d::init_metadata(L);
-    Lu_vec2f::init_metadata(L);
-    Lu_vec2i::init_metadata(L);
-    Lu_recti64::init_metadata(L);
-    Lu_sizei32::init_metadata(L);
+    {using namespace luau;
+        Vec2d::init_type(L);
+        Vec2i::init_type(L);
+        Vec2f::init_type(L);
+        Recti64::init_type(L);
+        Sizei32::init_type(L);
+        Coloru32::init_type(L);
+        luau::Physical::init_type(L);
+        luau::Clickable::init_type(L);
+        renderer::init_lib(L);}
     luaL_sandboxthread(L);
     load_file(file);
 }
@@ -31,16 +36,16 @@ void Script::load_string(std::string_view str) {
     size_t outsize{};
     char* bytecode_data = luau_compile(str.data(), str.size(), nullptr, &outsize);
     if (luau_load(script_thread_.get(), "string", bytecode_data, outsize, 0)) {
-        printerr("Failed to load:", bytecode_data);
+        common::printerr("Failed to load:", bytecode_data);
         std::free(bytecode_data);
     }
     std::free(bytecode_data);
     call();
 }
 void Script::load_file(const fs::path& filepath) {
-    std::optional<std::string> source = read_file(filepath);
+    std::optional<std::string> source = common::read_file(filepath);
     if (not source) {
-        printerr("failed to read the file '"s + filepath.string() + "'");
+        common::printerr("failed to read the file '"s + filepath.string() + "'");
         return;
     }
     load_string(*source);
@@ -49,7 +54,7 @@ void Script::call(int argc, int retc) {
     try {
         lua_call(script_thread_.get(), argc, retc);
     } catch (std::exception& e) {
-        printerr("Luau error:", e.what());
+        common::printerr("Luau error:", e.what());
     }
 }
 }

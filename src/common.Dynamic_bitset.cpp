@@ -1,7 +1,8 @@
-#include "legion/Dynamic_bitset.h"
+#include "common.h"
 #include <cstring>
 #include <cassert>
 #include <bit>
+namespace common {
 static constexpr size_t calc_total_bytes_needed(size_t bit_count) {
     return (bit_count + (bits_in_byte_count - 1)) / bits_in_byte_count;
 }
@@ -174,4 +175,5 @@ size_t Dynamic_bitset::count() const {
     }
     count += std::popcount(data_[total_bytes - 1]);
     return count;
+}
 }

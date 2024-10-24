@@ -1,21 +1,19 @@
-#include "legion/luau_types.h"
-#include "legion/common.h"
-#include "legion/luau_utility.h"
+#include "luau.defs.h"
+#include "common.h"
+#include "luau.h"
 #include <lua.h>
 #include <lualib.h>
 #include <luaconf.h>
 #include <luacode.h>
 #include <luacodegen.h>
-#include "legion/comptime_enum.h"
+#include "comptime.h"
 using namespace std::string_literals;
-namespace ct = comptime;
-using namespace legion::lutil;
-namespace legion {
-static Recti64& rself(lua_State* L) {
-    return lutil::ref<Recti64>(L, 1);
+using Self = common::Recti64;
+static Self& rself(lua_State* L) {
+    return luau::ref<Self>(L, 1);
 }
-void Lu_recti64::init_metadata(lua_State* L) {
-    luaL_newmetatable(L, metatable_name<Recti64>());
+void luau::Recti64::init_type(lua_State* L) {
+    luaL_newmetatable(L, metatable_name<Self>());
     const luaL_Reg metadata [] = {
         {"__index", index},
         {"__tostring", tostring},
@@ -26,16 +24,16 @@ void Lu_recti64::init_metadata(lua_State* L) {
     lua_pushcfunction(L, ctor, type_name);
     lua_setglobal(L, type_name);
 }
-int Lu_recti64::ctor(lua_State *L) {
+int luau::Recti64::ctor(lua_State *L) {
     int16_t x{}, y{}, width{}, height{};
     if (lua_isnumber(L, 1)) x = luaL_checkinteger(L, 1);
     if (lua_isnumber(L, 2)) y = luaL_checkinteger(L, 2);
     if (lua_isnumber(L, 3)) width = luaL_checkinteger(L, 3);
     if (lua_isnumber(L, 4)) height = luaL_checkinteger(L, 4);
-    init<Recti64>(L) = {x, y, width, height};
+    init<Self>(L, x, y, width, height);
     return 1;
 }
-int Lu_recti64::tostring(lua_State *L) {
+int luau::Recti64::tostring(lua_State *L) {
     auto& self = rself(L);
     const std::string str{type_name + "{"s
         + std::to_string(self.x()) + ", "
@@ -45,9 +43,9 @@ int Lu_recti64::tostring(lua_State *L) {
     lua_pushstring(L, str.c_str());
     return 1;
 }
-int Lu_recti64::index(lua_State *L) {
-    static constexpr auto count = ct::count<Field, Field::height>();
-    static constexpr auto fields = ct::to_array<Field, count>();
+int luau::Recti64::index(lua_State *L) {
+    static constexpr auto count = comptime::count<Field, Field::height>();
+    static constexpr auto fields = comptime::to_array<Field, count>();
     auto& self = rself(L);
     const std::string_view key = luaL_checkstring(L, 2);
     for (const auto& field : fields) {
@@ -68,7 +66,6 @@ int Lu_recti64::index(lua_State *L) {
             }
         }
     }
-    printerr("invalid key", key);
+    common::printerr("invalid key", key);
     return 0;
-}
 }

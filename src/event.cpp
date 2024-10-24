@@ -1,9 +1,9 @@
-#include "legion/event.h"
-namespace legion {
-void process_pushed_events(int amount) {
+#include "event.h"
+namespace event {
+void process_event_stack_entries(int amount) {
     while(not intern::event_stack.empty() and --amount >= 0) {
         auto& [address, data] = intern::event_stack.top();
-        intern::Connection* connection = intern::connection_pool.at(address);
+        Opaque_connection* connection = intern::connection_pool.at(address);
         if (not connection->signal.expired()) {
             connection->receive(data);
         }
@@ -11,33 +11,39 @@ void process_pushed_events(int amount) {
         intern::event_stack.pop();
     }
 }
-namespace intern {
-Event::Event(): signal(std::make_shared<Signal>()) {
+Opaque_event::Opaque_event(): signal(std::make_shared<Opaque_signal>()) {
 }
-Connection::~Connection() {
-    disconnect();
+Opaque_connection::~Opaque_connection() {
+    if (auto_disconnect) disconnect();
 }
-Connection::Connection(Connection&& other) noexcept:
-    signal(other.signal),
-    opaque_handler(other.opaque_handler) {
-    other.signal.reset();
+Opaque_connection::Opaque_connection(const Opaque_connection& a): signal(a.signal), opaque_handler(a.opaque_handler), auto_disconnect(false) {
 }
-Connection& Connection::operator=(Connection&& other) noexcept {
-    signal.swap(other.signal);
-    opaque_handler = other.opaque_handler;
+Opaque_connection& Opaque_connection::operator=(const Opaque_connection& a) {
+    signal = a.signal;
+    opaque_handler = a.opaque_handler;
+    auto_disconnect = false;
     return *this;
 }
-Connection::Connection(const std::shared_ptr<Signal>& signal, uintptr_t opaque_handler):
+Opaque_connection::Opaque_connection(Opaque_connection&& a) noexcept: signal(a.signal), opaque_handler(a.opaque_handler) {
+    a.auto_disconnect = false;
+}
+Opaque_connection& Opaque_connection::operator=(Opaque_connection&& a) noexcept {
+    signal = a.signal;
+    opaque_handler = a.opaque_handler;
+    a.auto_disconnect = false;
+    return *this;
+}
+Opaque_connection::Opaque_connection(const std::shared_ptr<Opaque_signal>& signal, uintptr_t opaque_handler):
     signal(signal),
     opaque_handler(opaque_handler) {
 }
-void Connection::disconnect() {
+void Opaque_connection::disconnect() {
     if (auto e = signal.lock()) {
         e->disconnect(this);
     }
 }
 
-void Signal::disconnect(Connection* p) {
+void Opaque_signal::disconnect(Opaque_connection* p) {
     auto it = std::find_if(
         connections.begin(),
         connections.end(),
@@ -47,8 +53,7 @@ void Signal::disconnect(Connection* p) {
         connections.back().swap(*it);
         connections.pop_back();
     } else {
-        printerr("connection has already been destroyed.");
+        common::printerr("connection has already been destroyed.");
     }
 }
-}//intern end
-}//legion end
+}

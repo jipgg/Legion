@@ -3,8 +3,7 @@
 #include <lualib.h>
 #include <luaconf.h>
 #include <typeinfo>
-namespace legion {
-namespace lutil {
+namespace luau {
 namespace intern {
 inline int unique_tag_incr{0};
 }
@@ -22,6 +21,18 @@ const char* metatable_name() {
     const std::type_info& ti = typeid(T);
     return ti.raw_name();
 }
+template <class T, class ...Init_arguments_t>
+T& init(lua_State* L, Init_arguments_t&&...args) {
+    void* ud = lua_newuserdatatagged(L, sizeof(T), type_tag<T>());
+    new (ud) T{std::forward<Init_arguments_t>(args)...};
+    lua_setuserdatadtor(L, type_tag<T>(), [](lua_State* L, void* data) {
+        static_cast<T*>(data)->~T();//cause using placement new, no implicit destruction
+    });
+    if (luaL_getmetatable(L, metatable_name<T>())) {
+        lua_setmetatable(L, -2);
+    }
+    return *static_cast<T*>(ud);
+}
 template <class T>
 T& init(lua_State* L) {
     void* ud = lua_newuserdatatagged(L, sizeof(T), type_tag<T>());
@@ -34,18 +45,8 @@ T& init(lua_State* L) {
     return *static_cast<T*>(ud);
 }
 template <class T>
-T& init(lua_State* L, lua_Destructor dtor) {
-    void* ud = lua_newuserdatatagged(L, sizeof(T), type_tag<T>());
-    lua_setuserdatadtor(L, type_tag<T>(), dtor);
-    if (luaL_getmetatable(L, metatable_name<T>())) {
-        lua_setmetatable(L, -2);
-    }
-    return *static_cast<T*>(ud);
-}
-template <class T>
 T& ref(lua_State* L, int objindex) {
     void* ud = lua_touserdatatagged(L, objindex, type_tag<T>());
     return *static_cast<T*>(ud);
-}
 }
 }

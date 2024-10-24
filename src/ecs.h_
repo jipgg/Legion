@@ -9,9 +9,8 @@
 #include <cassert>
 #include <bitset>
 namespace legion {
-using Entity_t = uint32_t;
+using Entity_t = std::uint32_t;
 namespace ecs {
-namespace core {
 struct Registry_entry_interface {
     virtual ~Registry_entry_interface() = default;
     virtual void erase(Entity_t) = 0;
@@ -35,7 +34,7 @@ struct Entity_bundle {
     }
 };
 template <class Component_t>
-Component_storage<Component_t>& component_storage() {
+[[nodiscard]] Component_storage<Component_t>& component_storage() {
     static Component_storage<Component_t> storage;
     return storage;
 }
@@ -45,7 +44,7 @@ inline void clear_entity_components(Entity_t entity) {
     }
 }
 template <class Component_t>
-struct Component_storage_entry: Registry_entry_interface {
+struct Component_storage_entry: public Registry_entry_interface {
     void erase(Entity_t entity) override {
         component_storage<Component_t>().erase(entity);
     };
@@ -55,9 +54,10 @@ struct Component_storage_entry: Registry_entry_interface {
     }
 };
 template <class Component_t, typename ...Initializer_list_t>
- void create_component(Entity_t entity, Initializer_list_t&&...args) {
+void create_component(Entity_t entity, Initializer_list_t&&...args) {
     if (component_storage_registry.find(typeid(Component_t)) == component_storage_registry.end()) {
-        component_storage_registry.insert(std::make_pair(typeid(Component_t), std::make_unique<Component_storage_entry<Component_t>>()));
+        std::unique_ptr<Registry_entry_interface> entry = std::make_unique<Component_storage_entry<Component_t>>();
+        component_storage_registry.insert({typeid(Component_t), std::move(entry)});
     }
     component_storage<Component_t>().emplace_back(entity, Component_t{std::forward<Initializer_list_t>(args)...});
 }
@@ -66,17 +66,16 @@ void destroy_component(Entity_t entity) {
     component_storage<Component_t>().erase(entity);
 }
 template <class Component_t>
-Component_t& get(Entity_t entity) {
+[[nodiscard]] Component_t& get(Entity_t entity) {
     return component_storage<Component_t>().at(entity);
 };
 template <class Component_t>
-std::optional<std::reference_wrapper<Component_t>> get_if(Entity_t entity) {
+[[nodiscard]] Component_t* get_if(Entity_t entity) {
     return component_storage<Component_t>().at_if(entity);
 }
 [[nodiscard]] inline Entity_t create_entity() noexcept {
     static Entity_t curr_id{};
     return curr_id++;
-}
 }
 }
 }
