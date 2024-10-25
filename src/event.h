@@ -42,7 +42,7 @@ public:
             other.signal_.reset();
             return *this;
         }
-        Connection(Handler_id id, const std::shared_ptr<Signal> signal, bool persist_mode = false):
+        Connection(Handler_id id, const std::shared_ptr<Signal>& signal, bool persist_mode = false):
            signal_(signal), id_(id), persist_mode_(persist_mode) {}
         Connection(): signal_(nullptr) {}
         ~Connection() {
@@ -54,7 +54,7 @@ public:
     };
     Connection connect(Handler&& handler, bool persist_connection = false) {
         auto& handlers = signal_->handlers;
-        auto id = handlers.insert(handlers.end(), std::move(handler));
+        auto id = handlers.insert(handlers.end(), std::forward<Handler>(handler));
         return Connection{id, signal_, persist_connection};
     }
     void disconnect(Handler_id id) {

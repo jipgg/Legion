@@ -14,18 +14,9 @@ namespace types {
 Script::Script(const fs::path& file):
     script_thread_(lua_newthread(engine::core::get_lua_state()), lua_close) {
     lua_State* L = script_thread_.get();
-    {using namespace luau;
-        Vec2d::init_type(L);
-        Vec2i::init_type(L);
-        Vec2f::init_type(L);
-        Recti64::init_type(L);
-        Sizei32::init_type(L);
-        Coloru32::init_type(L);
-        luau::Physical::init_type(L);
-        luau::Clickable::init_type(L);
-        renderer::init_lib(L);}
     luaL_sandboxthread(L);
     load_file(file);
+    lua_xmove(L, engine::core::get_lua_state(), 0);
 }
 Script::Script(std::string_view string):
     script_thread_(lua_newthread(engine::core::get_lua_state()), lua_close) {

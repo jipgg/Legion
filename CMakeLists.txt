@@ -28,5 +28,6 @@ target_link_libraries(Legion PRIVATE
     Luau.VM
     Luau.Compiler
     Luau.CodeGen
+    Luau.Config
 )
 target_link_libraries(Legion PUBLIC blaze::blaze )

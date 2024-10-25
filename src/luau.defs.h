@@ -1,5 +1,6 @@
 #pragma once
 #include <lualib.h>
+#include "event.h"
 namespace luau {
 struct Vec2d {
     static void init_type(lua_State* L);
@@ -98,9 +99,22 @@ struct Clickable {
     static constexpr auto type_name{"Clickable"};
 };
 namespace renderer {
-void init_lib(lua_State* L);
-int fill(lua_State* L);
-int draw(lua_State* L);
-int render(lua_State* L);
+    void init_lib(lua_State* L);
+    int fill(lua_State* L);
+    int draw(lua_State* L);
+    int render(lua_State* L);
+    static constexpr auto lib_name{"renderer"};
+}
+namespace game {
+    void init_lib(lua_State* L);
+    inline event::Async<double> update;
+    inline event::Async<> render;
+    inline event::Async<> start;
+    inline event::Async<> quit;
+    int on_update(lua_State* L);
+    int on_render(lua_State* L);
+    int on_start(lua_State* L);
+    int on_quit(lua_State* L);
+    static constexpr auto lib_name{"game"};
 }
 }

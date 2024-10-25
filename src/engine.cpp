@@ -11,9 +11,124 @@
 #include <luacode.h>
 #include <luacodegen.h>
 #include "event.h"
+#include "luau.defs.h"
+#include <Luau/Common.h>
+#include <Luau/Compiler.h>
+#include <Luau/CodeGen.h>
+#include "Require.h"
 namespace ch = std::chrono;
 namespace ty = types;
 namespace comp = component;
+namespace fs = std::filesystem;
+static bool codegen = false;
+struct GlobalOptions {
+    int optimizationLevel = 1;
+    int debugLevel = 1;
+} globalOptions;
+static Luau::CompileOptions copts(){
+    Luau::CompileOptions result = {};
+    result.optimizationLevel = globalOptions.optimizationLevel;
+    result.debugLevel = globalOptions.debugLevel;
+    result.typeInfoLevel = 1;
+
+    return result;
+}
+static int lua_loadstring(lua_State* L) {
+    size_t l = 0;
+    const char* s = luaL_checklstring(L, 1, &l);
+    const char* chunkname = luaL_optstring(L, 2, s);
+
+    lua_setsafeenv(L, LUA_ENVIRONINDEX, false);
+
+    std::string bytecode = Luau::compile(std::string(s, l), copts());
+    if (luau_load(L, chunkname, bytecode.data(), bytecode.size(), 0) == 0)
+        return 1;
+
+    lua_pushnil(L);
+    lua_insert(L, -2); // put before error message
+    return 2;          // return nil plus error message
+}
+static int finishrequire(lua_State* L) {
+    if (lua_isstring(L, -1))
+        lua_error(L);
+    return 1;
+}
+static int lua_require(lua_State* L) {
+    std::string name = luaL_checkstring(L, 1);
+
+    RequireResolver::ResolvedRequire resolvedRequire = RequireResolver::resolveRequire(L, std::move(name));
+
+    if (resolvedRequire.status == RequireResolver::ModuleStatus::Cached)
+        return finishrequire(L);
+    else if (resolvedRequire.status == RequireResolver::ModuleStatus::NotFound)
+        luaL_errorL(L, "error requiring module");
+
+    // module needs to run in a new thread, isolated from the rest
+    // note: we create ML on main thread so that it doesn't inherit environment of L
+    lua_State* GL = lua_mainthread(L);
+    lua_State* ML = lua_newthread(GL);
+    lua_xmove(GL, L, 1);
+
+    // new thread needs to have the globals sandboxed
+    luaL_sandboxthread(ML);
+
+    // now we can compile & run module on the new thread
+    std::string bytecode = Luau::compile(resolvedRequire.sourceCode, copts());
+    if (luau_load(ML, resolvedRequire.chunkName.c_str(), bytecode.data(), bytecode.size(), 0) == 0)
+    {
+        if (codegen)
+        {
+            Luau::CodeGen::CompilationOptions nativeOptions;
+            Luau::CodeGen::compile(ML, -1, nativeOptions);
+        }
+        int status = lua_resume(ML, L, 0);
+
+        if (status == 0)
+        {
+            if (lua_gettop(ML) == 0)
+                lua_pushstring(ML, "module must return a value");
+            else if (!lua_istable(ML, -1) && !lua_isfunction(ML, -1))
+                lua_pushstring(ML, "module must return a table or function");
+        }
+        else if (status == LUA_YIELD)
+        {
+            lua_pushstring(ML, "module can not yield");
+        }
+        else if (!lua_isstring(ML, -1))
+        {
+            lua_pushstring(ML, "unknown error while running module");
+        }
+    }
+
+    // there's now a return value on top of ML; L stack: _MODULES ML
+    lua_xmove(ML, L, 1);
+    lua_pushvalue(L, -1);
+    lua_setfield(L, -4, resolvedRequire.absolutePath.c_str());
+
+    // L stack: _MODULES ML result
+    return finishrequire(L);
+}
+
+static int lua_collectgarbage(lua_State* L)
+{
+    const char* option = luaL_optstring(L, 1, "collect");
+
+    if (strcmp(option, "collect") == 0)
+    {
+        lua_gc(L, LUA_GCCOLLECT, 0);
+        return 0;
+    }
+
+    if (strcmp(option, "count") == 0)
+    {
+        int c = lua_gc(L, LUA_GCCOUNT, 0);
+        lua_pushnumber(L, c);
+        return 1;
+    }
+
+    luaL_error(L, "collectgarbage must be called with 'count' or 'collect'");
+}
+
 struct Passed_functions {
     engine::Update_fn update{nullptr};
     engine::Render_fn render{nullptr};
@@ -66,12 +181,49 @@ void renderer::fill(const common::Recti64& rect) {
     sdl_rect_dummy.h = rect.height();
     SDL_RenderFillRect(renderer_ptr, &sdl_rect_dummy);
 }
+static void init_state(lua_State* L) {
+    luaL_openlibs(main_state);
+    {using namespace luau;
+        Vec2d::init_type(main_state);
+        Vec2i::init_type(main_state);
+        Vec2f::init_type(main_state);
+        Recti64::init_type(main_state);
+        Sizei32::init_type(main_state);
+        Coloru32::init_type(main_state);
+        luau::Physical::init_type(main_state);
+        luau::renderer::init_lib(main_state);
+    }
+    static const luaL_Reg funcs[] = {
+        {"loadstring", lua_loadstring},
+        {"require", lua_require},
+        {"collectgarbage", lua_collectgarbage},
+        {NULL, NULL},
+    };
+    lua_pushvalue(L, LUA_GLOBALSINDEX);
+    luaL_register(L, NULL, funcs);
+    lua_pop(L, 1);
+    fs::path filepath = "main.luau";
+    std::optional<std::string> source = common::read_file(filepath);
+    if (not source) {
+        using namespace std::string_literals;
+        common::printerr("failed to read the file '"s + filepath.string() + "'");
+    } else {
+        std::string bytecode = Luau::compile(*source, copts());
+        if (luau_load(L, "=main", bytecode.data(), bytecode.size(), 0)) {
+            common::printerr(luaL_checkstring(L, -1));
+        } else {
+            if (lua_pcall(L, 0, 0, 0)) {
+                common::printerr(luaL_checkstring(L, -1));
+            }
+        }
+    }
+}
 void core::start(Start_options opts) {
     SDL_Init(SDL_INIT_VIDEO);// should do proper error handling here
     TTF_Init();
     IMG_Init(IMG_INIT_PNG | IMG_INIT_JPG);
     main_state = luaL_newstate();
-    luaL_openlibs(main_state);
+    init_state(main_state);
     constexpr int undefined = SDL_WINDOWPOS_UNDEFINED;
     const int width = opts.window_size.at(0);
     const int height = opts.window_size.at(1);
@@ -86,6 +238,11 @@ void core::start(Start_options opts) {
     fns.update = opts.update_function ? opts.update_function : nullptr;
     fns.shutdown = opts.shutdown_function ? opts.shutdown_function : nullptr;
     if (opts.start_function) [[likely]] opts.start_function();
+    luau::game::start.fire();
+    lua_getglobal(main_state, "__legion_start_fn");
+    if (not lua_isnil(main_state, -1) and lua_isfunction(main_state, -1)) {
+        lua_pcall(main_state, 0, 0, 0);
+    } else lua_pop(main_state, 1);
 }
 void core::run() {
     auto cached_last_tp = ch::steady_clock::now();
@@ -112,17 +269,33 @@ void core::run() {
             systems::physics(comp::view<ty::Physical>(), delta_s);
             systems::update(comp::view<ty::Updatable>(), delta_s);
             if (fns.update) [[likely]] fns.update(delta_s);
+            luau::game::update.fire(delta_s);
+            lua_getglobal(main_state, "__legion_update_fn");
+            if (not lua_isnil(main_state, -1) and lua_isfunction(main_state, -1)) {
+                lua_pushnumber(main_state, delta_s);
+                lua_pcall(main_state, 1, 0, 0);
+            } else lua_pop(main_state, 1);
         } {//rendering
             SDL_SetRenderDrawColor(renderer_ptr, 0x00, 0x00, 0x00, 0xff);
             SDL_RenderClear(renderer_ptr);
             if (fns.render) [[likely]] fns.render();
             systems::render(comp::view<ty::Renderable>());
+            luau::game::render.fire();
+            lua_getglobal(main_state, "__legion_render_fn");
+            if (not lua_isnil(main_state, -1) and lua_isfunction(main_state, -1)) {
+                lua_pcall(main_state, 0, 0, 0);
+            } else lua_pop(main_state, 1);
             SDL_RenderPresent(renderer_ptr);
         }
         event::process_event_stack_entries(5);
     }
 }
 void core::shutdown() {
+    lua_getglobal(main_state, "__legion_shutdown_fn");
+    if (not lua_isnil(main_state, -1) and lua_isfunction(main_state, -1)) {
+        lua_pcall(main_state, 0, 0, 0);
+    } else lua_pop(main_state, 1);
+    luau::game::quit.fire();
     if (fns.shutdown) [[unlikely]] fns.shutdown();
     //lua_close(main_state); //this slows down shutdown time significantly
     SDL_DestroyRenderer(renderer_ptr);

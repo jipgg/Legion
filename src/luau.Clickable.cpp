@@ -44,32 +44,27 @@ int luau::Clickable::ctor(lua_State *L) {
     };
     return 1;
 }
-struct Luau_mouse_handler {
-    int fn_ref;
-    void operator()(types::Clickable::Button button, common::Vec2i pos) {
-        lua_State* L = engine::core::get_lua_state();
-        lua_getref(L, fn_ref);
-        lua_pushinteger(L, static_cast<int>(button));
-        luau::init<common::Vec2i>(L) = pos;
-        lua_pcall(L, 2, 0, 0);
-    }
-    /*
-    ~Luau_mouse_handler() {
-        common::print("Destroyed");
-        lua_unref(engine::core::get_lua_state(), fn_ref);
-    }
-    */
-};
 int luau::Clickable::namecall(lua_State *L) {
     int atom;
     auto& self = ref<Self>(L, 1);
     lua_namecallatom(L, &atom);
+    using  Button = types::Clickable::Button;
+    struct Luau_mouse_handler: public luau::Function<Button, common::Vec2i> {
+        Luau_mouse_handler(std::shared_ptr<int>&& r): luau::Function<Button, common::Vec2i>(std::move(r)) {}
+        void operator()(types::Clickable::Button button, common::Vec2i pos) override {
+            lua_State* L = engine::core::get_lua_state();
+            lua_getref(L, *fn_ref);
+            lua_pushinteger(L, static_cast<int>(button));
+            luau::init<common::Vec2i>(L) = pos;
+            lua_pcall(L, 2, 0, 0);
+        }
+    };
     switch(static_cast<Method>(atom)) {
         case Method::on_mouse_down:
-            init<Mouse_connection>(L, self.get().on_mouse_down.connect(Luau_mouse_handler{.fn_ref = lua_ref(L, 2)}, true));
+            init<Mouse_connection>(L, self.get().on_mouse_down.connect(Luau_mouse_handler{std::make_shared<int>(lua_ref(L, 2))}, true));
         return 1;
         case Method::on_mouse_click:
-            init<Mouse_connection>(L, self.get().on_mouse_up.connect(Luau_mouse_handler{.fn_ref = lua_ref(L, 2)}, true));
+            init<Mouse_connection>(L, self.get().on_mouse_up.connect(Luau_mouse_handler{std::make_shared<int>(lua_ref(L, 2))}, true));
         return 1;
     }
     return 0;

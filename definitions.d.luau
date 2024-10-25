@@ -83,12 +83,7 @@ declare class Physical
     function bounds(self): Recti64
 end
 declare function Physical(): Physical
-export type Connection = {
-    disconnect: (self: Connection) -> (),
+type fn_void = ()->()
+declare game: {
+        on_update: (delta_s: number)->()?,
 }
-export type Mouse_event_handler = (button: number, pos: Vec2i) -> ()
-declare class Clickable
-    function on_mouse_click(self, handler: Mouse_event_handler): Connection
-    function on_mouse_down(self, handler: Mouse_event_handler): Connection
-end
-declare function Clickable(region: Recti64): Clickable

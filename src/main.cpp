@@ -21,7 +21,7 @@ void on_render() {
 }
 ty::Script* script;
 void on_start() {
-    script = new ty::Script{fs::path("test.luau")};
+    //script = new ty::Script{fs::path("test.luau")};
 }
 void on_update(double delta_s) {
 }

@@ -3,6 +3,9 @@
 #include <lualib.h>
 #include <luaconf.h>
 #include <typeinfo>
+#include <memory>
+#include "engine.h"
+#include "common.h"
 namespace luau {
 namespace intern {
 inline int unique_tag_incr{0};
@@ -49,4 +52,20 @@ T& ref(lua_State* L, int objindex) {
     void* ud = lua_touserdatatagged(L, objindex, type_tag<T>());
     return *static_cast<T*>(ud);
 }
+using Fn_ref = std::shared_ptr<int>;
+template <class ...Init_arguments_t>
+Fn_ref make_fn_ref(Init_arguments_t...args) {return std::make_shared<int>(std::forward<Init_arguments_t>(args)...);}
+template<class ...Params>
+struct Function {
+    Fn_ref fn_ref;
+    lua_State* state() {return engine::core::get_lua_state();}
+    virtual void operator()(Params...args) = 0;
+    Function(Fn_ref&& fn): fn_ref(fn) {}
+    ~Function() {
+        if (fn_ref.use_count() == 1) {
+            common::print("Destroyed");
+            lua_unref(state(), *fn_ref);
+        }
+    }
+};
 }
