@@ -6,8 +6,8 @@ namespace slv = systems::solvers;
 namespace vws = std::views;
 namespace ty = types;
 void systems::physics(std::span<ty::Physical> components, double delta_s) {
-    constexpr float big_mass{1e25};
-    constexpr float gravity = -120.f;
+    constexpr double big_mass{1e25};
+    constexpr double gravity = -120.f;
     constexpr int x = 0;
     constexpr int y = 1;
     constexpr float deadzone = .1f;
@@ -37,7 +37,7 @@ void systems::physics(std::span<ty::Physical> components, double delta_s) {
             if (slv::is_in_bounds(a_left, b_bounds)) {
                 if (a.velocity.at(x) < 0) {
                     a.obstructed = true;
-                    a.position.at(x) = b.position.at(x) + b.size.width();
+                    a.position.at(x) = b.position.at(x) + b.size.at(x);
                     a.velocity.at(x) = a_vel.at(x);
                     if (not b.welded) {
                         b.velocity.at(x) = b_vel.at(x);
@@ -46,7 +46,7 @@ void systems::physics(std::span<ty::Physical> components, double delta_s) {
             } else if (slv::is_in_bounds(a_right, b_bounds)) {
                 if (a.velocity.at(x) > 0) {
                     a.obstructed = true;
-                    a.position.at(x) = b.position.at(x) - a.size.width();
+                    a.position.at(x) = b.position.at(x) - a.size.at(x);
                     a.velocity.at(x) = a_vel.at(x);
                     if (not b.welded) {
                         b.velocity.at(x) = b_vel.at(x);
@@ -56,7 +56,7 @@ void systems::physics(std::span<ty::Physical> components, double delta_s) {
             if (slv::is_in_bounds(a_top, b_bounds)) {
                 a.falling = false;
                 if (a.velocity.at(y) < 0) {
-                    a.position.at(y) = b.position.at(y) + b.size.height();
+                    a.position.at(y) = b.position.at(y) + b.size.at(y);
                     a.velocity.at(y) = a_vel.at(y);
                     if (not b.welded) {
                         b.velocity.at(y) = b_vel.at(y);
@@ -65,7 +65,7 @@ void systems::physics(std::span<ty::Physical> components, double delta_s) {
             }
             if (slv::is_in_bounds(a_bottom, b_bounds)) {
                 if (a.velocity.at(y) > 0) {
-                    a.position.at(y) = b.position.at(y) - a.size.height();
+                    a.position.at(y) = b.position.at(y) - a.size.at(y);
                     a.velocity.at(y) = a_vel.at(y);
                     if (not b.welded) {
                         b.velocity.at(y) = b_vel.at(y);

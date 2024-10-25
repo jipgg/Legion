@@ -64,29 +64,30 @@ struct Updatable {
     std::function<void(double delta_s)> update_fn;
 };
 struct Physical {
-    common::Vec2f position{0, 0};
-    common::Vec2f velocity{0, 0};
-    common::Vec2f acceleration{0, 0};
+    common::Vec2d position{0, 0};
+    common::Vec2d velocity{0, 0};
+    common::Vec2d acceleration{0, 0};
     bool welded{true};//maybe put these in a bitset
     bool falling{true};
     bool obstructed{true};
     float elasticity_coeff{.3f};
     float friction_coeff{.3f};
     float mass{1.f};
-    common::Sizei32 size{100, 100};
+    common::Vec2d size{100, 100};
     common::Recti64 bounds() const {
         return {
             static_cast<int16_t>(position.at(0)),
             static_cast<int16_t>(position.at(1)),
-            size.width(), size.height()
+            static_cast<int16_t>(size.at(0)),
+            static_cast<int16_t>(size.at(1)),
         };
     }
-    std::array<common::Vec2f, 4> corner_points() const {
-        using V2 = common::Vec2f;
-        V2 left = position + V2{0, size.height() / 2.f};
-        V2 right = position + V2{static_cast<float>(size.width()), size.height() / 2.f};
-        V2 top = position + V2{size.width() / 2.f, 0};
-        V2 bottom = position + V2{size.width() / 2.f, static_cast<float>(size.height())};
+    std::array<common::Vec2d, 4> corner_points() const {
+        using V2 = common::Vec2d;
+        V2 left = position + V2{0, size.at(1) / 2.f};
+        V2 right = position + V2{size.at(0), size.at(1) / 2.f};
+        V2 top = position + V2{size.at(0) / 2.f, 0};
+        V2 bottom = position + V2{size.at(0) / 2.0, size.at(1)};
         return {left, right, top, bottom};
     }
 };

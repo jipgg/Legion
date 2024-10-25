@@ -16,6 +16,8 @@
 #include <Luau/Compiler.h>
 #include <Luau/CodeGen.h>
 #include "Require.h"
+#include "comptime.h"
+#include "luau.h"
 namespace ch = std::chrono;
 namespace ty = types;
 namespace comp = component;
@@ -183,13 +185,16 @@ void renderer::fill(const common::Recti64& rect) {
 }
 static void init_state(lua_State* L) {
     luaL_openlibs(main_state);
+    lua_callbacks(L)->useratom = [](const char* raw_name, size_t s) {
+        std::string_view name{raw_name, s};
+        static constexpr auto count = comptime::count<luau::Method_atom, luau::Method_atom::bounds>();
+        auto e = comptime::enum_item<luau::Method_atom, count>(name);
+        return static_cast<int16_t>(e.index);
+    };
     {using namespace luau;
-        Vec2d::init_type(main_state);
-        Vec2i::init_type(main_state);
-        Vec2f::init_type(main_state);
-        Recti64::init_type(main_state);
-        Sizei32::init_type(main_state);
-        Coloru32::init_type(main_state);
+        Vec2::init_type(main_state);
+        Rect::init_type(main_state);
+        Color::init_type(main_state);
         luau::Physical::init_type(main_state);
         luau::renderer::init_lib(main_state);
     }
@@ -238,10 +243,10 @@ void core::start(Start_options opts) {
     fns.update = opts.update_function ? opts.update_function : nullptr;
     fns.shutdown = opts.shutdown_function ? opts.shutdown_function : nullptr;
     if (opts.start_function) [[likely]] opts.start_function();
-    luau::game::start.fire();
     lua_getglobal(main_state, "__legion_start_fn");
     if (not lua_isnil(main_state, -1) and lua_isfunction(main_state, -1)) {
-        lua_pcall(main_state, 0, 0, 0);
+        if (lua_pcall(main_state, 0, 0, 0)) {
+        }
     } else lua_pop(main_state, 1);
 }
 void core::run() {
@@ -254,10 +259,48 @@ void core::run() {
                         quitting = true;
                     break;
                     case SDL_MOUSEBUTTONUP:
-                        systems::process_mouse_up(comp::view<ty::Clickable>(), sdl_event_dummy.button);
+                        lua_getglobal(main_state, luau::handler_keys::mouse_button_up);
+                        if (not lua_isnil(main_state, -1) and lua_isfunction(main_state, -1)) {
+                            switch (sdl_event_dummy.button.button) {
+                                case SDL_BUTTON_LEFT:
+                                    lua_pushstring(main_state, "Left");
+                                break;
+                                case SDL_BUTTON_RIGHT:
+                                    lua_pushstring(main_state, "Right");
+                                break;
+                                case SDL_BUTTON_MIDDLE:
+                                    lua_pushstring(main_state, "Middle");
+                                break;
+
+                            }
+                            luau::init<common::Vec2d>(main_state) = {
+                                double(sdl_event_dummy.button.x),
+                                double(sdl_event_dummy.button.y)
+                            };
+                            lua_pcall(main_state, 2, 0, 0);
+                        } else lua_pop(main_state, 1);
                     break;
                     case SDL_MOUSEBUTTONDOWN:
-                        systems::process_mouse_down(comp::view<ty::Clickable>(), sdl_event_dummy.button);
+                        lua_getglobal(main_state, luau::handler_keys::mouse_button_down);
+                        if (not lua_isnil(main_state, -1) and lua_isfunction(main_state, -1)) {
+                            switch (sdl_event_dummy.button.button) {
+                                case SDL_BUTTON_LEFT:
+                                    lua_pushstring(main_state, "Left");
+                                break;
+                                case SDL_BUTTON_RIGHT:
+                                    lua_pushstring(main_state, "Right");
+                                break;
+                                case SDL_BUTTON_MIDDLE:
+                                    lua_pushstring(main_state, "Middle");
+                                break;
+
+                            }
+                            luau::init<common::Vec2d>(main_state) = {
+                                double(sdl_event_dummy.button.x),
+                                double(sdl_event_dummy.button.y)
+                            };
+                            lua_pcall(main_state, 2, 0, 0);
+                        } else lua_pop(main_state, 1);
                     break;
                 }
             }
@@ -269,8 +312,7 @@ void core::run() {
             systems::physics(comp::view<ty::Physical>(), delta_s);
             systems::update(comp::view<ty::Updatable>(), delta_s);
             if (fns.update) [[likely]] fns.update(delta_s);
-            luau::game::update.fire(delta_s);
-            lua_getglobal(main_state, "__legion_update_fn");
+            lua_getglobal(main_state, luau::handler_keys::update);
             if (not lua_isnil(main_state, -1) and lua_isfunction(main_state, -1)) {
                 lua_pushnumber(main_state, delta_s);
                 lua_pcall(main_state, 1, 0, 0);
@@ -280,8 +322,7 @@ void core::run() {
             SDL_RenderClear(renderer_ptr);
             if (fns.render) [[likely]] fns.render();
             systems::render(comp::view<ty::Renderable>());
-            luau::game::render.fire();
-            lua_getglobal(main_state, "__legion_render_fn");
+            lua_getglobal(main_state, luau::handler_keys::render);
             if (not lua_isnil(main_state, -1) and lua_isfunction(main_state, -1)) {
                 lua_pcall(main_state, 0, 0, 0);
             } else lua_pop(main_state, 1);
@@ -295,7 +336,6 @@ void core::shutdown() {
     if (not lua_isnil(main_state, -1) and lua_isfunction(main_state, -1)) {
         lua_pcall(main_state, 0, 0, 0);
     } else lua_pop(main_state, 1);
-    luau::game::quit.fire();
     if (fns.shutdown) [[unlikely]] fns.shutdown();
     //lua_close(main_state); //this slows down shutdown time significantly
     SDL_DestroyRenderer(renderer_ptr);

@@ -1,23 +1,18 @@
 --!strict
-local std = require("std")
-local run = std.run
-local event: std.Event<number, string> = std.Event.init()
-
-event:connect(function(num: number, text: string)
-    print(`yoo {num}, {text}`)
-end)
-
-event:connect(function(a0: number, a1: string)
-    print("yee")
-end)
+local lg = require("legion_luau")
+local game = lg.game
+local mouse = game.mouse
 
 local dummy = Physical()
-dummy.welded = false
+dummy.velocity = Vec2(100, 100)
+local a = dummy:bounds();
+print(dummy.velocity:unit())
+print(dummy.size.x)
+print(a)
 
-run.on_render(function()
-    renderer.fill(dummy:bounds())
+mouse.button_down:connect(function(button: lg.Mouse_button, pos: Vec2)
+    print(`mouse button down {button} {pos}`)
 end)
-
-run.on_quit(function()
-    event:deinit()
+mouse.button_up:connect(function(button: lg.Mouse_button, pos: Vec2)
+    print(`mouse button up {button} {pos}`)
 end)

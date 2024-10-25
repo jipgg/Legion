@@ -12,19 +12,20 @@ using Self = common::Recti64;
 static Self& rself(lua_State* L) {
     return luau::ref<Self>(L, 1);
 }
-void luau::Recti64::init_type(lua_State* L) {
-    luaL_newmetatable(L, metatable_name<Self>());
-    const luaL_Reg metadata [] = {
-        {"__index", index},
-        {"__tostring", tostring},
-        {nullptr, nullptr}
-    };
-    luaL_register(L, nullptr, metadata);
-    lua_pop(L, 1);
-    lua_pushcfunction(L, ctor, type_name);
-    lua_setglobal(L, type_name);
+void luau::Rect::init_type(lua_State* L) {
+    if (luaL_newmetatable(L, metatable_name<Self>())) {
+     const luaL_Reg metadata [] = {
+            {"__index", index},
+            {"__tostring", tostring},
+            {nullptr, nullptr}
+        };
+        luaL_register(L, nullptr, metadata);
+        lua_pop(L, 1);
+        lua_pushcfunction(L, ctor, type_name);
+        lua_setglobal(L, type_name);
+    }
 }
-int luau::Recti64::ctor(lua_State *L) {
+int luau::Rect::ctor(lua_State *L) {
     int16_t x{}, y{}, width{}, height{};
     if (lua_isnumber(L, 1)) x = luaL_checkinteger(L, 1);
     if (lua_isnumber(L, 2)) y = luaL_checkinteger(L, 2);
@@ -33,7 +34,7 @@ int luau::Recti64::ctor(lua_State *L) {
     init<Self>(L, x, y, width, height);
     return 1;
 }
-int luau::Recti64::tostring(lua_State *L) {
+int luau::Rect::tostring(lua_State *L) {
     auto& self = rself(L);
     const std::string str{type_name + "{"s
         + std::to_string(self.x()) + ", "
@@ -43,7 +44,7 @@ int luau::Recti64::tostring(lua_State *L) {
     lua_pushstring(L, str.c_str());
     return 1;
 }
-int luau::Recti64::index(lua_State *L) {
+int luau::Rect::index(lua_State *L) {
     static constexpr auto count = comptime::count<Field, Field::height>();
     static constexpr auto fields = comptime::to_array<Field, count>();
     auto& self = rself(L);

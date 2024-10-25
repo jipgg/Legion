@@ -5,7 +5,7 @@
 #include "comptime.h"
 using namespace std::string_literals;
 using Self = common::Coloru32;
-void luau::Coloru32::init_type(lua_State *L) {
+void luau::Color::init_type(lua_State *L) {
     luaL_newmetatable(L, luau::metatable_name<Self>());
     const luaL_Reg metadata[] = {
         {"__index", index},
@@ -16,7 +16,7 @@ void luau::Coloru32::init_type(lua_State *L) {
     lua_pushcfunction(L, ctor, type_name);
     lua_setglobal(L, type_name);
 }
-int luau::Coloru32::ctor(lua_State *L) {
+int luau::Color::ctor(lua_State *L) {
     uint8_t r{}, g{}, b{}, a{};
     if (lua_isnumber(L, 1)) r = luaL_checkinteger(L, 1);
     if (lua_isnumber(L, 2)) g = luaL_checkinteger(L, 2);
@@ -25,7 +25,7 @@ int luau::Coloru32::ctor(lua_State *L) {
     luau::init<Self>(L, 0ui8, 0ui8, 0ui8, 0ui8) = {r, g, b, a};
     return 1;
 }
-int luau::Coloru32::index(lua_State *L) {
+int luau::Color::index(lua_State *L) {
     static constexpr auto count = static_cast<std::size_t>(Field::alpha); 
     static constexpr auto fields = comptime::to_array<Field, count>();
     const auto& self = ref<Self>(L, 1);

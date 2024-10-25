@@ -6,6 +6,7 @@
 #include <array>
 #include <cassert>
 #include <ranges>
+#include "common.h"
 namespace comptime {
 template<class Val, Val v>
 struct Value {
@@ -128,7 +129,10 @@ template <Enum Type, int size = count<Type>()>
 constexpr Enum_item<Type> enum_item(std::string_view name) {
     constexpr auto array = to_array<Type, size>();
     auto found_it = std::ranges::find_if(array, [&name](const Enum_info& e) {return e.name == name;});
-    assert(found_it != std::ranges::end(array));
+    if (found_it == std::ranges::end(array)) {
+        common::printerr("invalid enum name", name);
+        assert(found_it != std::ranges::end(array));
+    }
     return {.name = found_it->name, .index = found_it->index};
 }
 }
