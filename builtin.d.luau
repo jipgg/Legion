@@ -48,16 +48,16 @@ declare class Physical
 end
 declare function Physical(): Physical
 export type Key =
-    'Q' | 'W' | 'E' | 'R' | 'T' | 'Y' |
-    'U' | 'I' | 'O' | 'P' | 'A' | 'S' |
-    'D' | 'F' | 'G' | 'H' | 'J' | 'K' |
-    'L' | 'Z' | 'X' | 'C' | 'V' | 'B' |
-    'N' | 'M' | 'Space' | 'Ctrl' | 'Alt' |
-    '1' | '2' | '3' | '4' | '5' | '6' |
-    '7' | '8' | '9' | '0' | 'undefined'
+    'esc'|'f1'|'f2'|'f3'|'f4'|'f5'|'f6'|'f7'|'f8'|'f9'|'f10'|'f11'|'f12'|
+    '1'|'2'|'3'|'4'|'5'|'6'|'7'|'8'|'9'|'0'|'minus'|'equals'|'backspace'|
+    'q'|'w'|'e'|'r'|'t'|'y'|'u'|'i'|'o'|'p'|'backslash'|
+    'a'|'s'|'d'|'f'|'g'|'h'|'j'|'k'|'l'|'enter'|
+    'z'|'x'|'c'|'v'|'b'|'n'|'n'|'m'|'comma'|'period'|'slash'|
+    'lshift'|'lctrl'|'lalt'|'space'|'ralt'|'left'|'up'|'down'|'right'
 declare builtin: {
     title: string,
     window_size: Vec2,
     maximize_window: () -> (),
-    get_mouse_position: () -> Vec2,
+    mouse_pos: () -> Vec2,
+    key_down: (key: Key) -> boolean,
 }

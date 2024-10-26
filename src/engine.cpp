@@ -23,6 +23,20 @@ namespace ty = types;
 namespace comp = component;
 namespace fs = std::filesystem;
 static bool codegen = false;
+struct Passed_functions {
+    engine::Update_fn update{nullptr};
+    engine::Render_fn render{nullptr};
+    engine::Shutdown_fn shutdown{nullptr};
+};
+//states
+static SDL_Window* window_ptr{nullptr};
+static SDL_Renderer* renderer_ptr{nullptr};
+static bool quitting{false};
+static bool paused{false};
+static SDL_Event sdl_event_dummy{};
+static SDL_Rect sdl_rect_dummy{};
+static Passed_functions fns{};
+static lua_State* main_state;
 struct GlobalOptions {
     int optimizationLevel = 1;
     int debugLevel = 1;
@@ -131,20 +145,6 @@ static int lua_collectgarbage(lua_State* L)
     luaL_error(L, "collectgarbage must be called with 'count' or 'collect'");
 }
 
-struct Passed_functions {
-    engine::Update_fn update{nullptr};
-    engine::Render_fn render{nullptr};
-    engine::Shutdown_fn shutdown{nullptr};
-};
-//states
-static SDL_Window* window_ptr{nullptr};
-static SDL_Renderer* renderer_ptr{nullptr};
-static bool quitting{false};
-static bool paused{false};
-static SDL_Event sdl_event_dummy{};
-static SDL_Rect sdl_rect_dummy{};
-static Passed_functions fns{};
-static lua_State* main_state;
 namespace engine {
 //helpers
 SDL_Window* core::get_window() {
@@ -244,11 +244,6 @@ void core::start(Start_options opts) {
     if (opts.start_function) [[likely]] opts.start_function();
     main_state = luaL_newstate();
     init_state(main_state);
-    lua_getglobal(main_state, "__legion_start_fn");
-    if (not lua_isnil(main_state, -1) and lua_isfunction(main_state, -1)) {
-        if (lua_pcall(main_state, 0, 0, 0)) {
-        }
-    } else lua_pop(main_state, 1);
 }
 void core::run() {
     auto cached_last_tp = ch::steady_clock::now();
@@ -260,29 +255,21 @@ void core::run() {
                         quitting = true;
                     break;
                     case SDL_KEYDOWN:
-                        lua_getglobal(main_state, "__legion_key_down");
+                        lua_getglobal(main_state, luau::event_sockets::key_down);
                         if (not lua_isnil(main_state, -1) and lua_isfunction(main_state, -1)) {
-                            switch (sdl_event_dummy.key.keysym.sym) {
-                                case SDLK_w:
-                                    lua_pushstring(main_state, "W");
-                                break;
-                                case SDLK_a:
-                                    lua_pushstring(main_state, "A");
-                                break;
-                                case SDLK_s:
-                                    lua_pushstring(main_state, "S");
-                                break;
-                                case SDLK_d:
-                                    lua_pushstring(main_state, "D");
-                                break;
-                                default:
-                                    lua_pushstring(main_state, "undefined");
-                            }
+                            lua_pushstring(main_state, luau::scancode_to_string(sdl_event_dummy.key.keysym.scancode));
+                            lua_pcall(main_state, 1, 0, 0);
+                        } else lua_pop(main_state, 1);
+                    break;
+                    case SDL_KEYUP:
+                        lua_getglobal(main_state, luau::event_sockets::key_up);
+                        if (not lua_isnil(main_state, -1) and lua_isfunction(main_state, -1)) {
+                            lua_pushstring(main_state, luau::scancode_to_string(sdl_event_dummy.key.keysym.scancode));
                             lua_pcall(main_state, 1, 0, 0);
                         } else lua_pop(main_state, 1);
                     break;
                     case SDL_MOUSEBUTTONUP:
-                        lua_getglobal(main_state, luau::handler_keys::mouse_button_up);
+                        lua_getglobal(main_state, luau::event_sockets::mouse_up);
                         if (not lua_isnil(main_state, -1) and lua_isfunction(main_state, -1)) {
                             switch (sdl_event_dummy.button.button) {
                                 case SDL_BUTTON_LEFT:
@@ -304,7 +291,7 @@ void core::run() {
                         } else lua_pop(main_state, 1);
                     break;
                     case SDL_MOUSEBUTTONDOWN:
-                        lua_getglobal(main_state, luau::handler_keys::mouse_button_down);
+                        lua_getglobal(main_state, luau::event_sockets::mouse_down);
                         if (not lua_isnil(main_state, -1) and lua_isfunction(main_state, -1)) {
                             switch (sdl_event_dummy.button.button) {
                                 case SDL_BUTTON_LEFT:
@@ -335,7 +322,7 @@ void core::run() {
             systems::physics(comp::view<ty::Physical>(), delta_s);
             systems::update(comp::view<ty::Updatable>(), delta_s);
             if (fns.update) [[likely]] fns.update(delta_s);
-            lua_getglobal(main_state, luau::handler_keys::update);
+            lua_getglobal(main_state, luau::event_sockets::update);
             if (not lua_isnil(main_state, -1) and lua_isfunction(main_state, -1)) {
                 lua_pushnumber(main_state, delta_s);
                 lua_pcall(main_state, 1, 0, 0);
@@ -345,7 +332,7 @@ void core::run() {
             SDL_RenderClear(renderer_ptr);
             if (fns.render) [[likely]] fns.render();
             systems::render(comp::view<ty::Renderable>());
-            lua_getglobal(main_state, luau::handler_keys::render);
+            lua_getglobal(main_state, luau::event_sockets::render);
             if (not lua_isnil(main_state, -1) and lua_isfunction(main_state, -1)) {
                 lua_pcall(main_state, 0, 0, 0);
             } else lua_pop(main_state, 1);
@@ -355,7 +342,7 @@ void core::run() {
     }
 }
 void core::shutdown() {
-    lua_getglobal(main_state, "__legion_shutdown_fn");
+    lua_getglobal(main_state, luau::event_sockets::shutdown);
     if (not lua_isnil(main_state, -1) and lua_isfunction(main_state, -1)) {
         lua_pcall(main_state, 0, 0, 0);
     } else lua_pop(main_state, 1);

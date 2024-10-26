@@ -9,8 +9,8 @@ local utitity = require("utility")
 export type Pair<Ty1, Ty2> = utitity.Pair<Ty1, Ty2>
 namespace.utility = utitity
 
-local game = require("game")
-export type Mouse_button = game.Mouse_button
-namespace.game = game
+local state = require("state")
+export type Mouse_button = state.Mouse_button
+namespace.state = state
 
 return namespace

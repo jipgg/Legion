@@ -41,16 +41,23 @@ static int maximize_window(lua_State* L) {
     SDL_MaximizeWindow(core::get_window());
     return 0;
 }
-static int get_mouse_position(lua_State* L) {
+static int mouse_pos(lua_State* L) {
     int x, y;
     SDL_GetMouseState(&x, &y);
     init<common::Vec2d>(L) = {double(x), double(y)};
     return 1;
 }
+static int key_down(lua_State* L) {
+    std::string_view key = luaL_checkstring(L, 1);
+    const Uint8* state = SDL_GetKeyboardState(nullptr);
+    lua_pushboolean(L, state[string_to_scancode(key)]);
+    return 1;
+}
 void luau::builtin::init_lib(lua_State *L) {
     const luaL_Reg lib[] = {
         {"maximize_window", maximize_window},
-        {"get_mouse_position", get_mouse_position},
+        {"mouse_pos", mouse_pos},
+        {"key_down", key_down},
         {nullptr, nullptr}
     };
     lua_pushvalue(L, LUA_GLOBALSINDEX);

@@ -1,13 +1,16 @@
 #pragma once
 #include <lualib.h>
 namespace luau {
-namespace handler_keys {
-constexpr auto update = "__legion_update_handler";
-constexpr auto start = "__legion_start_handler";
-constexpr auto shutdown = "__legion_shutdown_handler";
-constexpr auto render = "__legion_render_handler";
-constexpr auto mouse_button_up = "__legion_mouse_button_up_handler";
-constexpr auto mouse_button_down = "__legion_mouse_button_down_handler";
+namespace event_sockets {
+constexpr auto update = "__builtin_update_socket";
+constexpr auto shutdown = "__builtin_shutdown_socket";
+constexpr auto render = "__builtin_render_socket";
+constexpr auto mouse_up = "__builtin_mouseup_socket";
+constexpr auto mouse_down = "__builtin_mousedown_socket";
+constexpr auto mouse_motion = "__builtin_mousemoton_socket";
+constexpr auto mouse_scroll = "__builtin_mousescroll_socket";
+constexpr auto key_down = "__builtin_keydown_socket";
+constexpr auto key_up = "__builtin_keyup_socket";
 }
 enum class Method_atom {
     /*Vec2*/ dot, unit, abs, magnitude,

@@ -6,7 +6,10 @@
 #include <memory>
 #include "engine.h"
 #include "common.h"
+#include <SDL_scancode.h>
 namespace luau {
+const char* scancode_to_string(SDL_Scancode scancode);
+SDL_Scancode string_to_scancode(std::string_view string);
 namespace intern {
 inline int unique_tag_incr{0};
 }
