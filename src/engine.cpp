@@ -197,6 +197,7 @@ static void init_state(lua_State* L) {
         Color::init_type(main_state);
         luau::Physical::init_type(main_state);
         luau::renderer::init_lib(main_state);
+        luau::builtin::init_lib(main_state);
     }
     static const luaL_Reg funcs[] = {
         {"loadstring", lua_loadstring},
@@ -227,8 +228,6 @@ void core::start(Start_options opts) {
     SDL_Init(SDL_INIT_VIDEO);// should do proper error handling here
     TTF_Init();
     IMG_Init(IMG_INIT_PNG | IMG_INIT_JPG);
-    main_state = luaL_newstate();
-    init_state(main_state);
     constexpr int undefined = SDL_WINDOWPOS_UNDEFINED;
     const int width = opts.window_size.at(0);
     const int height = opts.window_size.at(1);
@@ -243,6 +242,8 @@ void core::start(Start_options opts) {
     fns.update = opts.update_function ? opts.update_function : nullptr;
     fns.shutdown = opts.shutdown_function ? opts.shutdown_function : nullptr;
     if (opts.start_function) [[likely]] opts.start_function();
+    main_state = luaL_newstate();
+    init_state(main_state);
     lua_getglobal(main_state, "__legion_start_fn");
     if (not lua_isnil(main_state, -1) and lua_isfunction(main_state, -1)) {
         if (lua_pcall(main_state, 0, 0, 0)) {
@@ -257,6 +258,28 @@ void core::run() {
                 switch (sdl_event_dummy.type) {
                     case SDL_QUIT:
                         quitting = true;
+                    break;
+                    case SDL_KEYDOWN:
+                        lua_getglobal(main_state, "__legion_key_down");
+                        if (not lua_isnil(main_state, -1) and lua_isfunction(main_state, -1)) {
+                            switch (sdl_event_dummy.key.keysym.sym) {
+                                case SDLK_w:
+                                    lua_pushstring(main_state, "W");
+                                break;
+                                case SDLK_a:
+                                    lua_pushstring(main_state, "A");
+                                break;
+                                case SDLK_s:
+                                    lua_pushstring(main_state, "S");
+                                break;
+                                case SDLK_d:
+                                    lua_pushstring(main_state, "D");
+                                break;
+                                default:
+                                    lua_pushstring(main_state, "undefined");
+                            }
+                            lua_pcall(main_state, 1, 0, 0);
+                        } else lua_pop(main_state, 1);
                     break;
                     case SDL_MOUSEBUTTONUP:
                         lua_getglobal(main_state, luau::handler_keys::mouse_button_up);

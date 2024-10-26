@@ -64,4 +64,8 @@ namespace renderer {
     int render(lua_State* L);
     static constexpr auto lib_name{"renderer"};
 }
+namespace builtin {
+    void init_lib(lua_State* L);
+    static constexpr auto lib_name{"builtin"};
+}
 }

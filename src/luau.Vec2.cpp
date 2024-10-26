@@ -108,9 +108,14 @@ int luau::Vec2::mul(lua_State *L) {
     return 1;
 }
 int luau::Vec2::tostring(lua_State *L) {
-    std::string str = type_name + "{"s
-        + std::to_string(self(L).at(0)) + ", "
-        + std::to_string(self(L).at(1)) + "}";
+    double x_v = self(L).at(0);
+    double y_v = self(L).at(1);
+    std::string x = std::to_string(x_v);
+    std::string y = std::to_string(y_v);
+    if (std::floor(x_v) == x_v) x.erase(x.find('.'));
+    if (std::floor(y_v) == y_v) y.erase(y.find('.'));
+
+    std::string str = type_name + "{"s + x + ", " + y + "}";
     lua_pushlstring(L, str.data(), str.size());
     return 1;
 }

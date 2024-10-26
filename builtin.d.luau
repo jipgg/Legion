@@ -47,6 +47,17 @@ declare class Physical
     function bounds(self): Rect
 end
 declare function Physical(): Physical
-declare game: {
-    on_update: (delta_s: number)->()?,
+export type Key =
+    'Q' | 'W' | 'E' | 'R' | 'T' | 'Y' |
+    'U' | 'I' | 'O' | 'P' | 'A' | 'S' |
+    'D' | 'F' | 'G' | 'H' | 'J' | 'K' |
+    'L' | 'Z' | 'X' | 'C' | 'V' | 'B' |
+    'N' | 'M' | 'Space' | 'Ctrl' | 'Alt' |
+    '1' | '2' | '3' | '4' | '5' | '6' |
+    '7' | '8' | '9' | '0' | 'undefined'
+declare builtin: {
+    title: string,
+    window_size: Vec2,
+    maximize_window: () -> (),
+    get_mouse_position: () -> Vec2,
 }
