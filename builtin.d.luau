@@ -12,7 +12,6 @@ declare class Vec2
     function __unm(self): Vec2
 end
 declare function Vec2(x : number?, y: number?): Vec2
-
 declare class Rect
     x: number
     y: number
@@ -20,7 +19,6 @@ declare class Rect
     height: number
 end
 declare function Rect(x: number?, y: number?, w: number?, h: number?): Rect
-
 declare class Color
     red: number
     green: number
@@ -28,11 +26,19 @@ declare class Color
     alpha: number
 end
 declare function Color(r: number?, g: number?, b: number?, a: number?): Color
-
 declare renderer: {
     fill: (Rect) -> (),
     draw: (Rect) -> (),
 }
+declare builtin: {
+    title: string,
+    window_size: Vec2,
+    maximize_window: () -> (),
+    mouse_pos: () -> Vec2,
+    key_down: (key: Keycode) -> boolean,
+    point_in_rect: (point: Vec2, rect: Rect) -> boolean,
+}
+declare function collectgarbage(opt: ("collect" | "count")?): ()
 declare class Physical
     position: Vec2
     velocity: Vec2
@@ -47,17 +53,13 @@ declare class Physical
     function bounds(self): Rect
 end
 declare function Physical(): Physical
-export type Key =
-    'esc'|'f1'|'f2'|'f3'|'f4'|'f5'|'f6'|'f7'|'f8'|'f9'|'f10'|'f11'|'f12'|
+export type Mousebutton = "Left" | "Right"| "Middle"
+export type Keycode = 'esc'|'f1'|'f2'|'f3'|'f4'|'f5'|'f6'|'f7'|'f8'|'f9'|'f10'|'f11'|'f12'|
     '1'|'2'|'3'|'4'|'5'|'6'|'7'|'8'|'9'|'0'|'minus'|'equals'|'backspace'|
     'q'|'w'|'e'|'r'|'t'|'y'|'u'|'i'|'o'|'p'|'backslash'|
     'a'|'s'|'d'|'f'|'g'|'h'|'j'|'k'|'l'|'enter'|
     'z'|'x'|'c'|'v'|'b'|'n'|'n'|'m'|'comma'|'period'|'slash'|
     'lshift'|'lctrl'|'lalt'|'space'|'ralt'|'left'|'up'|'down'|'right'
-declare builtin: {
-    title: string,
-    window_size: Vec2,
-    maximize_window: () -> (),
-    mouse_pos: () -> Vec2,
-    key_down: (key: Key) -> boolean,
-}
+export type Weak_k = 'k'
+export type Weak_v = 'v'
+export type Weak_kv = 'kv'

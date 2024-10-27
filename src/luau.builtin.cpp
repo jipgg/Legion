@@ -2,6 +2,7 @@
 #include <SDL.h>
 #include "engine.h"
 #include "luau.h"
+#include "systems.h"
 using namespace  luau;
 using namespace engine;
 using namespace std::string_literals;
@@ -53,11 +54,18 @@ static int key_down(lua_State* L) {
     lua_pushboolean(L, state[string_to_scancode(key)]);
     return 1;
 }
+static int point_in_rect(lua_State* L) {
+    auto& p = luau::ref<common::Vec2d>(L, 1);
+    auto& r = luau::ref<common::Recti64>(L, 2);
+    lua_pushboolean(L, systems::solvers::is_in_bounds(p, r));
+    return 1;
+}
 void luau::builtin::init_lib(lua_State *L) {
     const luaL_Reg lib[] = {
         {"maximize_window", maximize_window},
         {"mouse_pos", mouse_pos},
         {"key_down", key_down},
+        {"point_in_rect", point_in_rect},
         {nullptr, nullptr}
     };
     lua_pushvalue(L, LUA_GLOBALSINDEX);

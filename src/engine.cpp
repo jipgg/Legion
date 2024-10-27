@@ -125,23 +125,17 @@ static int lua_require(lua_State* L) {
     return finishrequire(L);
 }
 
-static int lua_collectgarbage(lua_State* L)
-{
+static int lua_collectgarbage(lua_State* L) {
     const char* option = luaL_optstring(L, 1, "collect");
-
-    if (strcmp(option, "collect") == 0)
-    {
+    if (strcmp(option, "collect") == 0) {
         lua_gc(L, LUA_GCCOLLECT, 0);
         return 0;
     }
-
-    if (strcmp(option, "count") == 0)
-    {
+    if (strcmp(option, "count") == 0) {
         int c = lua_gc(L, LUA_GCCOUNT, 0);
         lua_pushnumber(L, c);
         return 1;
     }
-
     luaL_error(L, "collectgarbage must be called with 'count' or 'collect'");
 }
 

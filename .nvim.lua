@@ -7,7 +7,7 @@ require"lspconfig".luau_lsp.setup {
             },
             require = {
                 mode = "relativeToFile",
-                --directoryAliases = {legion = "./legion_luau/"},
+                directoryAliases = {["@legion"] = "./legion_luau/"},
             },
         }
     }
