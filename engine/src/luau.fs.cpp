@@ -17,6 +17,16 @@ static sfs::copy_options to_copy_options(std::string_view str) {
     else opt = copts::none;
     return opt;
 }
+static sfs::file_type to_file_type(std::string_view str) {
+    using ft = sfs::file_type;
+    ft t;
+    if (str == "none") t = ft::none;
+    else if (str == "junction") t = ft::junction;
+    else if (str == "fifo") t = ft::fifo;
+    else if (str == "block") t = ft::block;
+    else if (str == "socket") t = ft::socket;
+    return t;
+}
 static int create_directory(lua_State* L) {
     sfs::path path = luaL_checkstring(L, 1);
     if (sfs::create_directory(path)) lua_pushboolean(L, true);
@@ -74,6 +84,11 @@ static int status(lua_State* L) {
     using ft = sfs::file_type;
     switch (file_status.type()) {
         case ft::fifo:
+            lua_pushstring(L, "fifo");
+        break;
+        case ft::socket:
+            lua_pushstring(L, "socket");
+        break;
 
     }
 }

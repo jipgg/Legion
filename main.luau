@@ -1,4 +1,4 @@
-local lg = require '@legion'
+local lg = require '@Legion'
 local state = lg.state
 
 local dummy = Physical()

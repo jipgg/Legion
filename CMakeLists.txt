@@ -13,7 +13,7 @@ find_package(SDL2_mixer REQUIRED)
 find_package(blaze REQUIRED)
 add_subdirectory(ext/Luau)
 
-file(GLOB SOURCE_FILES src/*.cpp)
+file(GLOB SOURCE_FILES engine/src/*.cpp)
 if (LINUX)
     add_executable(Legion ${SOURCE_FILES})
 elseif(WIN32)

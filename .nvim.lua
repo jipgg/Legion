@@ -1,5 +1,5 @@
 require"lspconfig".luau_lsp.setup {
-    cmd = {"luau-lsp", "lsp", "--definitions=builtin.d.luau"},
+    cmd = {"luau-lsp", "lsp", "--definitions=typedefs.d.luau"},
     settings = {
         ["luau-lsp"] = {
             platform = {
@@ -7,7 +7,7 @@ require"lspconfig".luau_lsp.setup {
             },
             require = {
                 mode = "relativeToFile",
-                directoryAliases = {["@legion"] = "./legion_luau/"},
+                directoryAliases = {["@Legion"] = "./engine/luau/"},
             },
         }
     }
