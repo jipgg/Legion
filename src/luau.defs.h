@@ -12,6 +12,20 @@ constexpr auto mouse_scroll = "__builtin_mousescroll_socket";
 constexpr auto key_down = "__builtin_keydown_socket";
 constexpr auto key_up = "__builtin_keyup_socket";
 }
+namespace metamethod {
+constexpr auto type = "__type";
+constexpr auto namecall = "__namecall";
+constexpr auto index = "__index";
+constexpr auto newindex = "__newindex";
+constexpr auto add = "__add";
+constexpr auto sub = "__sub";
+constexpr auto unm = "__unm";
+constexpr auto mul = "__mul";
+constexpr auto div = "__div";
+constexpr auto tostring = "__tostring";
+constexpr auto iter = "__iter";
+constexpr auto len = "__len";
+}
 enum class Method_atom {
     /*Vec2*/ dot, unit, abs, magnitude,
     /*Rect*/ bounds
@@ -70,5 +84,9 @@ namespace renderer {
 namespace builtin {
     void init_lib(lua_State* L);
     static constexpr auto lib_name{"builtin"};
+}
+namespace fs {
+    void init_lib(lua_State* L);
+    static constexpr auto lib_name{"fs"};
 }
 }

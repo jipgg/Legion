@@ -1,3 +1,5 @@
+export type map<Key, Elem> = {[Key]: Elem}
+export type table<Elem> = {Elem}
 declare class Vec2
     x: number
     y: number
@@ -37,6 +39,7 @@ declare builtin: {
     mouse_pos: () -> Vec2,
     key_down: (key: Keycode) -> boolean,
     point_in_rect: (point: Vec2, rect: Rect) -> boolean,
+    read_text_file: (path: string) -> string?,
 }
 declare function collectgarbage(opt: ("collect" | "count")?): ()
 declare class Physical
@@ -63,3 +66,18 @@ export type Keycode = 'esc'|'f1'|'f2'|'f3'|'f4'|'f5'|'f6'|'f7'|'f8'|'f9'|'f10'|'
 export type Weak_k = 'k'
 export type Weak_v = 'v'
 export type Weak_kv = 'kv'
+export type copy_options = "recursive" | "copy_symlinks"|
+    "skip_symlinks" | "skip_existing" | "update_existing" |
+    "create_symlinks" | "directories_only" | "create_hard_links" |
+    "overwrite_existing"
+declare fs: {
+    create_directory: (path: string) -> boolean,
+    exists: (path: string) -> boolean,
+    is_character_file: (path: string) -> boolean,
+    copy_file: (from: string, to: string, opt: copy_options?) -> boolean,
+    rename: (from: string, to: string) -> (),
+    remove: (path: string) -> boolean,
+    remove_all: (path: string) -> number,
+    copy: (from: string, to: string, opt: copy_options?) -> (),
+    absolute: (path: string) -> string,
+}

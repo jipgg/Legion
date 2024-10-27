@@ -15,10 +15,12 @@ static Self& rself(lua_State* L) {
 void luau::Rect::init_type(lua_State* L) {
     if (luaL_newmetatable(L, metatable_name<Self>())) {
      const luaL_Reg metadata [] = {
-            {"__index", index},
-            {"__tostring", tostring},
+            {metamethod::index, index},
+            {metamethod::tostring, tostring},
             {nullptr, nullptr}
         };
+        lua_pushstring(L, type_name);
+        lua_setfield(L, -2, metamethod::type);
         luaL_register(L, nullptr, metadata);
         lua_pop(L, 1);
         lua_pushcfunction(L, ctor, type_name);

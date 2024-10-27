@@ -1,6 +1,6 @@
 --!strict
-local Event = require("Event")
-local state = require("state")
+local Event = require 'Event'
+local state = require 'state'
 type Click_event = Event.Event<Vec2>
 export type Button = {
     hit_area: Rect,
@@ -9,9 +9,13 @@ export type Button = {
     _mouse_released_cnnc: Event.Connection,
     _render_cnnc: Event.Connection,
     __index: Button,
-    __mode: Weak_v,
+    __mode: 'v',
+    __type: 'Button',
 }
-local Button: Button = {}::never
+local Button: Button = {
+    __mode = 'v',
+    __type = 'Button',
+}::Button
 Button.__index = Button
 
 function Button:destroy()
@@ -33,6 +37,6 @@ function class.new(t: {hit_area: Rect?}): Button
     self._render_cnnc = state.rendering:connect(function()
         renderer.fill(self.hit_area)
     end)
-    return setmetatable(self, Button)::never
+    return setmetatable(self, Button)::any
 end
 return class

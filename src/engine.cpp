@@ -185,14 +185,13 @@ static void init_state(lua_State* L) {
         auto e = comptime::enum_item<luau::Method_atom, count>(name);
         return static_cast<int16_t>(e.index);
     };
-    {using namespace luau;
-        Vec2::init_type(main_state);
-        Rect::init_type(main_state);
-        Color::init_type(main_state);
-        luau::Physical::init_type(main_state);
-        luau::renderer::init_lib(main_state);
-        luau::builtin::init_lib(main_state);
-    }
+    luau::Vec2::init_type(main_state);
+    luau::Rect::init_type(main_state);
+    luau::Color::init_type(main_state);
+    luau::Physical::init_type(main_state);
+    luau::renderer::init_lib(main_state);
+    luau::builtin::init_lib(main_state);
+    luau::fs::init_lib(main_state);
     static const luaL_Reg funcs[] = {
         {"loadstring", lua_loadstring},
         {"require", lua_require},

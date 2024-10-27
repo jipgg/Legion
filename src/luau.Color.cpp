@@ -8,9 +8,11 @@ using Self = common::Coloru32;
 void luau::Color::init_type(lua_State *L) {
     luaL_newmetatable(L, luau::metatable_name<Self>());
     const luaL_Reg metadata[] = {
-        {"__index", index},
+        {metamethod::index, index},
         {nullptr, nullptr}
     };
+    lua_pushstring(L, type_name);
+    lua_setfield(L, -2, metamethod::type);
     luaL_register(L, nullptr, metadata);
     lua_pop(L, 1);
     lua_pushcfunction(L, ctor, type_name);

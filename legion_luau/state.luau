@@ -1,4 +1,5 @@
-local Event = require "Event"
+--!strict
+local Event = require 'Event'
 type Event<Ts...> = Event.Event<Ts...>
 local namespace = {
     updating = Event.create()::Event<number>,
@@ -11,12 +12,14 @@ local namespace = {
 }
 _G["__builtin_update_socket"] = function(delta_s: number)
     namespace.updating:fire(delta_s)
+    collectgarbage("collect")
 end
 _G["__builtin_render_socket"] = function()
     namespace.rendering:fire()
 end
 _G["__builtin_shutdown_socket"] = function()
     namespace.shutting_down:fire()
+    collectgarbage("collect")
 end
 _G["__builtin_mousedown_socket"] = function(button: Mousebutton, mouse_pos: Vec2)
     namespace.mouse_pressed:fire(button, mouse_pos)

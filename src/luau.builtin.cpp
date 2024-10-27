@@ -60,12 +60,21 @@ static int point_in_rect(lua_State* L) {
     lua_pushboolean(L, systems::solvers::is_in_bounds(p, r));
     return 1;
 }
+static int read_file(lua_State* L) {
+    std::filesystem::path path = luaL_checkstring(L, 1);
+    if (auto contents = common::read_file(path)) {
+        lua_pushstring(L, contents->c_str());
+        return 1;
+    }
+    return 0;
+}
 void luau::builtin::init_lib(lua_State *L) {
     const luaL_Reg lib[] = {
         {"maximize_window", maximize_window},
         {"mouse_pos", mouse_pos},
         {"key_down", key_down},
         {"point_in_rect", point_in_rect},
+        {"read_text_file", read_file},
         {nullptr, nullptr}
     };
     lua_pushvalue(L, LUA_GLOBALSINDEX);

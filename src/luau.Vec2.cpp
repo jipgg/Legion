@@ -27,18 +27,21 @@ static Self& other(lua_State* L) {
 }
 void luau::Vec2::init_type(lua_State* L) {
     luaL_newmetatable(L, metatable_name<Self>());
+    namespace mm = metamethod;
     const luaL_Reg metadata [] = {
-        {"__index", index},
-        {"__add", add},
-        {"__mul", mul},
-        {"__unm", unm},
-        {"__div", div},
-        {"__sub", sub},
-        {"__namecall", namecall},
-        {"__newindex", newindex},
-        {"__tostring", tostring},
+        {mm::index, index},
+        {mm::add, add},
+        {mm::mul, mul},
+        {mm::unm, unm},
+        {mm::div, div},
+        {mm::sub, sub},
+        {mm::namecall, namecall},
+        {mm::newindex, newindex},
+        {mm::tostring, tostring},
         {nullptr, nullptr}
     };
+    lua_pushstring(L, type_name);
+    lua_setfield(L, -2, mm::type);
     luaL_register(L, nullptr, metadata);
     lua_pop(L, 1);
     lua_pushcfunction(L, ctor, type_name);
