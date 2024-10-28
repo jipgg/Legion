@@ -13,7 +13,7 @@ find_package(SDL2_ttf REQUIRED)
 find_package(SDL2_image REQUIRED)
 find_package(SDL2_mixer REQUIRED)
 find_package(blaze REQUIRED)
-add_subdirectory(ext/Luau)
+add_subdirectory(extern/luau)
 
 file(GLOB source_files
     ${source_dir}/*.cpp
