@@ -266,13 +266,13 @@ void core::run() {
                         if (not lua_isnil(main_state, -1) and lua_isfunction(main_state, -1)) {
                             switch (sdl_event_dummy.button.button) {
                                 case SDL_BUTTON_LEFT:
-                                    lua_pushstring(main_state, "Left");
+                                    lua_pushstring(main_state, "left");
                                 break;
                                 case SDL_BUTTON_RIGHT:
-                                    lua_pushstring(main_state, "Right");
+                                    lua_pushstring(main_state, "right");
                                 break;
                                 case SDL_BUTTON_MIDDLE:
-                                    lua_pushstring(main_state, "Middle");
+                                    lua_pushstring(main_state, "middle");
                                 break;
 
                             }
@@ -288,15 +288,14 @@ void core::run() {
                         if (not lua_isnil(main_state, -1) and lua_isfunction(main_state, -1)) {
                             switch (sdl_event_dummy.button.button) {
                                 case SDL_BUTTON_LEFT:
-                                    lua_pushstring(main_state, "Left");
+                                    lua_pushstring(main_state, "left");
                                 break;
                                 case SDL_BUTTON_RIGHT:
-                                    lua_pushstring(main_state, "Right");
+                                    lua_pushstring(main_state, "right");
                                 break;
                                 case SDL_BUTTON_MIDDLE:
-                                    lua_pushstring(main_state, "Middle");
+                                    lua_pushstring(main_state, "middle");
                                 break;
-
                             }
                             luau::init<common::Vec2d>(main_state) = {
                                 double(sdl_event_dummy.button.x),

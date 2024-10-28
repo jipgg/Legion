@@ -1,9 +1,9 @@
 --!strict
 local Event = require 'Event'
 local state = require 'state'
-type Click_event = Event.Event<Vec2>
+type Click_event = Event.Event<vec2d>
 export type Button = {
-    hit_area: Rect,
+    hit_area: recti64,
     clicked: Click_event,
     destroy: (Button) -> (),
     _mouse_released_cnnc: Event.Connection,
@@ -25,11 +25,11 @@ function Button:destroy()
 end
 
 local class = {}
-function class.new(t: {hit_area: Rect?}): Button
+function class.new(t: {hit_area: recti64?}): Button
     local self = t::Button
-    self.hit_area = t.hit_area or Rect()
+    self.hit_area = t.hit_area or recti64()
     self.clicked = Event.create()::Click_event
-    self._mouse_released_cnnc = state.mouse_released:connect(function(button: Mousebutton, pos: Vec2)
+    self._mouse_released_cnnc = state.mouse_released:connect(function(button: mouse_button_type, pos: vec2d)
         if builtin.point_in_rect(pos, self.hit_area) then
             self.clicked:fire(pos)
         end

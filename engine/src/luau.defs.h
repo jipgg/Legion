@@ -28,7 +28,12 @@ constexpr auto len = "__len";
 }
 enum class Method_atom {
     /*Vec2*/ dot, unit, abs, magnitude,
-    /*Rect*/ bounds
+    /*fs_path*/ stem, empty, filename,
+    has_stem, root_path, parent_path, is_relative,
+    is_absolute, has_extension, extension, replace_extension,
+    relative_path, has_relative_path, compare, root_name,
+    root_directory, has_root_path, has_root_name, has_root_directory,
+    /*Rect*/ bounds /*last one always*/
 };
 struct Vec2 {
     static void init_type(lua_State* L);
@@ -43,7 +48,7 @@ struct Vec2 {
     static int metatable(lua_State* L);
     static int namecall(lua_State* L);
     static int tostring(lua_State* L);
-    static constexpr auto type_name{"Vec2"};
+    static constexpr auto type_name{"vec2d"};
     enum class Field {x, y};
 };
 struct Rect {
@@ -51,7 +56,7 @@ struct Rect {
     static int ctor(lua_State* L);
     static int index(lua_State* L);
     static int tostring(lua_State* L);
-    static constexpr auto type_name{"Rect"};
+    static constexpr auto type_name{"recti64"};
     enum class Field {x, y, width, height};
 };
 struct Color {
@@ -60,7 +65,7 @@ struct Color {
     static int index(lua_State* L);
     static int tostring(lua_State* L);
     enum class Field{red, green, blue, alpha};
-    static constexpr auto type_name{"Color"};
+    static constexpr auto type_name{"coloru32"};
 };
 struct Physical {
     static void init_type(lua_State* L);
@@ -72,7 +77,7 @@ struct Physical {
     enum class Field{position, velocity, acceleration,
         welded, falling, obstructed, elasticity_coeff,
         friction_coeff, mass, size};
-    static constexpr auto type_name{"Physical"};
+    static constexpr auto type_name{"physical_component"};
 };
 namespace renderer {
     void init_lib(lua_State* L);
