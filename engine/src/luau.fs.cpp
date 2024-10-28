@@ -163,6 +163,72 @@ static int file_type(lua_State* L) {//doesnt work
     */
     return 1;
 }
+static int directory_iterator(lua_State* L) {
+    auto path = resolve_type(L, 1);
+    assert(path.has_value());
+    lua_newtable(L);
+    if (path->empty()) return 1;
+    int i{};
+    for (auto& entry : sfs::directory_iterator(*path)) {
+        ++i;
+        lua_pushinteger(L, i);
+        luau::init<sfs::directory_entry>(L, entry);
+        lua_settable(L, -3);
+    }
+    return 1;
+}
+static int recursive_directory_iterator(lua_State* L) {
+    auto path = resolve_type(L, 1);
+    assert(path.has_value());
+    lua_newtable(L);
+    if (path->empty()) return 1;
+    int i{};
+    for (auto& entry : sfs::recursive_directory_iterator(*path)) {
+        ++i;
+        lua_pushinteger(L, i);
+        luau::init<sfs::directory_entry>(L, entry);
+        lua_settable(L, -3);
+    }
+    return 1;
+}
+
+static int directory_entry_namecall(lua_State* L) {
+    auto& r = luau::ref<sfs::directory_entry>(L, 1);
+    int atom{};
+    lua_namecallatom(L, &atom);
+    using ma = luau::Method_atom;
+    switch (static_cast<ma>(atom)) {
+        case ma::is_directory:
+            lua_pushboolean(L, r.is_directory());
+            return 1;
+        case ma::is_fifo:
+            lua_pushboolean(L, r.is_fifo());
+            return 1;
+        case ma::path:
+            luau::init<sfs::path>(L, r.path());
+            return 1;
+        case ma::is_socket:
+            lua_pushboolean(L, r.is_socket());
+            return 1;
+        case ma::is_other:
+            lua_pushboolean(L, r.is_other());
+            return 1;
+        case ma::is_symlink:
+            lua_pushboolean(L, r.is_symlink());
+            return 1;
+        case ma::is_block_file:
+            lua_pushboolean(L, r.is_block_file());
+            return 1;
+        case ma::is_regular_file:
+            lua_pushboolean(L, r.is_regular_file());
+            return 1;
+        case ma::is_character_file:
+            lua_pushboolean(L, r.is_character_file());
+            return 1;
+        default: return 0;
+    }
+    return 0;
+}
 
 static int path_div(lua_State* L) {
     sfs::path lhs;
@@ -281,6 +347,8 @@ void luau::fs::init_lib(lua_State *L) {
         {"is_empty", is_empty},
         {"file_type", file_type},
         {"path", path_ctor},
+        {"directory_iterator", directory_iterator},
+        {"recursive_directory_iterator", recursive_directory_iterator},
         {nullptr, nullptr}
     };
     lua_pushvalue(L, LUA_GLOBALSINDEX);
@@ -294,5 +362,12 @@ void luau::fs::init_lib(lua_State *L) {
         {nullptr, nullptr}
     };
     luaL_register(L, nullptr, path);
+    lua_pop(L, 1);
+    luaL_newmetatable(L, luau::metatable_name<sfs::directory_entry>());
+    const luaL_Reg directory_entry[] = {
+        {metamethod::namecall, directory_entry_namecall},
+        {nullptr, nullptr}
+    };
+    luaL_register(L, nullptr, directory_entry);
     lua_pop(L, 1);
 }

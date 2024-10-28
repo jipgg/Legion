@@ -96,6 +96,18 @@ declare class fs_path
     function __tostring(self): string
     function __div(self, other: string | fs_path): fs_path
 end
+declare class fs_directory_entry
+    function is_directory(self): boolean
+    function is_fifo(self): boolean
+    function path(self): fs_path
+    function is_socket(self): boolean
+    function is_other(self): boolean
+    function is_symlink(self): boolean
+    function is_block_file(self): boolean
+    function is_regular_file(self): boolean
+    function is_character_file(self): boolean
+end
+export type path = fs_path | string
 declare fs: {
     create_directory: (path: fs_path | string) -> boolean,
     exists: (path: fs_path | string) -> boolean,
@@ -107,4 +119,6 @@ declare fs: {
     copy: (from: fs_path | string, to: fs_path | string, opt: fs_copy_options?) -> (),
     absolute: (path: fs_path | string) -> fs_path,
     path: (str: string) -> fs_path,
+    directory_iterator: (path: fs_path | string) -> table<fs_directory_entry>,
+    recursive_directory_iterator: (path: path) -> table<fs_directory_entry>,
 }

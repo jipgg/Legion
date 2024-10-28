@@ -17,6 +17,9 @@ print(`my_path = {my_path}`)
 print(`extension {my_path:parent_path()}`)
 print(my_path:root_path())
 print(my_path:has_stem(), my_path:stem(), my_path:filename():empty())
+for i, v in fs.recursive_directory_iterator(fs.path("engine")) do
+    print(`i is {i}, v is {v:path()}`)
+end
 
 state.key_pressed:connect(function(key: keycode)
     if key == "a" then
