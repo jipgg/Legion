@@ -163,7 +163,7 @@ static int file_type(lua_State* L) {//doesnt work
     */
     return 1;
 }
-static int directory_iterator(lua_State* L) {
+static int children_of(lua_State* L) {
     auto path = resolve_type(L, 1);
     assert(path.has_value());
     lua_newtable(L);
@@ -177,7 +177,7 @@ static int directory_iterator(lua_State* L) {
     }
     return 1;
 }
-static int recursive_directory_iterator(lua_State* L) {
+static int descendants_of(lua_State* L) {
     auto path = resolve_type(L, 1);
     assert(path.has_value());
     lua_newtable(L);
@@ -347,8 +347,8 @@ void luau::fs::init_lib(lua_State *L) {
         {"is_empty", is_empty},
         {"file_type", file_type},
         {"path", path_ctor},
-        {"directory_iterator", directory_iterator},
-        {"recursive_directory_iterator", recursive_directory_iterator},
+        {"children_of", children_of},
+        {"descendants_of", descendants_of},
         {nullptr, nullptr}
     };
     lua_pushvalue(L, LUA_GLOBALSINDEX);

@@ -119,6 +119,6 @@ declare fs: {
     copy: (from: fs_path | string, to: fs_path | string, opt: fs_copy_options?) -> (),
     absolute: (path: fs_path | string) -> fs_path,
     path: (str: string) -> fs_path,
-    directory_iterator: (path: fs_path | string) -> table<fs_directory_entry>,
-    recursive_directory_iterator: (path: path) -> table<fs_directory_entry>,
+    children_of: (path: fs_path | string) -> table<fs_directory_entry>,
+    descendants_of: (path: path) -> table<fs_directory_entry>,
 }
