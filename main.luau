@@ -1,7 +1,6 @@
 --!strict
 local lg = require '@Legion'
 local state = lg.state
-
 local dummy = physical_component()
 dummy.velocity = vec2d(100, 100)
 local a = dummy:bounds();

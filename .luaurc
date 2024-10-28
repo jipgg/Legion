@@ -1,5 +1,5 @@
 {
     "aliases": {
-        "Legion": "./engine/luau/"
+        "Legion": "./require/"
     }
 }

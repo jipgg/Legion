@@ -2,3 +2,5 @@
 cmake-out/
 bin/
 *.ps1
+*.cpp_
+*.h_

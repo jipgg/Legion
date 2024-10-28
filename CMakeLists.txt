@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.22.2)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+set(source_dir ${CMAKE_SOURCE_DIR}/src)
+set(include_dir ${CMAKE_SOURCE_DIR}/include)
 
 project(Legion LANGUAGES CXX C)
 
@@ -13,12 +15,17 @@ find_package(SDL2_mixer REQUIRED)
 find_package(blaze REQUIRED)
 add_subdirectory(ext/Luau)
 
-file(GLOB SOURCE_FILES engine/src/*.cpp)
+file(GLOB source_files
+    ${source_dir}/*.cpp
+    ${source_dir}/common/*.cpp
+    ${source_dir}/builtin/*.cpp
+)
 if (LINUX)
-    add_executable(Legion ${SOURCE_FILES})
+    add_executable(Legion ${source_files})
 elseif(WIN32)
-    add_executable(Legion WIN32 ${SOURCE_FILES})
+    add_executable(Legion WIN32 ${source_files})
 endif()
+target_include_directories(Legion PRIVATE ${include_dir})
 target_link_libraries(Legion PRIVATE
     SDL2::SDL2main
     SDL2::SDL2
