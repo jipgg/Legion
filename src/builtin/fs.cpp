@@ -290,6 +290,34 @@ static int path_ctor(lua_State* L) {
     return 1;
 }
 
+static const luaL_Reg fs_lib[] = {
+    {"create_directory", create_directory},
+    {"exists", exists},
+    {"is_character_file", is_character_file},
+    {"copy_file", copy_file},
+    {"rename", rename},
+    {"remove", remove},
+    {"remove_all", remove_all},
+    {"copy", copy},
+    {"is_directory", is_directory},
+    {"absolute", absolute},
+    {"is_empty", is_empty},
+    {"children_of", children_of},
+    {"descendants_of", descendants_of},
+    {"path", path_ctor},
+    {nullptr, nullptr}
+};
+static const luaL_Reg path_metatable[] = {
+    {builtin::metamethod::tostring, path_tostring},
+    {builtin::metamethod::div, path_div},
+    {builtin::metamethod::namecall, path_namecall},
+    {nullptr, nullptr}
+};
+const luaL_Reg directory_entry_metatable[] = {
+    {builtin::metamethod::namecall, directory_entry_namecall},
+    {nullptr, nullptr}
+};
+
 void builtin::fs_init_lib(lua_State *L) {
     const luaL_Reg lib[] = {
         {"create_directory", create_directory},
@@ -303,7 +331,6 @@ void builtin::fs_init_lib(lua_State *L) {
         {"is_directory", is_directory},
         {"absolute", absolute},
         {"is_empty", is_empty},
-        {"path", path_ctor},
         {"children_of", children_of},
         {"descendants_of", descendants_of},
         {nullptr, nullptr}
@@ -327,4 +354,19 @@ void builtin::fs_init_lib(lua_State *L) {
     };
     luaL_register(L, nullptr, directory_entry);
     lua_pop(L, 1);
+    lua_pushcfunction(L, path_ctor, "Path");
+    lua_setglobal(L, "Path");
+}
+int builtin::fs_import_lib(lua_State *L) {
+    if (luaL_newmetatable(L, builtin::metatable_name<sfs::path>())) {
+        luaL_register(L, nullptr, path_metatable);
+        lua_pop(L, 1);
+    }
+    if (luaL_newmetatable(L, builtin::metatable_name<sfs::directory_entry>())) {
+        luaL_register(L, nullptr, directory_entry_metatable);
+        lua_pop(L, 1);
+    }
+    lua_newtable(L);
+    luaL_register(L, nullptr, fs_lib);
+    return 1;
 }

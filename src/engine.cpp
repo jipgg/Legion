@@ -183,20 +183,20 @@ static void init_state(lua_State* L) {
         return static_cast<int16_t>(e.index);
     };
     {using namespace builtin;
-        init_types(L);
         vec2d_init_type(L);
         recti64_init_type(L);
         coloru32_init_type(L);
         physical_init_type(L);
         renderer_init_lib(L);
         builtin_init_lib(L);
-        fs_init_lib(L);
+        sdl_init_lib(L);
     }
     static const luaL_Reg funcs[] = {
         {"loadstring", lua_loadstring},
         {"require", lua_require},
         {"collectgarbage", lua_collectgarbage},
-        {NULL, NULL},
+        {"__builtin_import_filesystem", builtin::fs_import_lib},
+        {NULL, NULL}
     };
     lua_pushvalue(L, LUA_GLOBALSINDEX);
     luaL_register(L, NULL, funcs);

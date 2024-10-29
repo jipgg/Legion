@@ -1,24 +1,24 @@
 --!strict
-local lg = require '@Legion'
-local state = lg.state
-local dummy = physical_component()
-dummy.velocity = vec2d(100, 100)
-local a = dummy:bounds();
-print(dummy.velocity:unit())
-print(dummy.size.x)
-print(a)
-print(builtin.title, builtin.window_size)
-local rect = recti64(100, 100, 200, 100)
+local fs = require '@Legion/filesystem'
+local state = require '@Legion/state'
 
+local rect = Recti64(100, 100, 200, 100)
 local resources = fs.path("resources");
-local jw = resources / "jw.png"
+local jw: fs.path = resources / "jw.png"
+local font = sdl.open_font(tostring(resources / "main_font.ttf"), 16);
+if font then
+    print("nice font bro")
+end
+local p = SDL_Point(100, 100)
+print(p)
 if fs.exists(jw) then
-    local text, w, h = sdl.texture(tostring(jw))
-    if text then
-        print(typeof(text), w, h)
+    local texture, w, h = sdl.load_image(tostring(jw))
+    if texture then
+        print(typeof(texture), w, h)
         print("ok")
         state.rendering:connect(function()
-            renderer.render(text, recti64(0, 0, w, h))
+            sdl.render.set_draw_color(Coloru32(0xffffffff))
+            sdl.render.render_copy(texture, SDL_Rect(0, 0, w * .2, h * .2))
         end)
     else
         print("not ok")
@@ -38,5 +38,5 @@ state.key_released:connect(function(key: keycode)
         print("up")
     end
 end)
-state.mouse_pressed:connect(function(mouse: mouse_button_type, pos: vec2d)
+state.mouse_pressed:connect(function(mouse: mouse_button_type, pos: Vec2d)
 end)

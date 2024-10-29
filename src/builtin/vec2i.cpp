@@ -1,6 +1,7 @@
 #include "builtin/definitions.h"
 #include "builtin/utility.h"
 #include "builtin/method_atom.h"
+#include "builtin/typedefs.h"
 #include "common/common.h"
 #include <lua.h>
 #include <lualib.h>
@@ -12,9 +13,9 @@ using namespace std::string_literals;
 namespace bi = builtin;
 namespace cm = common;
 using field = bi::vec2_field;
-using type = cm::vec2i;
+using type = bi::vec2i_t;
 using method = bi::method_atom;
-static constexpr auto type_name = "vec2i";
+static constexpr auto type_name = "Vec2i";
 static constexpr auto field_count = comptime::count<field, field::y>();
 static type& self(lua_State* L) {return bi::check<type>(L, 1);}
 static type& init_t(lua_State* L) {return bi::create<type>(L);}

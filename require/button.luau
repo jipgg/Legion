@@ -1,21 +1,21 @@
 --!strict
 local event = require 'event'
 local state = require 'state'
-type click_event = event.event<vec2d>
-export type button = {
-    hit_area: recti64,
+type click_event = event.event<Vec2d>
+export type Button = {
+    hit_area: Recti64,
     clicked: click_event,
-    destroy: (button) -> (),
+    destroy: (Button) -> (),
     _mouse_released_cnnc: event.connection,
     _render_cnnc: event.connection,
-    __index: button,
+    __index: Button,
     __mode: 'v',
     __type: 'button',
 }
-local button: button = {
+local button: Button = {
     __mode = 'v',
     __type = 'button',
-}::button
+}::Button
 button.__index = button
 
 function button:destroy()
@@ -24,11 +24,11 @@ function button:destroy()
     self.clicked:destroy()
 end
 
-function construct(t: {hit_area: recti64?}): button
-    local self = t::button
-    self.hit_area = t.hit_area or recti64()
-    self.clicked = event()::click_event
-    self._mouse_released_cnnc = state.mouse_released:connect(function(button: mouse_button_type, pos: vec2d)
+function construct(t: {hit_area: Recti64?}): Button
+    local self = t::Button
+    self.hit_area = t.hit_area or Recti64()
+    self.clicked = event()
+    self._mouse_released_cnnc = state.mouse_released:connect(function(button: mouse_button_type, pos: Vec2d)
         if builtin.point_in_rect(pos, self.hit_area) then
             self.clicked:fire(pos)
         end

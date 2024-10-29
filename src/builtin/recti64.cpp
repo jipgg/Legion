@@ -1,6 +1,7 @@
 #include "common/common.h"
 #include "builtin/definitions.h"
 #include "builtin/utility.h"
+#include "builtin/typedefs.h"
 #include <lua.h>
 #include <lualib.h>
 #include <luaconf.h>
@@ -9,8 +10,8 @@
 #include "common/comptime.h"
 using namespace std::string_literals;
 enum class field {x, y, width, height};
-static constexpr auto type_name{"recti64"};
-using type = common::recti64;
+static constexpr auto type_name{"Recti64"};
+using type = builtin::recti64_t;
 static type& rself(lua_State* L) {
     return builtin::check<type>(L, 1);
 }

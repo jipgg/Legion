@@ -13,7 +13,7 @@ using method = builtin::method_atom;
 enum class field{position, velocity, acceleration,
     welded, falling, obstructed, elasticity_coeff,
     friction_coeff, mass, size};
-static constexpr auto type_name{"physical_component"};
+static constexpr auto type_name{"Physical_component"};
 using type = component::raii_wrapper<types::physical_component>;
 namespace cm = common;
 static constexpr auto fields = comptime::to_array<field, size_t(field::size) + 1>();

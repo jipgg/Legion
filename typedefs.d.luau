@@ -1,83 +1,97 @@
-export type map<Key, Elem> = {[Key]: Elem}
-export type table<Elem> = {Elem}
-export type bool = boolean
-declare class vec2d
+declare class Vec2d
     x: number
     y: number
-    function dot(self, a: vec2d): number
-    function unit(self): vec2d
+    function dot(self, a: Vec2d): number
+    function unit(self): Vec2d
     function magnitude(self): number
-    function abs(self): vec2d
-    function __add(self, a: vec2d): vec2d
-    function __mul(self, scalar: number): vec2d
-    function __div(self, scalar: number): vec2d
-    function __sub(self, a: vec2d): vec2d
-    function __unm(self): vec2d
+    function abs(self): Vec2d
+    function __add(self, a: Vec2d): Vec2d
+    function __mul(self, scalar: number): Vec2d
+    function __div(self, scalar: number): Vec2d
+    function __sub(self, a: Vec2d): Vec2d
+    function __unm(self): Vec2d
 end
-declare function vec2d(x : number?, y: number?): vec2d
-declare class vec2i
+declare function Vec2d(x : number?, y: number?): Vec2d
+declare class Vec2i
     x: number
     y: number
-    function dot(self, a: vec2i): number
-    function unit(self): vec2i
+    function dot(self, a: Vec2i): number
+    function unit(self): Vec2i
     function magnitude(self): number
-    function abs(self): vec2i
-    function __add(self, a: vec2i): vec2i
-    function __mul(self, scalar: number): vec2i
-    function __div(self, scalar: number): vec2i
-    function __sub(self, a: vec2i): vec2i
-    function __unm(self): vec2i
+    function abs(self): Vec2i
+    function __add(self, a: Vec2i): Vec2i
+    function __mul(self, scalar: number): Vec2i
+    function __div(self, scalar: number): Vec2i
+    function __sub(self, a: Vec2i): Vec2i
+    function __unm(self): Vec2i
 end
-declare function vec2i(x : number?, y: number?): vec2i
-declare class recti64
+declare function Vec2i(x : number?, y: number?): Vec2i
+declare class Recti64
     x: number
     y: number
     width: number
     height: number
 end
-declare function recti64(x: number?, y: number?, w: number?, h: number?): recti64
-declare class coloru32
+declare function Recti64(x: number?, y: number?, w: number?, h: number?): Recti64
+declare class Coloru32
     red: number
     green: number
     blue: number
     alpha: number
 end
-declare function coloru32(r: number?, g: number?, b: number?, a: number?): coloru32
-declare class sdl_texture
+declare function Coloru32(r_or_all: number?, g: number?, b: number?, a: number?): Coloru32
+declare class SDL_Point
+    x: number
+    y: number
 end
+declare class SDL_Rect
+    x: number
+    y: number
+    w: number
+    h: number
+end
+declare function SDL_Point(x: number?, y: number?): SDL_Point
+declare function SDL_Rect(x: number?, y: number?, w: number?, h: number?): SDL_Rect
+declare class SDL_Texture end
+declare class SDL_Font end
 declare renderer: {
-    fill: (recti64) -> (),
-    draw: (recti64) -> (),
-    set_color: (coloru32) -> (),
-    render: (sdl_texture, recti64) -> (),
+    fill: (Recti64) -> (),
+    draw: (Recti64) -> (),
+    set_color: (Coloru32) -> (),
+    render: (SDL_Texture, Recti64) -> (),
 }
 declare sdl: {
-    texture: (file: string) -> (sdl_texture?, number, number),
+    load_image: (file: string) -> (SDL_Texture?, number, number),
+    open_font: (file: string, pt_size: number) -> SDL_Font?,
+    render: {
+        set_draw_color: (color: Coloru32) -> (),
+        render_copy: (texture: SDL_Texture, dest: SDL_Rect?, src: SDL_Rect?) -> (),
+    },
 }
 declare builtin: {
     title: string,
-    window_size: vec2d,
+    window_size: Vec2d,
     maximize_window: () -> (),
-    mouse_pos: () -> vec2d,
+    mouse_pos: () -> Vec2d,
     key_down: (key: keycode) -> boolean,
-    point_in_rect: (point: vec2d, rect: recti64) -> boolean,
+    point_in_rect: (point: Vec2d, rect: Recti64) -> boolean,
     read_text_file: (path: string) -> string?,
 }
 declare function collectgarbage(opt: ("collect" | "count")?): ()
-declare class physical_component
-    position: vec2d
-    velocity: vec2d
-    acceleration: vec2d
+declare class Physical_component
+    position: Vec2d
+    velocity: Vec2d
+    acceleration: Vec2d
     welded: boolean
     falling: boolean
     obstructed: boolean
     elasticity_coeff: number
     friction_coeff: number
     mass: number
-    size: vec2d
-    function bounds(self): recti64
+    size: Vec2d
+    function bounds(self): Recti64
 end
-declare function physical_component(): physical_component
+declare function Physical_component(): Physical_component
 export type mouse_button_type = "left" | "right"| "middle"
 export type keycode = 'esc'|'f1'|'f2'|'f3'|'f4'|'f5'|'f6'|'f7'|'f8'|'f9'|'f10'|'f11'|'f12'|
     '1'|'2'|'3'|'4'|'5'|'6'|'7'|'8'|'9'|'0'|'minus'|'equals'|'backspace'|
@@ -85,62 +99,4 @@ export type keycode = 'esc'|'f1'|'f2'|'f3'|'f4'|'f5'|'f6'|'f7'|'f8'|'f9'|'f10'|'
     'a'|'s'|'d'|'f'|'g'|'h'|'j'|'k'|'l'|'enter'|
     'z'|'x'|'c'|'v'|'b'|'n'|'n'|'m'|'comma'|'period'|'slash'|
     'lshift'|'lctrl'|'lalt'|'space'|'ralt'|'left'|'up'|'down'|'right'
-export type fs_copy_options = "recursive"|"copy symlinks"|
-    "skip symlinks"|"skip existing"|"update existing"|
-    "create symlinks"|"directories only"|"create hard links"|
-    "overwrite existing"
-export type fs_file_type = 'fifo'|'socket'|'block'|'regular'|
-    'symlink'|'unknown'|'junction'|'character'|'directory'|
-    'not found'|'none'
-export type fs_perms = 'unknown'|'others exec'|'all'|'mask'|
-    'set gid'|'set uid'|'group all'|'group exec'|'group read'|
-    'owner exec'|'owner read'|'others read'|'others all'|'sticky bit'|
-    'others read'|'group write'|'owner write'|'others write'|'none'
-declare class fs_path
-    function stem(self): fs_path
-    function empty(self): boolean
-    function filename(self): fs_path
-    function has_stem(self): boolean
-    function root_path(self): fs_path
-    function parent_path(self): fs_path
-    function is_absolute(self): boolean
-    function is_relative(self): boolean
-    function extension(self): fs_path
-    function replace_extension(self, s: string)
-    function relative_path(self): fs_path
-    function compare(self): number
-    function root_name(self): fs_path
-    function root_directory(self): fs_path
-    function has_root_path(self): boolean
-    function has_root_name(self): boolean
-    function has_root_directory(self): boolean
-    function __tostring(self): string
-    function __div(self, other: string | fs_path): fs_path
-end
-declare class fs_directory_entry
-    function is_directory(self): boolean
-    function is_fifo(self): boolean
-    function path(self): fs_path
-    function is_socket(self): boolean
-    function is_other(self): boolean
-    function is_symlink(self): boolean
-    function is_block_file(self): boolean
-    function is_regular_file(self): boolean
-    function is_character_file(self): boolean
-end
-export type path = fs_path | string
-declare fs: {
-    create_directory: (path: fs_path | string) -> boolean,
-    exists: (path: fs_path | string) -> boolean,
-    is_character_file: (path: fs_path | string) -> boolean,
-    copy_file: (from: fs_path | string, to: fs_path | string, opt: fs_copy_options?) -> boolean,
-    rename: (from: fs_path | string, to: fs_path | string) -> (),
-    remove: (path: fs_path | string) -> boolean,
-    remove_all: (path: fs_path | string) -> number,
-    copy: (from: fs_path | string, to: fs_path | string, opt: fs_copy_options?) -> (),
-    absolute: (path: fs_path | string) -> fs_path,
-    path: (str: string) -> fs_path,
-    children_of: (path: fs_path | string) -> table<fs_directory_entry>,
-    descendants_of: (path: path) -> table<fs_directory_entry>,
-}
 

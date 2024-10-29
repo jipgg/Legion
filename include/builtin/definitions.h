@@ -1,7 +1,6 @@
 #pragma once
 #include <lualib.h>
 namespace builtin {
-void init_types(lua_State* L);
 void vec2i_init_type(lua_State* L);
 void vec2d_init_type(lua_State* L);
 void recti64_init_type(lua_State* L);
@@ -10,6 +9,8 @@ void physical_init_type(lua_State* L);
 void renderer_init_lib(lua_State* L);
 void builtin_init_lib(lua_State* L);
 void fs_init_lib(lua_State* L);
+void sdl_init_lib(lua_State* L);
+int fs_import_lib(lua_State* L);
 enum class vec2_field {x, y};
 namespace event_sockets {
 constexpr auto update = "__builtin_update_socket";

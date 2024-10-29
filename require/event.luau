@@ -1,37 +1,34 @@
 --!strict
-export type event<params...> = {
-    _CURR_ID: number,
-    _handlers: table<(params...)->()>,
+type _handler<params...> = (params...) -> ()
+type _event<params...> = {
+    _handlers: {_handler<params...>},
     destroy: (event<params...>) -> (),
     connect: (event<params...>, (params...)->()) -> connection,
     fire: (event<params...>, params...) -> (),
-    __index: event<params...>,
-    __type: "event",
 };
-export type connection = {
+type _connection = {
     _id: number,
     _opaque_event: unknown,
     disconnect: (connection)->(),
-    __index: connection,
-    __mode: 'v',
-    __type: 'connection',
 };
-local connection: connection = {
+local connection = {
     __type = 'connection',
     __mode = 'v',
-}::connection
+}
 connection.__index = connection
 function connection:disconnect()
     if self._opaque_event ~= nil then
-        local event = self._opaque_event::event<...unknown>
-        event._handlers[self._id] = nil
+        local event = self._opaque_event
+        event.handlers[self.id] = nil
     end
 end
-local event: event<...unknown> = {
-    _CURR_ID = 0,
+local event = {
+    CURR_ID = 0,
     __type = 'event',
-}::event<...unknown> 
+} 
 event.__index = event
+export type event<params...> = typeof(setmetatable({}::_event<params...>, event))
+export type connection = typeof(setmetatable({}::_connection, connection))
 function event:destroy()
     table.clear(self._handlers)
 end
@@ -39,17 +36,17 @@ function event:fire(...)
     for i, handler in self._handlers do handler(...) end
 end
 function event:connect(fn)
-    event._CURR_ID += 1
-    local id = event._CURR_ID
+    event.CURR_ID += 1
+    local id = event.CURR_ID
     self._handlers[id] = fn
-    local connection: connection = {_id = id, _opaque_event = self}::connection
-    return setmetatable(connection, connection)::any
+    local c = {_id = id, _opaque_event = self}
+    return setmetatable(c, connection)
 end
---Constructor
-function construct(): event<...any>
-    local self: event<...unknown> = {
+    --Constructor
+    export type constructor = <params...>() -> event<params...>
+function construct<params...>(): event<params...>
+    return setmetatable({
         _handlers = {},
-    }::event<...unknown>
-    return setmetatable(self, event)::any
+    }, event)::event<params...>
 end
 return construct
