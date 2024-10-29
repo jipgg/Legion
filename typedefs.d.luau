@@ -15,6 +15,20 @@ declare class vec2d
     function __unm(self): vec2d
 end
 declare function vec2d(x : number?, y: number?): vec2d
+declare class vec2i
+    x: number
+    y: number
+    function dot(self, a: vec2i): number
+    function unit(self): vec2i
+    function magnitude(self): number
+    function abs(self): vec2i
+    function __add(self, a: vec2i): vec2i
+    function __mul(self, scalar: number): vec2i
+    function __div(self, scalar: number): vec2i
+    function __sub(self, a: vec2i): vec2i
+    function __unm(self): vec2i
+end
+declare function vec2i(x : number?, y: number?): vec2i
 declare class recti64
     x: number
     y: number
@@ -29,9 +43,16 @@ declare class coloru32
     alpha: number
 end
 declare function coloru32(r: number?, g: number?, b: number?, a: number?): coloru32
+declare class sdl_texture
+end
 declare renderer: {
     fill: (recti64) -> (),
     draw: (recti64) -> (),
+    set_color: (coloru32) -> (),
+    render: (sdl_texture, recti64) -> (),
+}
+declare sdl: {
+    texture: (file: string) -> (sdl_texture?, number, number),
 }
 declare builtin: {
     title: string,
@@ -122,3 +143,4 @@ declare fs: {
     children_of: (path: fs_path | string) -> table<fs_directory_entry>,
     descendants_of: (path: path) -> table<fs_directory_entry>,
 }
+

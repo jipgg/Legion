@@ -17,19 +17,19 @@ static constexpr auto type_name = "vec2d";
 static constexpr auto field_count = comptime::count<field, field::y>();
 using type = cm::vec2d;
 static type& self(lua_State* L) {
-    return bi::get<type>(L, 1);
+    return bi::check<type>(L, 1);
 }
 static type& init_t(lua_State* L) {
-    return bi::push<type>(L);
+    return bi::create<type>(L);
 }
 static bool type_t(lua_State* L, int idx) {
     return bi::is_type<type>(L, idx);
 }
 static type& ref_t(lua_State* L, int idx) {
-    return bi::get<type>(L, idx);
+    return bi::check<type>(L, idx);
 }
 static type& other(lua_State* L) {
-    return bi::get<type>(L, 2);
+    return bi::check<type>(L, 2);
 }
 static int ctor(lua_State *L) {
     double x{}, y{};

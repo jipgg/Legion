@@ -17,7 +17,7 @@ static int index_metamethod(lua_State* L) {
     } else if (index == "window_size") {
         int width, height;
         SDL_GetWindowSize(wnd, &width, &height);
-        builtin::push<common::vec2d>(L) = {double(width), double(height)};
+        builtin::create<common::vec2d>(L) = {double(width), double(height)};
         return 1;
     }
     return 0;
@@ -32,7 +32,7 @@ static int newindex_metamethod(lua_State* L) {
         SDL_SetWindowTitle(wnd, v.c_str());
         return 0;
     } else if (index == "window_size") {
-        auto& new_size = builtin::get<common::vec2d>(L, val);
+        auto& new_size = builtin::check<common::vec2d>(L, val);
         SDL_SetWindowSize(wnd, int(new_size.at(0)), int(new_size.at(1)));
         return 0;
     }
@@ -45,7 +45,7 @@ static int maximize_window(lua_State* L) {
 static int mouse_pos(lua_State* L) {
     int x, y;
     SDL_GetMouseState(&x, &y);
-    builtin::push<common::vec2d>(L) = {double(x), double(y)};
+    builtin::create<common::vec2d>(L) = {double(x), double(y)};
     return 1;
 }
 static int key_down(lua_State* L) {
@@ -55,8 +55,8 @@ static int key_down(lua_State* L) {
     return 1;
 }
 static int point_in_rect(lua_State* L) {
-    auto& p = builtin::get<common::vec2d>(L, 1);
-    auto& r = builtin::get<common::recti64>(L, 2);
+    auto& p = builtin::check<common::vec2d>(L, 1);
+    auto& r = builtin::check<common::recti64>(L, 2);
     lua_pushboolean(L, systems::solvers::is_in_bounds(p, r));
     return 1;
 }

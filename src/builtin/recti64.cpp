@@ -12,7 +12,7 @@ enum class field {x, y, width, height};
 static constexpr auto type_name{"recti64"};
 using type = common::recti64;
 static type& rself(lua_State* L) {
-    return builtin::get<type>(L, 1);
+    return builtin::check<type>(L, 1);
 }
 static int ctor(lua_State *L) {
     int16_t x{}, y{}, width{}, height{};
@@ -20,7 +20,7 @@ static int ctor(lua_State *L) {
     if (lua_isnumber(L, 2)) y = luaL_checkinteger(L, 2);
     if (lua_isnumber(L, 3)) width = luaL_checkinteger(L, 3);
     if (lua_isnumber(L, 4)) height = luaL_checkinteger(L, 4);
-    builtin::push<type>(L, x, y, width, height);
+    builtin::create<type>(L, x, y, width, height);
     return 1;
 }
 static int tostring(lua_State *L) {

@@ -16,11 +16,11 @@ using type = cm::vec2i;
 using method = bi::method_atom;
 static constexpr auto type_name = "vec2i";
 static constexpr auto field_count = comptime::count<field, field::y>();
-static type& self(lua_State* L) {return bi::get<type>(L, 1);}
-static type& init_t(lua_State* L) {return bi::push<type>(L);}
+static type& self(lua_State* L) {return bi::check<type>(L, 1);}
+static type& init_t(lua_State* L) {return bi::create<type>(L);}
 static bool type_t(lua_State* L, int idx) {return bi::is_type<type>(L, idx);}
-static type& ref_t(lua_State* L, int idx) {return bi::get<type>(L, idx);}
-static type& other(lua_State* L) {return bi::get<type>(L, 2);}
+static type& ref_t(lua_State* L, int idx) {return bi::check<type>(L, idx);}
+static type& other(lua_State* L) {return bi::check<type>(L, 2);}
 
 static int vec2i_ctor(lua_State *L) {
     int x{}, y{};

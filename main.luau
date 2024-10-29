@@ -10,12 +10,20 @@ print(a)
 print(builtin.title, builtin.window_size)
 local rect = recti64(100, 100, 200, 100)
 
-local main_file = fs.path("main.luau")
-local my_path = "test" / main_file
-print(`my_path = {my_path}`)
-print(`extension {my_path:parent_path()}`)
-print(my_path:root_path())
-print(my_path:has_stem(), my_path:stem(), my_path:filename():empty())
+local resources = fs.path("resources");
+local jw = resources / "jw.png"
+if fs.exists(jw) then
+    local text, w, h = sdl.texture(tostring(jw))
+    if text then
+        print(typeof(text), w, h)
+        print("ok")
+        state.rendering:connect(function()
+            renderer.render(text, recti64(0, 0, w, h))
+        end)
+    else
+        print("not ok")
+    end
+end
 
 state.key_pressed:connect(function(key: keycode)
     if key == "a" then

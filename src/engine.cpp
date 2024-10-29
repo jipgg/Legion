@@ -220,7 +220,7 @@ static void init_state(lua_State* L) {
 void core::start(engine_start_options opts) {
     SDL_Init(SDL_INIT_VIDEO);// should do proper error handling here
     TTF_Init();
-    IMG_Init(IMG_INIT_PNG | IMG_INIT_JPG);
+    IMG_Init(IMG_INIT_JPG);
     constexpr int undefined = SDL_WINDOWPOS_UNDEFINED;
     const int width = opts.window_size.at(0);
     const int height = opts.window_size.at(1);
@@ -272,7 +272,7 @@ void core::run() {
                                 break;
 
                             }
-                            bi::push<cm::vec2d>(main_state) = {
+                            bi::create<cm::vec2d>(main_state) = {
                                 double(sdl_event_dummy.button.x),
                                 double(sdl_event_dummy.button.y)
                             };
@@ -293,7 +293,7 @@ void core::run() {
                                     lua_pushstring(main_state, "middle");
                                 break;
                             }
-                            bi::push<cm::vec2d>(main_state) = {
+                            bi::create<cm::vec2d>(main_state) = {
                                 double(sdl_event_dummy.button.x),
                                 double(sdl_event_dummy.button.y)
                             };

@@ -28,7 +28,7 @@ const char* metatable_name() {
     return ti.raw_name();
 }
 template <class my_type, class ...init_arguments>
-my_type& push(lua_State* L, init_arguments&&...args) {
+my_type& create(lua_State* L, init_arguments&&...args) {
     void* ud = lua_newuserdatatagged(L, sizeof(my_type), type_tag<my_type>());
     new (ud) my_type{std::forward<init_arguments>(args)...};
     lua_setuserdatadtor(L, type_tag<my_type>(), [](lua_State* L, void* data) {
@@ -40,7 +40,7 @@ my_type& push(lua_State* L, init_arguments&&...args) {
     return *static_cast<my_type*>(ud);
 }
 template <class my_type>
-my_type& push(lua_State* L) {
+my_type& create(lua_State* L) {
     void* ud = lua_newuserdatatagged(L, sizeof(my_type), type_tag<my_type>());
     lua_setuserdatadtor(L, type_tag<my_type>(), [](lua_State* L, void* data) {
         static_cast<my_type*>(data)->~my_type();//cause using placement new, no implicit destruction
@@ -51,7 +51,8 @@ my_type& push(lua_State* L) {
     return *static_cast<my_type*>(ud);
 }
 template <class my_type>
-my_type& get(lua_State* L, int objindex) {
+my_type& check(lua_State* L, int objindex) {
+    assert(is_type<my_type>(L, objindex));
     void* ud = lua_touserdatatagged(L, objindex, type_tag<my_type>());
     return *static_cast<my_type*>(ud);
 }

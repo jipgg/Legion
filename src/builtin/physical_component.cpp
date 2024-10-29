@@ -18,20 +18,20 @@ using type = component::raii_wrapper<types::physical_component>;
 namespace cm = common;
 static constexpr auto fields = comptime::to_array<field, size_t(field::size) + 1>();
 static int index(lua_State *L) {
-    auto& wrapper = builtin::get<type>(L, 1);
+    auto& wrapper = builtin::check<type>(L, 1);
     auto& self = wrapper.get();
     std::string_view key = luaL_checkstring(L, 2);
     for (const auto& f : fields) {
         if (f.name == key) {
             switch (static_cast<field>(f.index)) {
                 case field::position:
-                    builtin::push<cm::vec2d>(L) = self.position;
+                    builtin::create<cm::vec2d>(L) = self.position;
                 return 1;
                 case field::velocity:
-                    builtin::push<cm::vec2d>(L) = self.velocity;
+                    builtin::create<cm::vec2d>(L) = self.velocity;
                 return 1;
                 case field::acceleration:
-                    builtin::push<cm::vec2d>(L) = self.acceleration;
+                    builtin::create<cm::vec2d>(L) = self.acceleration;
                 return 1;
                 case field::welded:
                     lua_pushboolean(L, self.welded);
@@ -46,7 +46,7 @@ static int index(lua_State *L) {
                     lua_pushnumber(L, self.mass);
                 return 1;
                 case field::size:
-                    builtin::push<cm::vec2d>(L) = self.size;
+                    builtin::create<cm::vec2d>(L) = self.size;
                 return 1;
                 case field::friction_coeff:
                     lua_pushnumber(L, self.friction_coeff);
@@ -61,14 +61,14 @@ static int index(lua_State *L) {
     return 0;
 }
 static int newindex(lua_State *L) {
-    auto& wrapper = builtin::get<type>(L, 1);
+    auto& wrapper = builtin::check<type>(L, 1);
     auto& self = wrapper.get();
     std::string_view key = luaL_checkstring(L, 2);
     for (const auto& f : fields) {
         if (f.name == key) {
             auto check_vec2 = [](lua_State* L) {
                 if (builtin::is_type<cm::vec2d>(L, 3)) {
-                    return std::make_optional(std::ref(builtin::get<cm::vec2d>(L, 3)));
+                    return std::make_optional(std::ref(builtin::check<cm::vec2d>(L, 3)));
                 } else {
                     lua_pushstring(L, "invalid argument type");
                     lua_error(L);
@@ -130,10 +130,10 @@ static int namecall(lua_State *L) {
     common::print("namecalling");
     int atom{};
     lua_namecallatom(L, &atom);
-    auto& self = builtin::get<type>(L, 1).get();
+    auto& self = builtin::check<type>(L, 1).get();
     switch(static_cast<method>(atom)) {
         case method::bounds:
-            builtin::push<cm::recti64>(L, self.bounds()); 
+            builtin::create<cm::recti64>(L, self.bounds()); 
         return 1;
         default:
         return 0;
@@ -141,7 +141,7 @@ static int namecall(lua_State *L) {
 }
 static constexpr int16_t nullmethod = -1;
 static int ctor(lua_State *L) {
-    builtin::push<type>(L, component::raii_wrapper(types::physical_component{}));
+    builtin::create<type>(L, component::raii_wrapper(types::physical_component{}));
     return 1;
 }
 

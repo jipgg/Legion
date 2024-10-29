@@ -4,6 +4,7 @@
 #include <SDL_scancode.h>
 #include <string_view>
 #include "event.h"
+#include <SDL_render.h>
 #include <SDL_mouse.h>
 struct _TTF_Font;
 struct SDL_Texture;
@@ -30,17 +31,11 @@ public:
     font& operator=(font&& a) noexcept;
     ~font() noexcept;
 };
-class texture {
-    SDL_Texture* texture_;
-    common::vec2i src_size_;
-public:
-    texture(const std::filesystem::path& path) noexcept;
-    texture(const texture& a) = delete;
-    texture& operator=(const texture& a) = delete;
-    texture(texture&& a) noexcept;
-    texture& operator=(texture&& a) noexcept;
-    ~texture() noexcept;
-    common::vec2i src_size() const;
+struct texture {
+    std::unique_ptr<SDL_Texture, decltype(&SDL_DestroyTexture)> data;
+    common::vec2i src_size;
+    std::filesystem::path path;
+    texture(const std::filesystem::path& path);
 };
 struct playable {
     float jump_power, walk_speed;

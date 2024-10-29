@@ -14,13 +14,13 @@ static int ctor(lua_State *L) {
     if (lua_isnumber(L, 2)) g = luaL_checkinteger(L, 2);
     if (lua_isnumber(L, 3)) b = luaL_checkinteger(L, 3);
     if (lua_isnumber(L, 4)) a = luaL_checkinteger(L, 4);
-    builtin::push<type>(L, 0ui8, 0ui8, 0ui8, 0ui8) = {r, g, b, a};
+    builtin::create<type>(L, 0ui8, 0ui8, 0ui8, 0ui8) = {r, g, b, a};
     return 1;
 }
 static int index(lua_State *L) {
     static constexpr auto count = static_cast<std::size_t>(field::alpha); 
     static constexpr auto fields = comptime::to_array<field, count>();
-    const auto& self = builtin::get<type>(L, 1);
+    const auto& self = builtin::check<type>(L, 1);
     const std::string_view key = luaL_checkstring(L, 2);
     for (const auto& f : fields) {
         if (f.name == key) {

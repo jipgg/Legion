@@ -7,7 +7,7 @@ static constexpr auto lib_name = "fs";
 
 static std::optional<std::string> resolve_type(lua_State* L, int i) {
     if (builtin::is_type<sfs::path>(L, i)) {
-        return std::make_optional(builtin::get<sfs::path>(L, i).string());
+        return std::make_optional(builtin::check<sfs::path>(L, i).string());
     } else if (lua_isstring(L, i)) {
         return std::make_optional(luaL_checkstring(L, i));
     } else return std::nullopt;
@@ -112,7 +112,7 @@ static int is_directory(lua_State* L) {
 static int absolute(lua_State* L) {
     auto path = resolve_type(L, 1);
     assert(path.has_value());
-    builtin::push<sfs::path>(L, sfs::absolute(*path));
+    builtin::create<sfs::path>(L, sfs::absolute(*path));
     return 1;
 }
 static int is_empty(lua_State* L) {
@@ -130,7 +130,7 @@ static int children_of(lua_State* L) {
     for (auto& entry : sfs::directory_iterator(*path)) {
         ++i;
         lua_pushinteger(L, i);
-        builtin::push<sfs::directory_entry>(L, entry);
+        builtin::create<sfs::directory_entry>(L, entry);
         lua_settable(L, -3);
     }
     return 1;
@@ -144,14 +144,14 @@ static int descendants_of(lua_State* L) {
     for (auto& entry : sfs::recursive_directory_iterator(*path)) {
         ++i;
         lua_pushinteger(L, i);
-        builtin::push<sfs::directory_entry>(L, entry);
+        builtin::create<sfs::directory_entry>(L, entry);
         lua_settable(L, -3);
     }
     return 1;
 }
 
 static int directory_entry_namecall(lua_State* L) {
-    auto& r = builtin::get<sfs::directory_entry>(L, 1);
+    auto& r = builtin::check<sfs::directory_entry>(L, 1);
     int atom{};
     lua_namecallatom(L, &atom);
     using ma = builtin::method_atom;
@@ -163,7 +163,7 @@ static int directory_entry_namecall(lua_State* L) {
             lua_pushboolean(L, r.is_fifo());
             return 1;
         case ma::path:
-            builtin::push<sfs::path>(L, r.path());
+            builtin::create<sfs::path>(L, r.path());
             return 1;
         case ma::is_socket:
             lua_pushboolean(L, r.is_socket());
@@ -192,7 +192,7 @@ static int path_div(lua_State* L) {
     sfs::path lhs;
     sfs::path rhs;
     if (builtin::is_type<sfs::path>(L, 1)) {
-        lhs = builtin::get<sfs::path>(L, 1);
+        lhs = builtin::check<sfs::path>(L, 1);
     } else if (lua_isstring(L, 1)) {
         lhs = luaL_checkstring(L, 1);
     } else {
@@ -201,7 +201,7 @@ static int path_div(lua_State* L) {
         return 0;
     }
     if (builtin::is_type<sfs::path>(L, 2)) {
-        rhs = builtin::get<sfs::path>(L, 2);
+        rhs = builtin::check<sfs::path>(L, 2);
     } else if (lua_isstring(L, 2)) {
         rhs = luaL_checkstring(L, 2);
     } else {
@@ -209,33 +209,33 @@ static int path_div(lua_State* L) {
         lua_error(L);
         return 0;
     }
-    builtin::push<sfs::path>(L, lhs / rhs);
+    builtin::create<sfs::path>(L, lhs / rhs);
     return 1;
 }
 static int path_namecall(lua_State* L) {
     int atom{};
     lua_namecallatom(L, &atom);
     common::print(atom);
-    auto& r = builtin::get<sfs::path>(L, 1);
+    auto& r = builtin::check<sfs::path>(L, 1);
     using ma = builtin::method_atom;
     switch (static_cast<ma>(atom)) {
         case ma::stem:
-            builtin::push<sfs::path>(L, r.stem());
+            builtin::create<sfs::path>(L, r.stem());
             return 1;
         case ma::empty:
             lua_pushboolean(L, r.empty());
             return 1;
         case ma::filename:
-            builtin::push<sfs::path>(L, r.filename());
+            builtin::create<sfs::path>(L, r.filename());
             return 1;
         case ma::has_stem:
             lua_pushboolean(L, r.has_stem());
             return 1;
         case ma::root_path:
-            builtin::push<sfs::path>(L, r.root_path());
+            builtin::create<sfs::path>(L, r.root_path());
             return 1;
         case ma::parent_path:
-            builtin::push<sfs::path>(L, r.parent_path());
+            builtin::create<sfs::path>(L, r.parent_path());
             return 1;
         case ma::is_absolute:
             lua_pushboolean(L, r.is_absolute());
@@ -244,7 +244,7 @@ static int path_namecall(lua_State* L) {
             lua_pushboolean(L, r.is_relative());
             return 1;
         case ma::extension:
-            builtin::push<sfs::path>(L, r.extension());
+            builtin::create<sfs::path>(L, r.extension());
             return 1;
         case ma::has_extension:
             lua_pushboolean(L, r.has_extension());
@@ -253,19 +253,19 @@ static int path_namecall(lua_State* L) {
             r.replace_extension(luaL_checkstring(L, 2));
             return 0;
         case ma::relative_path:
-            builtin::push<sfs::path>(L, r.relative_path());
+            builtin::create<sfs::path>(L, r.relative_path());
             return 1;
         case ma::has_relative_path:
             lua_pushboolean(L, r.has_relative_path());
             return 1;
         case ma::compare:
-            lua_pushinteger(L, r.compare(builtin::get<sfs::path>(L, 2)));
+            lua_pushinteger(L, r.compare(builtin::check<sfs::path>(L, 2)));
             return 1;
             case ma::root_name:
-            builtin::push<sfs::path>(L, r.root_name());
+            builtin::create<sfs::path>(L, r.root_name());
             return 1;
         case ma::root_directory:
-            builtin::push<sfs::path>(L, r.root_directory());
+            builtin::create<sfs::path>(L, r.root_directory());
             return 1;
         case ma::has_root_path:
             lua_pushboolean(L, r.has_root_path());
@@ -281,12 +281,12 @@ static int path_namecall(lua_State* L) {
     }
 }
 static int path_tostring(lua_State* L) {
-    auto& r = builtin::get<sfs::path>(L, 1);
+    auto& r = builtin::check<sfs::path>(L, 1);
     lua_pushstring(L, r.string().c_str());
     return 1;
 }
 static int path_ctor(lua_State* L) {
-    builtin::push<sfs::path>(L, luaL_checkstring(L, 1));
+    builtin::create<sfs::path>(L, luaL_checkstring(L, 1));
     return 1;
 }
 
