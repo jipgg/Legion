@@ -318,7 +318,7 @@ const luaL_Reg directory_entry_metatable[] = {
     {builtin::metamethod::namecall, directory_entry_namecall},
     {nullptr, nullptr}
 };
-static void init_global_types(lua_State* L) {
+static void init_types(lua_State* L) {
     if (luaL_newmetatable(L, builtin::metatable_name<sfs::path>())) {
         luaL_register(L, nullptr, path_metatable);
         lua_pushstring(L, path_type_name);
@@ -334,8 +334,8 @@ static void init_global_types(lua_State* L) {
 }
 
 void builtin::fs_init_lib(lua_State *L) {
-    init_global_types(L);
-    lua_pushcfunction(L, path_ctor, "path_ctor");
+    init_types(L);
+    lua_pushcfunction(L, path_ctor, path_type_name);
     lua_setglobal(L, path_type_name);
 }
 int builtin::fs_import_lib(lua_State *L) {

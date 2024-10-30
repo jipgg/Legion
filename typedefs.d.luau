@@ -27,10 +27,10 @@ end
 declare V2: ((x: number?, y: number?) -> V2) & ((v: V2i) -> V2)
 declare V2i: ((x: number?, y: number?) -> V2i) & ((v: V2) -> V2i)
 declare class Coloru32
-    red: number
-    green: number
-    blue: number
-    alpha: number
+    r: number
+    g: number
+    b: number
+    a: number
 end
 declare Coloru32: ((value: number) -> Coloru32) & ((r: number?, g: number?, b: number?, a: number?) -> Coloru32)
 declare class Rect

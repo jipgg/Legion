@@ -33,6 +33,11 @@ static type& other(lua_State* L) {
     return bi::check<type>(L, 2);
 }
 static int ctor(lua_State *L) {
+    if (lua_isnone(L, 2) and bi::is_type<bi::vec2i_t>(L, 1)) {
+        auto& v = bi::check<bi::vec2i_t>(L, 1);
+        bi::create<bi::vec2d_t>(L) = {double(v.at(0)), double(v.at(1))};
+        return 1;
+    }
     double x{}, y{};
     if (lua_isnumber(L, 1)) x = luaL_checknumber(L, 1);
     if (lua_isnumber(L, 2)) y = luaL_checknumber(L, 2);
@@ -94,7 +99,7 @@ static int tostring(lua_State *L) {
     if (std::floor(x_v) == x_v) x.erase(x.find('.'));
     if (std::floor(y_v) == y_v) y.erase(y.find('.'));
 
-    std::string str = type_name + "{"s + x + ", " + y + "}";
+    std::string str = type_name + ": {"s + x + ", " + y + "}";
     lua_pushlstring(L, str.data(), str.size());
     return 1;
 }

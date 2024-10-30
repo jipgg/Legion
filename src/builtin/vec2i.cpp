@@ -24,6 +24,11 @@ static type& ref_t(lua_State* L, int idx) {return bi::check<type>(L, idx);}
 static type& other(lua_State* L) {return bi::check<type>(L, 2);}
 
 static int vec2i_ctor(lua_State *L) {
+    if (lua_isnone(L, 2) and bi::is_type<bi::vec2d_t>(L, 1)) {
+        auto& v = bi::check<bi::vec2d_t>(L, 1);
+        bi::create<bi::vec2i_t>(L) = {int(v.at(0)), int(v.at(1))};
+        return 1;
+    }
     int x{}, y{};
     if (lua_isnumber(L, 1)) x = luaL_checkinteger(L, 1);
     if (lua_isnumber(L, 2)) y = luaL_checkinteger(L, 2);
@@ -82,7 +87,7 @@ static int vec2i_tostring(lua_State *L) {
     int y_v = self(L).at(1);
     std::string x = std::to_string(x_v);
     std::string y = std::to_string(y_v);
-    std::string str = type_name + "{"s + x + ", " + y + "}";
+    std::string str = type_name + ": {"s + x + ", " + y + "}";
     lua_pushlstring(L, str.data(), str.size());
     return 1;
 }

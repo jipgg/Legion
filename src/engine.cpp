@@ -183,11 +183,10 @@ static void init_state(lua_State* L) {
         return static_cast<int16_t>(e.index);
     };
     {using namespace builtin;
+        init_global_types(L);
         fs_init_lib(L);
         vec2d_init_type(L);
-        coloru32_init_type(L);
-        physical_init_type(L);
-        builtin_init_lib(L);
+        vec2i_init_type(L);
         sdl_init_lib(L);
     }
     static const luaL_Reg funcs[] = {

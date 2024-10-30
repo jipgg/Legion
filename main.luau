@@ -10,6 +10,8 @@ if font then
 end
 local p = V2(100, 100)
 print(p)
+local pi = V2i(p)
+print(pi)
 if fs.exists(jw) then
     local texture, w, h = sdl.load_image(tostring(jw))
     if texture then
