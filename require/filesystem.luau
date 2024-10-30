@@ -1,15 +1,16 @@
 --!strict
-export type copy_options = "recursive"|"copy symlinks"|
+export type Copy_options = "recursive"|"copy symlinks"|
     "skip symlinks"|"skip existing"|"update existing"|
     "create symlinks"|"directories only"|"create hard links"|
     "overwrite existing"
-export type file_type = 'fifo'|'socket'|'block'|'regular'|
+export type File_type = 'fifo'|'socket'|'block'|'regular'|
     'symlink'|'unknown'|'junction'|'character'|'directory'|
     'not found'|'none'
-export type perms = 'unknown'|'others exec'|'all'|'mask'|
+export type Perms = 'unknown'|'others exec'|'all'|'mask'|
     'set gid'|'set uid'|'group all'|'group exec'|'group read'|
     'owner exec'|'owner read'|'others read'|'others all'|'sticky bit'|
     'others read'|'group write'|'owner write'|'others write'|'none'
+--[=[
 type _path_metatable = {
     __tostring: (self: path) -> string,
     __div: (self: path, other: string | path) -> path,
@@ -35,30 +36,31 @@ type _path =  {
     has_root_directory: (path) -> boolean,
 } 
 export type path = typeof(setmetatable({}::_path, {}::_path_metatable))
-export type directory_entry = {
-        is_directory:(directory_entry) -> boolean,
-    is_fifo:(directory_entry) -> boolean,
-    path:(directory_entry) -> path,
-    is_socket:(directory_entry) -> boolean,
-    is_other:(directory_entry) -> boolean,
-    is_symlink:(directory_entry) -> boolean,
-    is_block_file:(directory_entry) -> boolean,
-    is_regular_file:(directory_entry) -> boolean,
-    is_character_file:(directory_entry) -> boolean,
+]=]
+export type Directory_entry = {
+        is_directory:(Directory_entry) -> boolean,
+    is_fifo:(Directory_entry) -> boolean,
+    path:(Directory_entry) -> Path,
+    is_socket:(Directory_entry) -> boolean,
+    is_other:(Directory_entry) -> boolean,
+    is_symlink:(Directory_entry) -> boolean,
+    is_block_file:(Directory_entry) -> boolean,
+    is_regular_file:(Directory_entry) -> boolean,
+    is_character_file:(Directory_entry) -> boolean,
     }
-type path_var = path | string
-export type filesystem = {
-    create_directory: (path: path_var) -> boolean,
-    exists: (path: path_var) -> boolean,
-    is_character_file: (path: path_var) -> boolean,
-    copy_file: (from: path_var, to: path_var, opt: copy_options?) -> boolean,
-    rename: (from: path_var, to: path_var) -> (),
-    remove: (path: path_var) -> boolean,
-    remove_all: (path: path_var) -> number,
-    copy: (from: path_var, to: path_var, opt: copy_options?) -> (),
-    absolute: (path: path_var) -> path,
-    children_of: (path: path_var) -> {directory_entry},
-    descendants_of: (path: path_var) -> {directory_entry},
-    path: (file: path_var) -> path,
+type _Path = Path | string
+type namespace = {
+    create_directory: (path: _Path) -> boolean,
+    exists: (path: _Path) -> boolean,
+    is_character_file: (path: _Path) -> boolean,
+    copy_file: (from: _Path, to: _Path, opt: Copy_options?) -> boolean,
+    rename: (from: _Path, to: _Path) -> (),
+    remove: (path: _Path) -> boolean,
+    remove_all: (path: _Path) -> number,
+    copy: (from: _Path, to: _Path, opt: Copy_options?) -> (),
+    absolute: (path: _Path) -> Path,
+    children_of: (path: _Path) -> {Directory_entry},
+    descendants_of: (path: _Path) -> {Directory_entry},
+    path: (file: string) -> Path,
 }
-return _G.__builtin_import_filesystem()::filesystem
+return _G.__builtin_import_filesystem()::namespace

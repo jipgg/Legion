@@ -5,10 +5,10 @@
 #include <SDL.h>
 #include <SDL_image.h>
 
-static constexpr auto texture_type_name = "SDL_Texture";
-static constexpr auto font_type_name = "SDL_Font";
-static constexpr auto point_type_name = "SDL_Point";
-static constexpr auto rect_type_name = "SDL_Rect";
+static constexpr auto texture_type_name = "Texture";
+static constexpr auto font_type_name = "Font";
+static constexpr auto rect_type_name = "Rect";
+static constexpr auto recti_type_name = "Recti";
 using method = builtin::method_atom;
 namespace lmm = builtin::metamethod;
 namespace bi = builtin;
@@ -55,6 +55,31 @@ static int rect_index(lua_State* L) {
     auto& r = bi::check<bi::rect_t>(L, 1);
     char key = *luaL_checkstring(L, 2);
     switch (key) {
+        case 'x': lua_pushnumber(L, r.x); return 1;
+        case 'y': lua_pushnumber(L, r.y); return 1;
+        case 'w': lua_pushnumber(L, r.w); return 1;
+        case 'h': lua_pushnumber(L, r.h); return 1;
+    }
+    luaL_error(L, "invalid index %s", luaL_checkstring(L, 2));
+    return 0;
+};
+static int rect_newindex(lua_State* L) {
+    auto& r = bi::check<bi::rect_t>(L, 1);
+    char key = *luaL_checkstring(L, 2);
+    int v = luaL_checknumber(L, 3);
+    switch (key) {
+        case 'x': r.x = v; return 0;
+        case 'y': r.y = v; return 0;
+        case 'w': r.w = v; return 0;
+        case 'h': r.h = v; return 0;
+    }
+    luaL_error(L, "invalid index %s", luaL_checkstring(L, 2));
+    return 0;
+}
+static int recti_index(lua_State* L) {
+    auto& r = bi::check<bi::recti_t>(L, 1);
+    char key = *luaL_checkstring(L, 2);
+    switch (key) {
         case 'x': lua_pushinteger(L, r.x); return 1;
         case 'y': lua_pushinteger(L, r.y); return 1;
         case 'w': lua_pushinteger(L, r.w); return 1;
@@ -63,8 +88,8 @@ static int rect_index(lua_State* L) {
     luaL_error(L, "invalid index %s", luaL_checkstring(L, 2));
     return 0;
 };
-static int rect_newindex(lua_State* L) {
-    auto& r = bi::check<bi::rect_t>(L, 1);
+static int recti_newindex(lua_State* L) {
+    auto& r = bi::check<bi::recti_t>(L, 1);
     char key = *luaL_checkstring(L, 2);
     int v = luaL_checknumber(L, 3);
     switch (key) {
@@ -88,52 +113,33 @@ static void rect_init(lua_State* L) {
     lua_setfield(L, -2, lmm::type);
     lua_pop(L, 1);
 }
-static int point_index(lua_State* L) {
-    auto& r = bi::check<bi::point_t>(L, 1);
-    char key = *luaL_checkstring(L, 2);
-    switch (key) {
-        case 'x': lua_pushinteger(L, r.x); return 1;
-        case 'y': lua_pushinteger(L, r.y); return 1;
-    }
-    luaL_error(L, "invalid index %s", luaL_checkstring(L, 2));
-    return 0;
-};
-static int point_newindex(lua_State* L) {
-    auto& r = bi::check<bi::point_t>(L, 1);
-    char key = *luaL_checkstring(L, 2);
-    int v = luaL_checknumber(L, 3);
-    switch (key) {
-        case 'x': r.x = v; return 0;
-        case 'y': r.y = v; return 0;
-    }
-    luaL_error(L, "invalid index %s", luaL_checkstring(L, 2));
-    return 0;
-}
-static int point(lua_State* L) {
-    int x = luaL_optinteger(L, 1, 0);
-    int y = luaL_optinteger(L, 2, 0);
-    bi::create<bi::point_t>(L, x, y);
-    return 1;
+static void recti_init(lua_State* L) {
+    luaL_newmetatable(L, bi::metatable_name<bi::recti_t>());
+    const luaL_Reg rect[] = {
+        {lmm::index, recti_index},
+        {lmm::newindex, recti_index},
+        {nullptr, nullptr}
+    };
+    luaL_register(L, nullptr, rect);
+    lua_pushstring(L, rect_type_name);
+    lua_setfield(L, -2, lmm::type);
+    lua_pop(L, 1);
 }
 static int rect(lua_State* L) {
+    double x = luaL_optnumber(L, 1, 0);
+    double y = luaL_optnumber(L, 2, 0);
+    double w = luaL_optnumber(L, 3, 0);
+    double h = luaL_optnumber(L, 4, 0);
+    bi::create<bi::rect_t>(L, x, y, w, h);
+    return 1;
+}
+static int recti(lua_State* L) {
     int x = luaL_optinteger(L, 1, 0);
     int y = luaL_optinteger(L, 2, 0);
     int w = luaL_optinteger(L, 3, 0);
     int h = luaL_optinteger(L, 4, 0);
-    bi::create<bi::rect_t>(L, x, y, w, h);
+    bi::create<bi::recti_t>(L, x, y, w, h);
     return 1;
-}
-static void point_init(lua_State* L) {
-    luaL_newmetatable(L, bi::metatable_name<bi::point_t>());
-    const luaL_Reg point[] = {
-        {lmm::index, point_index},
-        {lmm::newindex, point_newindex},
-        {nullptr, nullptr}
-    };
-    luaL_register(L, nullptr, point);
-    lua_pushstring(L, point_type_name);
-    lua_setfield(L, -2, lmm::type);
-    lua_pop(L, 1);
 }
 static void texture_init(lua_State* L) {
     luaL_newmetatable(L, bi::metatable_name<bi::texture_t>());
@@ -154,39 +160,18 @@ static int render_copy(lua_State* L) {
     const auto& texture = bi::check<bi::texture_t>(L, texture_arg);
     const bool has_dest = not lua_isnoneornil(L, dest_arg);
     const bool has_src = not lua_isnoneornil(L, src_arg);
-    SDL_RenderCopy(renderer(), texture.get(), has_src? &bi::check<bi::rect_t>(L, src_arg):nullptr, has_dest ? &bi::check<bi::rect_t>(L, dest_arg):nullptr);
+    SDL_RenderCopy(
+        renderer(),
+        texture.get(),
+        has_src? &bi::check<bi::recti_t>(L, src_arg):nullptr,
+        has_dest ? &bi::check<bi::recti_t>(L, dest_arg):nullptr);
     return 0;
 }
-static int render_copy_ex(lua_State* L) {
-    constexpr int texture_arg = 1;
-    constexpr int dest_arg = 2;
-    constexpr int src_arg = 3;
-    constexpr int angle_arg = 4;
-    constexpr int center_arg = 5;
-    const auto& texture = bi::check<bi::texture_t>(L, texture_arg);
-    const bool has_dest = not lua_isnoneornil(L, dest_arg);
-    const bool has_src = not lua_isnoneornil(L, src_arg);
-    auto to_sdl_rect = [&L](int idx, bool has) {
-        if (has) {
-            auto& r = bi::check<bi::recti64_t>(L, idx);
-            return SDL_Rect{r.x(), r.y(), r.width(), r.height()};
-        }
-        return SDL_Rect{};
-    };
-    SDL_Rect src{};
-    SDL_Rect dst{};
-    SDL_Point center{};
-    if (has_src) {
-        auto& r = bi::check<bi::recti64_t>(L, src_arg);
-    }
-    return 0;
-}
-
 void bi::sdl_init_lib(lua_State *L) {
     font_init(L);
     texture_init(L);
-    point_init(L);
     rect_init(L);
+    recti_init(L);
     const luaL_Reg sdl[] = {
         {"open_font", open_font},
         {"load_image", load_image},
@@ -205,8 +190,8 @@ void bi::sdl_init_lib(lua_State *L) {
     luaL_register(L, nullptr, render);
     lua_setfield(L, -2, "render");
     lua_pop(L, 1);
-    lua_pushcfunction(L, point, point_type_name);
-    lua_setglobal(L, point_type_name);
+    lua_pushcfunction(L, recti, recti_type_name);
+    lua_setglobal(L, recti_type_name);
     lua_pushcfunction(L, rect, rect_type_name);
     lua_setglobal(L, rect_type_name);
 

@@ -4,6 +4,8 @@
 #include <filesystem>
 namespace sfs = std::filesystem;
 static constexpr auto lib_name = "fs";
+static constexpr auto path_type_name = "Path";
+static constexpr auto directory_entry_type_name = "Directory_entry";
 
 static std::optional<std::string> resolve_type(lua_State* L, int i) {
     if (builtin::is_type<sfs::path>(L, i)) {
@@ -215,7 +217,6 @@ static int path_div(lua_State* L) {
 static int path_namecall(lua_State* L) {
     int atom{};
     lua_namecallatom(L, &atom);
-    common::print(atom);
     auto& r = builtin::check<sfs::path>(L, 1);
     using ma = builtin::method_atom;
     switch (static_cast<ma>(atom)) {
@@ -317,55 +318,28 @@ const luaL_Reg directory_entry_metatable[] = {
     {builtin::metamethod::namecall, directory_entry_namecall},
     {nullptr, nullptr}
 };
-
-void builtin::fs_init_lib(lua_State *L) {
-    const luaL_Reg lib[] = {
-        {"create_directory", create_directory},
-        {"exists", exists},
-        {"is_character_file", is_character_file},
-        {"copy_file", copy_file},
-        {"rename", rename},
-        {"remove", remove},
-        {"remove_all", remove_all},
-        {"copy", copy},
-        {"is_directory", is_directory},
-        {"absolute", absolute},
-        {"is_empty", is_empty},
-        {"children_of", children_of},
-        {"descendants_of", descendants_of},
-        {nullptr, nullptr}
-    };
-    lua_pushvalue(L, LUA_GLOBALSINDEX);
-    luaL_register(L, "fs", lib);
-    lua_pop(L, 1);
-    luaL_newmetatable(L, builtin::metatable_name<sfs::path>());
-    const luaL_Reg path[] = {
-        {metamethod::tostring, path_tostring},
-        {metamethod::div, path_div},
-        {metamethod::namecall, path_namecall},
-        {nullptr, nullptr}
-    };
-    luaL_register(L, nullptr, path);
-    lua_pop(L, 1);
-    luaL_newmetatable(L, builtin::metatable_name<sfs::directory_entry>());
-    const luaL_Reg directory_entry[] = {
-        {metamethod::namecall, directory_entry_namecall},
-        {nullptr, nullptr}
-    };
-    luaL_register(L, nullptr, directory_entry);
-    lua_pop(L, 1);
-    lua_pushcfunction(L, path_ctor, "Path");
-    lua_setglobal(L, "Path");
-}
-int builtin::fs_import_lib(lua_State *L) {
+static void init_global_types(lua_State* L) {
     if (luaL_newmetatable(L, builtin::metatable_name<sfs::path>())) {
         luaL_register(L, nullptr, path_metatable);
+        lua_pushstring(L, path_type_name);
+        lua_setfield(L, -2, builtin::metamethod::type);
         lua_pop(L, 1);
     }
     if (luaL_newmetatable(L, builtin::metatable_name<sfs::directory_entry>())) {
         luaL_register(L, nullptr, directory_entry_metatable);
+        lua_pushstring(L, directory_entry_type_name);
+        lua_setfield(L, -2, builtin::metamethod::type);
         lua_pop(L, 1);
     }
+}
+
+void builtin::fs_init_lib(lua_State *L) {
+    init_global_types(L);
+    lua_pushcfunction(L, path_ctor, "path_ctor");
+    lua_setglobal(L, path_type_name);
+}
+int builtin::fs_import_lib(lua_State *L) {
+    init_global_types(L);
     lua_newtable(L);
     luaL_register(L, nullptr, fs_lib);
     return 1;

@@ -15,7 +15,7 @@ namespace cm = common;
 using field = bi::vec2_field;
 using type = bi::vec2i_t;
 using method = bi::method_atom;
-static constexpr auto type_name = "Vec2i";
+static constexpr auto type_name = "V2i";
 static constexpr auto field_count = comptime::count<field, field::y>();
 static type& self(lua_State* L) {return bi::check<type>(L, 1);}
 static type& init_t(lua_State* L) {return bi::create<type>(L);}

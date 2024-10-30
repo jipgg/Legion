@@ -1,15 +1,15 @@
 --!strict
-type _handler<params...> = (params...) -> ()
-type _event<params...> = {
-    _handlers: {_handler<params...>},
-    destroy: (event<params...>) -> (),
-    connect: (event<params...>, (params...)->()) -> connection,
-    fire: (event<params...>, params...) -> (),
+type _Handler<Params...> = (Params...) -> ()
+type _Event<Params...> = {
+    _handlers: {_Handler<Params...>},
+    destroy: (Event<Params...>) -> (),
+    connect: (Event<Params...>, (Params...)->()) -> Connection,
+    fire: (Event<Params...>, Params...) -> (),
 };
-type _connection = {
+type _Connection = {
     _id: number,
     _opaque_event: unknown,
-    disconnect: (connection)->(),
+    disconnect: (Connection)->(),
 };
 local connection = {
     __type = 'connection',
@@ -27,8 +27,8 @@ local event = {
     __type = 'event',
 } 
 event.__index = event
-export type event<params...> = typeof(setmetatable({}::_event<params...>, event))
-export type connection = typeof(setmetatable({}::_connection, connection))
+export type Event<Params...> = typeof(setmetatable({}::_Event<Params...>, event))
+export type Connection = typeof(setmetatable({}::_Connection, connection))
 function event:destroy()
     table.clear(self._handlers)
 end
@@ -43,10 +43,12 @@ function event:connect(fn)
     return setmetatable(c, connection)
 end
     --Constructor
-    export type constructor = <params...>() -> event<params...>
-function construct<params...>(): event<params...>
+local class = setmetatable({}, {__call = function<Params...>(self): Event<Params...>
+    return self.construct()
+end})
+function class.construct<params...>(): Event<params...>
     return setmetatable({
         _handlers = {},
-    }, event)::event<params...>
+    }, event)::Event<params...>
 end
-return construct
+return class

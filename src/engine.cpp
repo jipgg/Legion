@@ -183,11 +183,10 @@ static void init_state(lua_State* L) {
         return static_cast<int16_t>(e.index);
     };
     {using namespace builtin;
+        fs_init_lib(L);
         vec2d_init_type(L);
-        recti64_init_type(L);
         coloru32_init_type(L);
         physical_init_type(L);
-        renderer_init_lib(L);
         builtin_init_lib(L);
         sdl_init_lib(L);
     }
