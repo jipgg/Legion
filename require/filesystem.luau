@@ -1,9 +1,9 @@
 --!strict
-export type Copy_options = "recursive"|"copy symlinks"|
+export type CopyOptions = "recursive"|"copy symlinks"|
     "skip symlinks"|"skip existing"|"update existing"|
     "create symlinks"|"directories only"|"create hard links"|
     "overwrite existing"
-export type File_type = 'fifo'|'socket'|'block'|'regular'|
+export type FileType = 'fifo'|'socket'|'block'|'regular'|
     'symlink'|'unknown'|'junction'|'character'|'directory'|
     'not found'|'none'
 export type Perms = 'unknown'|'others exec'|'all'|'mask'|
@@ -37,30 +37,30 @@ type _path =  {
 } 
 export type path = typeof(setmetatable({}::_path, {}::_path_metatable))
 ]=]
-export type Directory_entry = {
-        is_directory:(Directory_entry) -> boolean,
-    is_fifo:(Directory_entry) -> boolean,
-    path:(Directory_entry) -> Path,
-    is_socket:(Directory_entry) -> boolean,
-    is_other:(Directory_entry) -> boolean,
-    is_symlink:(Directory_entry) -> boolean,
-    is_block_file:(Directory_entry) -> boolean,
-    is_regular_file:(Directory_entry) -> boolean,
-    is_character_file:(Directory_entry) -> boolean,
+export type DirectoryEntry = {
+    isDirectory:(DirectoryEntry) -> boolean,
+    isFifo:(DirectoryEntry) -> boolean,
+    path:(DirectoryEntry) -> Path,
+    isSocket:(DirectoryEntry) -> boolean,
+    isOther:(DirectoryEntry) -> boolean,
+    isSymlink:(DirectoryEntry) -> boolean,
+    isVlockFile:(DirectoryEntry) -> boolean,
+    isRegularFile:(DirectoryEntry) -> boolean,
+    isCharacterFile:(DirectoryEntry) -> boolean,
     }
 type _Path = Path | string
-type namespace = {
-    create_directory: (path: _Path) -> boolean,
+type Module = {
+    createDirectory: (path: _Path) -> boolean,
     exists: (path: _Path) -> boolean,
-    is_character_file: (path: _Path) -> boolean,
-    copy_file: (from: _Path, to: _Path, opt: Copy_options?) -> boolean,
+    isCharacterFile: (path: _Path) -> boolean,
+    copyFile: (from: _Path, to: _Path, opt: CopyOptions?) -> boolean,
     rename: (from: _Path, to: _Path) -> (),
     remove: (path: _Path) -> boolean,
-    remove_all: (path: _Path) -> number,
-    copy: (from: _Path, to: _Path, opt: Copy_options?) -> (),
+    removeAll: (path: _Path) -> number,
+    copy: (from: _Path, to: _Path, opt: CopyOptions?) -> (),
     absolute: (path: _Path) -> Path,
-    children_of: (path: _Path) -> {Directory_entry},
-    descendants_of: (path: _Path) -> {Directory_entry},
+    childrenOf: (path: _Path) -> {DirectoryEntry},
+    descendantsOf: (path: _Path) -> {DirectoryEntry},
     path: (file: string) -> Path,
 }
-return _G.__builtin_import_filesystem()::namespace
+return _G.__builtin_import_filesystem()::Module

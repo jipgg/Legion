@@ -1,41 +1,41 @@
 --!strict
 local Event = require 'Event'
-export type Mouse_button_type = "left" | "right"| "middle"
+export type MouseButtonType = "left" | "right"| "middle"
 type Event<params...> = Event.Event<params...>
-export type key_event = Event<Keycode>
-export type mouse_event = Event<Mouse_button_type, V2>
-export type void_event = Event<>
-export type update_event = Event<number>
-local namespace = {
-    updating = Event.construct()::update_event,
-    rendering = Event.construct()::void_event,
-    shutting_down = Event.construct()::void_event,
-    key_pressed = Event.construct()::key_event,
-    key_released = Event.construct()::key_event,
-    mouse_pressed = Event.construct()::mouse_event,
-    mouse_released = Event.construct()::mouse_event,
+export type KeyboardEvent = Event<Keycode>
+export type MouseEvent = Event<MouseButtonType, V2>
+export type VoidEvent = Event<>
+export type UpdateEvent = Event<number>
+local Module = {
+    updating = Event.construct()::UpdateEvent,
+    rendering = Event.construct()::VoidEvent,
+    shuttingDown = Event.construct()::VoidEvent,
+    keyPressed = Event.construct()::KeyboardEvent,
+    keyReleased = Event.construct()::KeyboardEvent,
+    mousePressed = Event.construct()::MouseEvent,
+    mouseReleased = Event.construct()::MouseEvent,
 }
-_G["__builtin_update_socket"] = function(delta_s: number)
-    namespace.updating:fire(delta_s)
+_G["__builtin_update_socket"] = function(deltaSeconds: number)
+    Module.updating:fire(deltaSeconds)
     collectgarbage("collect")
 end
 _G["__builtin_render_socket"] = function()
-    namespace.rendering:fire()
+    Module.rendering:fire()
 end
 _G["__builtin_shutdown_socket"] = function()
-    namespace.shutting_down:fire()
+    Module.shuttingDown:fire()
     collectgarbage("collect")
 end
-_G["__builtin_mousedown_socket"] = function(button: Mouse_button_type, mouse_pos: V2)
-    namespace.mouse_pressed:fire(button, mouse_pos)
+_G["__builtin_mousedown_socket"] = function(button: MouseButtonType, mousePos: V2)
+    Module.mousePressed:fire(button, mousePos)
 end
-_G["__builtin_mouseup_socket"] = function(button: Mouse_button_type, mouse_pos: V2)
-    namespace.mouse_released:fire(button, mouse_pos)
+_G["__builtin_mouseup_socket"] = function(button: MouseButtonType, mousePos: V2)
+    Module.mouseReleased:fire(button, mousePos)
 end
 _G["__builtin_keydown_socket"] = function(key: Keycode)
-    namespace.key_pressed:fire(key)
+    Module.keyPressed:fire(key)
 end
 _G["__builtin_keyup_socket"] = function(key: Keycode)
-    namespace.key_released:fire(key)
+    Module.keyReleased:fire(key)
 end
-return namespace
+return Module

@@ -158,31 +158,31 @@ static int directory_entry_namecall(lua_State* L) {
     lua_namecallatom(L, &atom);
     using ma = builtin::method_atom;
     switch (static_cast<ma>(atom)) {
-        case ma::is_directory:
+        case ma::isDirectory:
             lua_pushboolean(L, r.is_directory());
             return 1;
-        case ma::is_fifo:
+        case ma::isFifo:
             lua_pushboolean(L, r.is_fifo());
             return 1;
         case ma::path:
             builtin::create<sfs::path>(L, r.path());
             return 1;
-        case ma::is_socket:
+        case ma::isSocket:
             lua_pushboolean(L, r.is_socket());
             return 1;
-        case ma::is_other:
+        case ma::isOther:
             lua_pushboolean(L, r.is_other());
             return 1;
-        case ma::is_symlink:
+        case ma::isSymlink:
             lua_pushboolean(L, r.is_symlink());
             return 1;
-        case ma::is_block_file:
+        case ma::isBlockFile:
             lua_pushboolean(L, r.is_block_file());
             return 1;
-        case ma::is_regular_file:
+        case ma::isRegularFile:
             lua_pushboolean(L, r.is_regular_file());
             return 1;
-        case ma::is_character_file:
+        case ma::isCharacterFile:
             lua_pushboolean(L, r.is_character_file());
             return 1;
         default: return 0;
@@ -229,52 +229,52 @@ static int path_namecall(lua_State* L) {
         case ma::filename:
             builtin::create<sfs::path>(L, r.filename());
             return 1;
-        case ma::has_stem:
+        case ma::hasStem:
             lua_pushboolean(L, r.has_stem());
             return 1;
-        case ma::root_path:
+        case ma::rootPath:
             builtin::create<sfs::path>(L, r.root_path());
             return 1;
-        case ma::parent_path:
+        case ma::parentPath:
             builtin::create<sfs::path>(L, r.parent_path());
             return 1;
-        case ma::is_absolute:
+        case ma::isAbsolute:
             lua_pushboolean(L, r.is_absolute());
             return 1;
-        case ma::is_relative:
+        case ma::isRelative:
             lua_pushboolean(L, r.is_relative());
             return 1;
         case ma::extension:
             builtin::create<sfs::path>(L, r.extension());
             return 1;
-        case ma::has_extension:
+        case ma::hasExtension:
             lua_pushboolean(L, r.has_extension());
             return 1;
-        case ma::replace_extension:
+        case ma::replaceExtension:
             r.replace_extension(luaL_checkstring(L, 2));
             return 0;
-        case ma::relative_path:
+        case ma::relativePath:
             builtin::create<sfs::path>(L, r.relative_path());
             return 1;
-        case ma::has_relative_path:
+        case ma::hasRelativePath:
             lua_pushboolean(L, r.has_relative_path());
             return 1;
         case ma::compare:
             lua_pushinteger(L, r.compare(builtin::check<sfs::path>(L, 2)));
             return 1;
-            case ma::root_name:
+            case ma::rootName:
             builtin::create<sfs::path>(L, r.root_name());
             return 1;
-        case ma::root_directory:
+        case ma::rootDirectory:
             builtin::create<sfs::path>(L, r.root_directory());
             return 1;
-        case ma::has_root_path:
+        case ma::hasRootPath:
             lua_pushboolean(L, r.has_root_path());
             return 1;
-        case ma::has_root_name:
+        case ma::hasRootName:
             lua_pushboolean(L, r.has_root_name());
             return 1;
-        case ma::has_root_directory:
+        case ma::hasRootDirectory:
             lua_pushboolean(L, r.has_root_directory());
             return 1;
         default:
@@ -292,19 +292,19 @@ static int path_ctor(lua_State* L) {
 }
 
 static const luaL_Reg fs_lib[] = {
-    {"create_directory", create_directory},
+    {"createDirectory", create_directory},
     {"exists", exists},
-    {"is_character_file", is_character_file},
-    {"copy_file", copy_file},
+    {"isCharacterFile", is_character_file},
+    {"copyFile", copy_file},
     {"rename", rename},
     {"remove", remove},
-    {"remove_all", remove_all},
+    {"removeAll", remove_all},
     {"copy", copy},
-    {"is_directory", is_directory},
+    {"isDirectory", is_directory},
     {"absolute", absolute},
-    {"is_empty", is_empty},
-    {"children_of", children_of},
-    {"descendants_of", descendants_of},
+    {"isEmpty", is_empty},
+    {"childrenOf", children_of},
+    {"descendantsOf", descendants_of},
     {"path", path_ctor},
     {nullptr, nullptr}
 };

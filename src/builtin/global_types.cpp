@@ -7,8 +7,8 @@ namespace bi = builtin;
 namespace mm = bi::metamethod;
 //coloru32
 static constexpr auto coloru32_tname = "Coloru32";
-static constexpr auto texture_tname = "Texture";
-static constexpr auto font_tname = "Font";
+static constexpr auto texture_tname = "SDL_Texture";
+static constexpr auto font_tname = "TTF_Font";
 static constexpr auto rect_tname = "Rect";
 static constexpr auto recti_tname = "Recti";
 static int coloru32_ctor(lua_State *L) {
@@ -113,7 +113,7 @@ static void rect_init(lua_State* L) {
     luaL_newmetatable(L, bi::metatable_name<bi::rect_t>());
     const luaL_Reg rect[] = {
         {mm::index, rect_index},
-        {mm::newindex, rect_index},
+        {mm::newindex, rect_newindex},
         {nullptr, nullptr}
     };
     luaL_register(L, nullptr, rect);
@@ -168,7 +168,7 @@ static void recti_init(lua_State* L) {
     luaL_newmetatable(L, bi::metatable_name<bi::recti_t>());
     const luaL_Reg recti[] = {
         {mm::index, recti_index},
-        {mm::newindex, recti_index},
+        {mm::newindex, recti_newindex},
         {nullptr, nullptr}
     };
     luaL_register(L, nullptr, recti);

@@ -1,27 +1,29 @@
 --!strict
-local fs = require '@Legion/filesystem'
 local state = require '@Legion/state'
-local resources = Path("resources");
-local jw = resources / "jw.png"
-print(typeof(jw))
-local font = sdl.open_font(tostring(resources / "main_font.ttf"), 16);
-if font then
-    print("nice font bro")
+local SDL = require '@Legion/SDL'
+local resourcePath = Path("resources");
+local mainFontPath = resourcePath / "main_font.ttf"
+local imagePath = resourcePath / "jw.png"
+local mainFont = assert(SDL.openFont(tostring(mainFontPath), 40))
+type TextureEntry = {texture: SDL_Texture, srcRect: Recti}
+local textureEntries: {TextureEntry} = table.create(0) 
+local function insertEntry(txt: SDL_Texture, w: number, h: number)
+    table.insert(textureEntries, {texture = txt, srcRect = Recti(0, 0, w, h)})
 end
-local p = V2(100, 100)
-print(p)
-local pi = V2i(p)
-print(pi)
-if fs.exists(jw) then
-    local texture, w, h = sdl.load_image(tostring(jw))
-    if texture then
-        print(typeof(texture), w, h)
-        print("ok")
-        state.rendering:connect(function()
-            sdl.render.set_draw_color(Coloru32(0xffffffff))
-            sdl.render.render_copy(texture, Recti(0, 0, w * .5, h * .5))
-        end)
-    else
-        print("not ok")
+
+local texture: SDL_Texture?, w: number, h: number
+texture, w, h = SDL.loadImage(tostring(imagePath))
+if texture then insertEntry(texture, w, h) end
+texture, w, h = SDL.loadText(mainFont, "Hello World", Coloru32(0xff, 0xff, 0xff, 0xff))
+if texture then insertEntry(texture, w, h) end
+
+state.rendering:connect(function()
+    local render = SDL.render.renderCopy
+    for i, entry in textureEntries do
+        local realRect = entry.srcRect
+        realRect.x = 100
+        realRect.y = 100
+        
+        render(entry.texture, realRect)
     end
-end
+end)

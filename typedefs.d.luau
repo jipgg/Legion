@@ -47,26 +47,10 @@ declare class Recti
 end
 declare function Rect(x: number?, y: number?, w: number?, h: number?): Rect
 declare function Recti(x: number?, y: number?, w: number?, h: number?): Recti
-declare class Texture end
-declare class Font end
-declare sdl: {
-    load_image: (file: string) -> (Texture?, number, number),
-    open_font: (file: string, pt_size: number) -> Font?,
-    render: {
-        set_draw_color: (color: Coloru32) -> (),
-        render_copy: (texture: Texture, dest: Recti?, src: Recti?) -> (),
-    },
-}
-declare builtin: {
-    title: string,
-    window_size: V2,
-    maximize_window: () -> (),
-    mouse_pos: () -> V2,
-    key_down: (key: Keycode) -> boolean,
-    read_text_file: (path: string) -> string?,
-}
+declare class SDL_Texture end
+declare class TTF_Font end
 declare function collectgarbage(opt: ("collect" | "count")?): ()
-declare class Physical_component
+declare class PhysicalComponent
     position: V2
     velocity: V2
     acceleration: V2
@@ -79,26 +63,26 @@ declare class Physical_component
     size: V2
     --function bounds(self): Rect
 end
-declare function Physical_component(): Physical_component
+declare function PhysicalComponent(): PhysicalComponent
 
 declare class Path
     function stem(self): Path
     function empty(self): boolean
     function filename(self): Path
-    function has_stem(self): boolean
-    function root_path(self): Path
-    function parent_path(self): Path
-    function is_absolute(self): boolean
-    function is_relative(self): boolean
+    function hasStem(self): boolean
+    function rootPath(self): Path
+    function parentPath(self): Path
+    function isAbsolute(self): boolean
+    function isRelative(self): boolean
     function extension(self): Path
-    function replace_extension(self, s: string)
-    function relative_path(self): Path
+    function replaceExtension(self, s: string)
+    function relativePath(self): Path
     function compare(self): number
-    function root_name(self): Path
-    function root_directory(self): Path
-    function has_root_path(self): boolean
-    function has_root_name(self): boolean
-    function has_root_directory(self): boolean
+    function rootName(self): Path
+    function rootDirectory(self): Path
+    function hasRootPath(self): boolean
+    function hasRootName(self): boolean
+    function hasRootDirectory(self): boolean
     function __tostring(self): string
     function __div(self, other: string | Path): Path
 end

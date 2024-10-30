@@ -5,12 +5,7 @@
 #include <SDL.h>
 #include <SDL_image.h>
 
-static constexpr auto texture_type_name = "Texture";
-static constexpr auto font_type_name = "Font";
-static constexpr auto rect_type_name = "Rect";
-static constexpr auto recti_type_name = "Recti";
 using method = builtin::method_atom;
-namespace lmm = builtin::metamethod;
 namespace bi = builtin;
 namespace cm = common;
 static SDL_Renderer* renderer() {
@@ -45,10 +40,69 @@ static int load_image(lua_State* L) {
         return 3;
     }
 }
+static int load_text(lua_State* L) {
+    auto& font = bi::check<bi::font_t>(L, 1);
+    const char* text = luaL_checkstring(L, 2);
+    SDL_Color fg{0, 0, 0, 0xff};
+    if (not lua_isnone(L, 3)) {
+        auto& r = bi::check<bi::coloru32_t>(L, 3);
+        fg.r = r.red();
+        fg.a = r.alpha();
+        fg.g = r.green();
+        fg.b = r.blue();
+    }
+    SDL_Surface* surface = TTF_RenderText_Blended(font.get(), text, fg);
+    if (not surface) {
+        return 0;
+    }
+    cm::deferred _([&surface] {SDL_FreeSurface(surface);});
+    SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer(), surface);
+    if (not texture) return 0;
+    bi::create<bi::texture_t>(L, texture, SDL_DestroyTexture);
+    lua_pushinteger(L, surface->w);
+    lua_pushinteger(L, surface->h);
+    return 3;
+}
 
 static int set_draw_color(lua_State* L) {
     auto& color = bi::check<bi::coloru32_t>(L, 1);
     SDL_SetRenderDrawColor(renderer(), color.red(), color.green(), color.blue(), color.alpha());
+    return 0;
+}
+static int draw_rect(lua_State* L) {
+    if (bi::is_type<bi::recti_t>(L, 1)) {
+        auto& rect = bi::check<bi::recti_t>(L, 1);
+        SDL_RenderDrawRect(renderer(), &rect);
+        return 0;
+    } else if (bi::is_type<bi::rect_t>(L, 1)) {
+        auto& rect = bi::check<bi::rect_t>(L, 1);
+        SDL_Rect dummy{
+            static_cast<int>(rect.x),
+            static_cast<int>(rect.y),
+            static_cast<int>(rect.w),
+            static_cast<int>(rect.h)
+        };
+        SDL_RenderDrawRect(renderer(), &dummy);
+        return 0;
+    }
+    return 0;
+}
+static int fill_rect(lua_State* L) {
+    if (bi::is_type<bi::recti_t>(L, 1)) {
+        auto& rect = bi::check<bi::recti_t>(L, 1);
+        SDL_RenderFillRect(renderer(), &rect);
+        return 0;
+    } else if (bi::is_type<bi::rect_t>(L, 1)) {
+        auto& rect = bi::check<bi::rect_t>(L, 1);
+        SDL_Rect dummy{
+            static_cast<int>(rect.x),
+            static_cast<int>(rect.y),
+            static_cast<int>(rect.w),
+            static_cast<int>(rect.h)
+        };
+        SDL_RenderFillRect(renderer(), &dummy);
+        return 0;
+    }
     return 0;
 }
 static int render_copy(lua_State* L) {
@@ -65,24 +119,25 @@ static int render_copy(lua_State* L) {
         has_dest ? &bi::check<bi::recti_t>(L, dest_arg):nullptr);
     return 0;
 }
-void bi::sdl_init_lib(lua_State *L) {
-    const luaL_Reg sdl[] = {
-        {"open_font", open_font},
-        {"load_image", load_image},
+int bi::sdl_import_lib(lua_State *L) {
+    const luaL_Reg lib[] = {
+        {"openFont", open_font},
+        {"loadImage", load_image},
+        {"loadText", load_text},
         {nullptr, nullptr}
     };
-    lua_pushvalue(L, LUA_GLOBALSINDEX);
-    luaL_register(L, "sdl", sdl);
-    lua_pop(L, 1);
-    lua_getglobal(L, "sdl");
     lua_newtable(L);
-    const luaL_Reg render[] = {
-        {"set_draw_color", set_draw_color},
-        {"render_copy", render_copy},
+    luaL_register(L, nullptr, lib);
+    lua_newtable(L);
+    const luaL_Reg render_lib[] = {
+        {"setDrawColor", set_draw_color},
+        {"renderCopy", render_copy},
+        {"drawRect", draw_rect},
+        {"fillRect", fill_rect},
         {nullptr, nullptr}
     };
-    luaL_register(L, nullptr, render);
+    luaL_register(L, nullptr, render_lib);
     lua_setfield(L, -2, "render");
-    lua_pop(L, 1);
+    return 1;
 }
 

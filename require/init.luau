@@ -1,12 +1,12 @@
 --!strict
-local namespace = {}
+local Module = {}
 
 local Event = require 'Event'
 export type Event<Params...> = event.Event<Params...>
 export type Connection = event.Connection
-namespace.Event = Event
+Module.Event = Event
 
 local state = require 'state'
-namespace.state = state
+Module.state = state
 
-return namespace
+return Module

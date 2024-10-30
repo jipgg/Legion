@@ -20,7 +20,7 @@ int type_tag() {
 }
 template <class my_type>
 bool is_type(lua_State* L, int idx) {
-    return lua_userdatatag(L, idx) == type_tag<my_type>();
+    return lua_isuserdata(L, idx) and lua_userdatatag(L, idx) == type_tag<my_type>();
 }
 template<class my_type>
 const char* metatable_name() {

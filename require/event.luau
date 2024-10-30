@@ -22,22 +22,22 @@ function connection:disconnect()
         event.handlers[self.id] = nil
     end
 end
-local event = {
+local Event = {
     CURR_ID = 0,
     __type = 'event',
 } 
-event.__index = event
-export type Event<Params...> = typeof(setmetatable({}::_Event<Params...>, event))
+Event.__index = Event
+export type Event<Params...> = typeof(setmetatable({}::_Event<Params...>, Event))
 export type Connection = typeof(setmetatable({}::_Connection, connection))
-function event:destroy()
+function Event:destroy()
     table.clear(self._handlers)
 end
-function event:fire(...)
+function Event:fire(...)
     for i, handler in self._handlers do handler(...) end
 end
-function event:connect(fn)
-    event.CURR_ID += 1
-    local id = event.CURR_ID
+function Event:connect(fn)
+    Event.CURR_ID += 1
+    local id = Event.CURR_ID
     self._handlers[id] = fn
     local c = {_id = id, _opaque_event = self}
     return setmetatable(c, connection)
@@ -49,6 +49,6 @@ end})
 function class.construct<params...>(): Event<params...>
     return setmetatable({
         _handlers = {},
-    }, event)::Event<params...>
+    }, Event)::Event<params...>
 end
 return class

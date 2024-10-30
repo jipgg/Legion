@@ -174,7 +174,7 @@ void renderer::fill(const cm::recti64& rect) {
     sdl_rect_dummy.h = rect.height();
     SDL_RenderFillRect(renderer_ptr, &sdl_rect_dummy);
 }
-static void init_state(lua_State* L) {
+static void init_luau_state(lua_State* L) {
     luaL_openlibs(main_state);
     lua_callbacks(L)->useratom = [](const char* raw_name, size_t s) {
         std::string_view name{raw_name, s};
@@ -187,13 +187,13 @@ static void init_state(lua_State* L) {
         fs_init_lib(L);
         vec2d_init_type(L);
         vec2i_init_type(L);
-        sdl_init_lib(L);
     }
     static const luaL_Reg funcs[] = {
         {"loadstring", lua_loadstring},
         {"require", lua_require},
         {"collectgarbage", lua_collectgarbage},
         {"__builtin_import_filesystem", builtin::fs_import_lib},
+        {"__builtin_import_sdl", builtin::sdl_import_lib},
         {NULL, NULL}
     };
     lua_pushvalue(L, LUA_GLOBALSINDEX);
@@ -230,7 +230,7 @@ void core::start(engine_start_options opts) {
     if (opts.vsync_enabled) renderer_flags |= SDL_RENDERER_PRESENTVSYNC;
     renderer_ptr = SDL_CreateRenderer(window_ptr, -1, renderer_flags);
     main_state = luaL_newstate();
-    init_state(main_state);
+    init_luau_state(main_state);
 }
 void core::run() {
     auto cached_last_tp = ch::steady_clock::now();

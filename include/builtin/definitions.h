@@ -5,10 +5,9 @@ void init_global_types(lua_State* L);
 void vec2i_init_type(lua_State* L);
 void vec2d_init_type(lua_State* L);
 void physical_init_type(lua_State* L);
-
 void fs_init_lib(lua_State* L);
-void sdl_init_lib(lua_State* L);
 
+int sdl_import_lib(lua_State* L);
 int fs_import_lib(lua_State* L);
 enum class vec2_field {x, y};
 namespace event_sockets {
