@@ -56,11 +56,8 @@ static int load_text(lua_State* L) {
     const char* text = luaL_checkstring(L, 2);
     SDL_Color fg{0, 0, 0, 0xff};
     if (not lua_isnone(L, 3)) {
-        auto& r = bi::check<bi::coloru32_t>(L, 3);
-        fg.r = r.red();
-        fg.a = r.alpha();
-        fg.g = r.green();
-        fg.b = r.blue();
+        auto& r = bi::check<bi::color_t>(L, 3);
+        fg = r;
     }
     SDL_Surface* surface = TTF_RenderText_Blended(font.get(), text, fg);
     if (not surface) {
@@ -76,8 +73,8 @@ static int load_text(lua_State* L) {
 }
 
 static int set_draw_color(lua_State* L) {
-    auto& color = bi::check<bi::coloru32_t>(L, 1);
-    SDL_SetRenderDrawColor(renderer(), color.red(), color.green(), color.blue(), color.alpha());
+    auto& color = bi::check<bi::color_t>(L, 1);
+    SDL_SetRenderDrawColor(renderer(), color.r, color.g, color.b, color.a);
     return 0;
 }
 static int draw_rect(lua_State* L) {
@@ -169,6 +166,14 @@ static int draw_lines(lua_State* L) {
         point_buffer.emplace_back(SDL_Point{p.at(0), p.at(1)});
     }
     SDL_RenderDrawLines(renderer(), point_buffer.data(), point_buffer.size());
+    return 0;
+}
+static int clear(lua_State* L) {
+    SDL_RenderClear(renderer());
+    return 0;
+}
+static int flush(lua_State* L) {
+    SDL_RenderFlush(renderer());
     return 0;
 }
 static int render_copy(lua_State* L) {

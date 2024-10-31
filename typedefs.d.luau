@@ -98,13 +98,13 @@ declare class V2i
 end
 declare V2: ((x: number?, y: number?) -> V2) & ((v: V2i) -> V2)
 declare V2i: ((x: number?, y: number?) -> V2i) & ((v: V2) -> V2i)
-declare class Coloru32
+declare class Color
     r: number
     g: number
     b: number
     a: number
 end
-declare Coloru32: ((value: number) -> Coloru32) & ((r: number?, g: number?, b: number?, a: number?) -> Coloru32)
+declare Color: (r: number?, g: number?, b: number?, a: number?) -> Color
 declare class Rect
     x: number
     y: number
@@ -123,7 +123,7 @@ declare class SDL_Texture end
 declare class TTF_Font end
 export type SDL_RenderFlip = 'none'|'vertical'|'horizontal'
 export type LibSDLRender = {
-    setDrawColor: (Coloru32) -> (),
+    setDrawColor: (Color) -> (),
     renderCopy: ((SDL_Texture, dest: Recti?, src: Recti?) -> ())
         & ((SDL_Texture, dest: Recti?, src: Recti?, angle: number?, center: V2i?, flip: SDL_RenderFlip?)->()),
     drawRect: ((Recti) ->()) & ((Rect) -> ()),
@@ -138,7 +138,7 @@ export type LibSDLRender = {
 export type LibSDL = {
     openFont: (file: _Path, ptsize: number) -> TTF_Font?,
     loadImage: (file: _Path) -> (SDL_Texture?, number, number),
-    loadText: (font: TTF_Font, text: string, fg_or_black: Coloru32?) -> (SDL_Texture?, number, number),
+    loadText: (font: TTF_Font, text: string, fg_or_black: Color?) -> (SDL_Texture?, number, number),
     Render: LibSDLRender,
 }
 declare SDL: LibSDL

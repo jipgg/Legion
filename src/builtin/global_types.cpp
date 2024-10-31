@@ -6,60 +6,47 @@
 namespace bi = builtin;
 namespace mm = bi::metamethod;
 //coloru32
-static constexpr auto coloru32_tname = "Coloru32";
 static constexpr auto texture_tname = "SDL_Texture";
+static constexpr auto color_tname = "Color";
 static constexpr auto font_tname = "TTF_Font";
 static constexpr auto rect_tname = "Rect";
 static constexpr auto recti_tname = "Recti";
-static int coloru32_ctor(lua_State *L) {
-    uint32_t r{};
-    uint8_t g{}, b{}, a{};
-    if (lua_isnumber(L, 1)) r = luaL_checkinteger(L, 1);
-    if (lua_isnone(L, 2)) {
-        bi::create<bi::coloru32_t>(L, static_cast<uint32_t>(r));
-        return 1;
-    }
-    if (lua_isnumber(L, 2)) g = luaL_checkinteger(L, 2);
-    if (lua_isnumber(L, 3)) b = luaL_checkinteger(L, 3);
-    if (lua_isnumber(L, 4)) a = luaL_checkinteger(L, 4);
-    bi::create<bi::coloru32_t>(L, static_cast<uint8_t>(r), g, b, a);
+static int color_ctor(lua_State *L) {
+    uint8_t r{}, g{}, b{}, a{};
+    bi::create<bi::color_t>(L,
+        static_cast<uint8_t>(luaL_optinteger(L, 1, 0)),
+        static_cast<uint8_t>(luaL_optinteger(L, 2, 0)),
+        static_cast<uint8_t>(luaL_optinteger(L, 3, 0)), 
+        static_cast<uint8_t>(luaL_optinteger(L, 4, 0xff)));
     return 1;
 }
-static int coloru32_index(lua_State *L) {
-    const auto& self = bi::check<bi::coloru32_t>(L, 1);
+static int color_index(lua_State *L) {
+    const auto& self = bi::check<bi::color_t>(L, 1);
     const char key = *luaL_checkstring(L, 2);
     switch(key) {
-        case 'r':
-            lua_pushinteger(L, self.red());
-            return 1;
-        case 'g':
-            lua_pushinteger(L, self.green());
-            return 1;
-        case 'b':
-            lua_pushinteger(L, self.blue());
-            return 1;
-        case 'a':
-            lua_pushinteger(L, self.alpha());
-            return 1;
+        case 'r': lua_pushinteger(L, self.r); return 1;
+        case 'g': lua_pushinteger(L, self.g); return 1;
+        case 'b': lua_pushinteger(L, self.b); return 1;
+        case 'a': lua_pushinteger(L, self.a); return 1;
         }
     return 0;
 }
-static int coloru32_newindex(lua_State *L) {
+static int color_newindex(lua_State *L) {
     luaL_error(L, "members are read-only");
 }
-void coloru32_init(lua_State *L) {
-    luaL_newmetatable(L, bi::metatable_name<bi::coloru32_t>());
+void color_init(lua_State *L) {
+    luaL_newmetatable(L, bi::metatable_name<SDL_Color>());
     const luaL_Reg metadata[] = {
-        {mm::index, coloru32_index},
-        {mm::newindex, coloru32_newindex},
+        {mm::index, color_index},
+        {mm::newindex, color_newindex},
         {nullptr, nullptr}
     };
-    lua_pushstring(L, coloru32_tname);
+    lua_pushstring(L, color_tname);
     lua_setfield(L, -2, mm::type);
     luaL_register(L, nullptr, metadata);
     lua_pop(L, 1);
-    lua_pushcfunction(L, coloru32_ctor, coloru32_tname);
-    lua_setglobal(L, coloru32_tname);
+    lua_pushcfunction(L, color_ctor, color_tname);
+    lua_setglobal(L, color_tname);
 }
 //font
 static void font_init(lua_State* L) {
@@ -186,7 +173,7 @@ static void texture_init(lua_State* L) {
     lua_pop(L, 1);
 }
 void builtin::init_global_types(lua_State *L) {
-    coloru32_init(L);
+    color_init(L);
     font_init(L);
     rect_init(L);
     recti_init(L);
