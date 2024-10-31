@@ -9,6 +9,10 @@ void fs_init_lib(lua_State* L);
 
 int sdl_import_lib(lua_State* L);
 int fs_import_lib(lua_State* L);
+
+int read_file(lua_State* L);
+int get_mouse_position(lua_State* L);
+int is_key_down(lua_State* L);
 enum class vec2_field {x, y};
 namespace event_sockets {
 constexpr auto update = "__builtin_update_socket";

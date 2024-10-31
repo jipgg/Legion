@@ -1,19 +1,15 @@
 --!strict
-local Event = require 'Event'
+--local Event = require 'Event'
 export type MouseButtonType = "left" | "right"| "middle"
-type Event<params...> = Event.Event<params...>
-export type KeyboardEvent = Event<Keycode>
-export type MouseEvent = Event<MouseButtonType, V2>
-export type VoidEvent = Event<>
-export type UpdateEvent = Event<number>
+--type Event<params...> = Event.Event<params...>
 local Module = {
-    updating = Event.construct()::UpdateEvent,
-    rendering = Event.construct()::VoidEvent,
-    shuttingDown = Event.construct()::VoidEvent,
-    keyPressed = Event.construct()::KeyboardEvent,
-    keyReleased = Event.construct()::KeyboardEvent,
-    mousePressed = Event.construct()::MouseEvent,
-    mouseReleased = Event.construct()::MouseEvent,
+    updating = Event(),
+    rendering = Event(),
+    shuttingDown = Event(),
+    keyPressed = Event(),
+    keyReleased = Event(),
+    mousePressed = Event(),
+    mouseReleased = Event(),
 }
 _G["__builtin_update_socket"] = function(deltaSeconds: number)
     Module.updating:fire(deltaSeconds)

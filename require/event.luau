@@ -43,12 +43,9 @@ function Event:connect(fn)
     return setmetatable(c, connection)
 end
     --Constructor
-local class = setmetatable({}, {__call = function<Params...>(self): Event<Params...>
-    return self.construct()
-end})
-function class.construct<params...>(): Event<params...>
+function construct<params...>(): Event<params...>
     return setmetatable({
         _handlers = {},
     }, Event)::Event<params...>
 end
-return class
+return construct
