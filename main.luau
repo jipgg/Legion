@@ -4,6 +4,7 @@ local mainFontPath = resourcePath / "main_font.ttf"
 local imagePath = resourcePath / "jw.png"
 local mainFont = assert(SDL.openFont(mainFontPath, 80))
 local white = Coloru32(0xff, 0xff, 0xff, 0xff)
+local green = Coloru32(0x00, 0xff, 0x00, 0x00)
 local Render = SDL.Render
 type TextureEntry = {texture: SDL_Texture, srcRect: Recti}
 local textureEntries: {TextureEntry} = table.create(0) 
@@ -21,8 +22,18 @@ if texture then
     insertEntry(texture, w, h)
 end
 
+local spinning_text, st_w, st_h = assert(SDL.loadText(mainFont, "Yo world", green))
+local spinning_center = V2i(st_w / 2, st_h / 2)
+local spinning_angle = 0
+
 InputModule.onMousePressed:connect(function(type: MouseButtonType, mousePosition: V2i)
     print(type, mousePosition)
+end)
+
+RunModule.onUpdate:connect(function(deltaSeconds: number)
+    print(deltaSeconds)
+    local spin_speed = 1000
+    spinning_angle += spin_speed * deltaSeconds
 end)
 
 RunModule.onRender:connect(function()
@@ -37,7 +48,11 @@ RunModule.onRender:connect(function()
     Render.drawRects(Recti(300, 300, 100, 100), Recti(500, 500, 100, 100))
     Render.setDrawColor(Coloru32(0, 0, 0xff))
     Render.drawRects(Recti(300, 500, 100, 100), Recti(500, 300, 100, 100))
-    Render.renderCopy(last.texture, last.srcRect)
+    Render.renderCopy(last.texture, last.srcRect);
     Render.setDrawColor(Coloru32(0xff, 0x00, 0x00, 0xff))
     Render.drawLines(V2i(0, 0), V2i(100, 100), V2i(100, 300), V2i(0, 0))
+    local src = Recti(0, 0, st_w, st_h)
+    local dst = Recti(200, 200, st_w, st_h)
+
+    Render.renderCopy(spinning_text, dst, src, spinning_angle, spinning_center)
 end)

@@ -121,9 +121,11 @@ declare function Rect(x: number?, y: number?, w: number?, h: number?): Rect
 declare function Recti(x: number?, y: number?, w: number?, h: number?): Recti
 declare class SDL_Texture end
 declare class TTF_Font end
+export type SDL_RenderFlip = 'none'|'vertical'|'horizontal'
 export type LibSDLRender = {
     setDrawColor: (Coloru32) -> (),
-    renderCopy: (SDL_Texture, dest: Recti?, src: Recti?) -> (),
+    renderCopy: ((SDL_Texture, dest: Recti?, src: Recti?) -> ())
+        & ((SDL_Texture, dest: Recti?, src: Recti?, angle: number?, center: V2i?, flip: SDL_RenderFlip?)->()),
     drawRect: ((Recti) ->()) & ((Rect) -> ()),
     drawRects: (...Recti) -> (),
     fillRect: ((Recti) ->()) & ((Rect) -> ()),

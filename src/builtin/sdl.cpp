@@ -2,6 +2,9 @@
 #include "builtin/utility.h"
 #include "builtin/method_atom.h"
 #include "builtin/typedefs.h"
+#include <lualib.h>
+#include <lua.h>
+#include <luaconf.h>
 #include <SDL.h>
 #include <SDL_image.h>
 
@@ -172,14 +175,45 @@ static int render_copy(lua_State* L) {
     constexpr int texture_arg = 1;
     constexpr int dest_arg = 2;
     constexpr int src_arg = 3;
+    constexpr int angle_arg = 4;
     const auto& texture = bi::check<bi::texture_t>(L, texture_arg);
     const bool has_dest = not lua_isnoneornil(L, dest_arg);
     const bool has_src = not lua_isnoneornil(L, src_arg);
-    SDL_RenderCopy(
-        renderer(),
-        texture.get(),
-        has_src? &bi::check<bi::recti_t>(L, src_arg):nullptr,
-        has_dest ? &bi::check<bi::recti_t>(L, dest_arg):nullptr);
+    if (lua_isnone(L, angle_arg)) {
+        SDL_RenderCopy(
+            renderer(),
+            texture.get(),
+            has_src? &bi::check<bi::recti_t>(L, src_arg):nullptr,
+            has_dest ? &bi::check<bi::recti_t>(L, dest_arg):nullptr);
+    } else {
+        constexpr int center_arg = 5;
+        const bool has_center_arg = not lua_isnoneornil(L, center_arg);
+        SDL_Point center{};
+        if (has_center_arg) {
+            auto& r = bi::check<bi::vec2i_t>(L, center_arg);
+            center.x = r.at(0);
+            center.y = r.at(1);
+        }
+        constexpr int renderflip_arg = 6;
+        const bool has_renderflip_arg = not lua_isnoneornil(L, renderflip_arg);
+        SDL_RendererFlip flip = SDL_FLIP_NONE;
+        if (has_renderflip_arg) {
+            std::string_view r = luaL_checkstring(L, renderflip_arg);
+            if (r == "none") flip = SDL_FLIP_NONE;
+            else if (r == "vertical") flip = SDL_FLIP_VERTICAL;
+            else if (r == "horizontal") flip = SDL_FLIP_HORIZONTAL;
+            else {
+                luaL_error(L, "invalid argument");
+                return 0;
+            }
+        }
+        SDL_RenderCopyEx(
+            renderer(),
+            texture.get(),
+            has_src? &bi::check<bi::recti_t>(L, src_arg):nullptr,
+            has_dest ? &bi::check<bi::recti_t>(L, dest_arg):nullptr,
+            luaL_checknumber(L, angle_arg), &center, flip);
+    }
     return 0;
 }
 int bi::sdl_import_lib(lua_State *L) {
