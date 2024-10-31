@@ -9,18 +9,25 @@
 #include <windows.h>
 #endif
 using namespace std::string_view_literals;
+#include <span>
 
-int main(int, char**) {
+using zstring = char*;
+int main(int argc, zstring* argv) {
+    //std::span<zstring> args{argv, static_cast<size_t>(argc)};
     #ifdef _WIN32
     common::attach_console();
     common::enable_ansi_escape_sequences();
     #endif
-    const engine::engine_start_options opts {
+
+    engine::engine_start_options opts {
         .window_name{"Legion"},
         .window_size{800, 600},
         .window_resizable = true,
         .hardware_accelerated = true,
         .vsync_enabled = true,
     };
+    if (argc > 1) {
+        opts.main_entry_point = argv[1];
+    }
     return engine::bootstrap(opts);
 }

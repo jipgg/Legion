@@ -11,6 +11,7 @@ struct engine_start_options {
     bool window_resizable{false};
     bool hardware_accelerated{true};
     bool vsync_enabled{true};
+    std::string_view main_entry_point{"main.luau"};
 };
 int bootstrap(engine_start_options opts = {});
 void quit();

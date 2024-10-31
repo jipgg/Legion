@@ -11,6 +11,7 @@ enum class method_atom {
     isOther, isRegularFile, isCharacterFile, isSymlink,
     isBlockFile,
     /*texture*/ size,
+    /*Vector*/ 
     /*Rect*/ bounds /*last one always*/
 };
 }

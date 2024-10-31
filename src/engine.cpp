@@ -36,6 +36,7 @@ static bool paused{false};
 static SDL_Event sdl_event_dummy{};
 static SDL_Rect sdl_rect_dummy{};
 static lua_State* main_state;
+static fs::path main_entry_point;
 struct GlobalOptions {
     int optimizationLevel = 1;
     int debugLevel = 1;
@@ -178,7 +179,7 @@ static void load_luau_module(lua_State* L, const fs::path& path, const char* as)
     lua_setglobal(L, as);
 
 }
-static void init_luau_state(lua_State* L) {
+static void init_luau_state(lua_State* L, const fs::path& main_entry_point) {
     luaL_openlibs(main_state);
     lua_callbacks(L)->useratom = [](const char* raw_name, size_t s) {
         std::string_view name{raw_name, s};
@@ -217,11 +218,10 @@ static void init_luau_state(lua_State* L) {
     builtin::fs_import_lib(L);
     lua_setglobal(L, "Filesystem");
 
-    fs::path filepath = "main.luau";
-    std::optional<std::string> source = common::read_file(filepath);
+    std::optional<std::string> source = common::read_file(main_entry_point);
     if (not source) {
         using namespace std::string_literals;
-        common::printerr("failed to read the file '"s + filepath.string() + "'");
+        common::printerr("failed to read the file '"s + main_entry_point.string() + "'");
     } else {
         std::string bytecode = Luau::compile(*source, copts());
         if (luau_load(L, "=main", bytecode.data(), bytecode.size(), 0)) {
@@ -250,7 +250,7 @@ void core::start(engine_start_options opts) {
     if (opts.vsync_enabled) renderer_flags |= SDL_RENDERER_PRESENTVSYNC;
     renderer_ptr = SDL_CreateRenderer(window_ptr, -1, renderer_flags);
     main_state = luaL_newstate();
-    init_luau_state(main_state);
+    init_luau_state(main_state, opts.main_entry_point);
 }
 void core::run() {
     auto cached_last_tp = ch::steady_clock::now();
@@ -265,14 +265,20 @@ void core::run() {
                         lua_getglobal(main_state, bi::event_sockets::key_down);
                         if (not lua_isnil(main_state, -1) and lua_isfunction(main_state, -1)) {
                             lua_pushstring(main_state, bi::scancode_to_string(sdl_event_dummy.key.keysym.scancode));
-                            lua_pcall(main_state, 1, 0, 0);
+                            if (lua_pcall(main_state, 1, 0, 0) != LUA_OK) {
+                                common::printerr(luaL_checkstring(main_state, -1));
+                                lua_pop(main_state, 2);
+                            }
                         } else lua_pop(main_state, 1);
                     break;
                     case SDL_KEYUP:
                         lua_getglobal(main_state, bi::event_sockets::key_up);
                         if (not lua_isnil(main_state, -1) and lua_isfunction(main_state, -1)) {
                             lua_pushstring(main_state, bi::scancode_to_string(sdl_event_dummy.key.keysym.scancode));
-                            lua_pcall(main_state, 1, 0, 0);
+                            if (lua_pcall(main_state, 1, 0, 0) != LUA_OK) {
+                                common::printerr(luaL_checkstring(main_state, -1));
+                                lua_pop(main_state, 2);
+                            }
                         } else lua_pop(main_state, 1);
                     break;
                     case SDL_MOUSEBUTTONUP:
@@ -288,13 +294,15 @@ void core::run() {
                                 case SDL_BUTTON_MIDDLE:
                                     lua_pushstring(main_state, "middle");
                                 break;
-
                             }
                             bi::create<cm::vec2i>(main_state) = {
                                 static_cast<int>(sdl_event_dummy.button.x),
                                 static_cast<int>(sdl_event_dummy.button.y)
                             };
-                            lua_pcall(main_state, 2, 0, 0);
+                            if (LUA_OK != lua_pcall(main_state, 2, 0, 0)) {
+                                common::printerr(luaL_checkstring(main_state, -1));
+                                lua_pop(main_state, 3);
+                            }
                         } else lua_pop(main_state, 1);
                     break;
                     case SDL_MOUSEBUTTONDOWN:
@@ -315,7 +323,10 @@ void core::run() {
                                 static_cast<int>(sdl_event_dummy.button.x),
                                 static_cast<int>(sdl_event_dummy.button.y)
                             };
-                            lua_pcall(main_state, 2, 0, 0);
+                            if (lua_pcall(main_state, 2, 0, 0) != LUA_OK) {
+                                common::printerr(luaL_checkstring(main_state, -1));
+                                lua_pop(main_state, 3);
+                            }
                         } else lua_pop(main_state, 1);
                     break;
                 }
@@ -329,14 +340,20 @@ void core::run() {
             lua_getglobal(main_state, bi::event_sockets::update);
             if (not lua_isnil(main_state, -1) and lua_isfunction(main_state, -1)) {
                 lua_pushnumber(main_state, delta_s);
-                lua_pcall(main_state, 1, 0, 0);
+                if (lua_pcall(main_state, 1, 0, 0) != LUA_OK) {
+                    common::printerr(luaL_checkstring(main_state, -1));
+                    lua_pop(main_state, 3);
+                }
             } else lua_pop(main_state, 1);
         } {//rendering
             SDL_SetRenderDrawColor(renderer_ptr, 0x00, 0x00, 0x00, 0xff);
             SDL_RenderClear(renderer_ptr);
             lua_getglobal(main_state, bi::event_sockets::render);
             if (not lua_isnil(main_state, -1) and lua_isfunction(main_state, -1)) {
-                lua_pcall(main_state, 0, 0, 0);
+                if (lua_pcall(main_state, 0, 0, 0) != LUA_OK) {
+                    common::printerr(luaL_checkstring(main_state, -1));
+                    lua_pop(main_state, 1);
+                }
             } else lua_pop(main_state, 1);
             SDL_RenderPresent(renderer_ptr);
         }
@@ -346,7 +363,10 @@ void core::run() {
 void core::shutdown() {
     lua_getglobal(main_state, bi::event_sockets::shutdown);
     if (not lua_isnil(main_state, -1) and lua_isfunction(main_state, -1)) {
-        lua_pcall(main_state, 0, 0, 0);
+        if (lua_pcall(main_state, 0, 0, 0) != LUA_OK) {
+            common::printerr(luaL_checkstring(main_state, -1));
+            lua_pop(main_state, 1);
+        }
     } else lua_pop(main_state, 1);
     //lua_close(main_state); //this slows down shutdown time significantly
     SDL_DestroyRenderer(renderer_ptr);

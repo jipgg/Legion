@@ -5,12 +5,12 @@
 #include "builtin/utility.h"
 namespace bi = builtin;
 namespace mm = bi::metamethod;
-//coloru32
 static constexpr auto texture_tname = "SDL_Texture";
 static constexpr auto color_tname = "Color";
 static constexpr auto font_tname = "TTF_Font";
 static constexpr auto rect_tname = "Rect";
 static constexpr auto recti_tname = "Recti";
+static constexpr auto vertex_tname = "SDL_Vertex";
 static int color_ctor(lua_State *L) {
     uint8_t r{}, g{}, b{}, a{};
     bi::create<bi::color_t>(L,
@@ -172,10 +172,36 @@ static void texture_init(lua_State* L) {
     lua_setfield(L, -2, mm::type);
     lua_pop(L, 1);
 }
+static int vertex_ctor(lua_State* L) {
+    auto& color = bi::check<bi::color_t>(L, 1);
+    auto& position = bi::check<bi::vec2d_t>(L, 2);
+    SDL_FPoint text_coord{};
+    if (not lua_isnoneornil(L, 3)) {
+        auto& r = bi::check<bi::vec2d_t>(L, 3);
+        text_coord = SDL_FPoint{
+            .x = static_cast<float>(r.at(0)),
+            .y = static_cast<float>(r.at(1))};
+    }
+    bi::create<SDL_Vertex>(L, SDL_Vertex{
+        .position = SDL_FPoint{float(position.at(0)), float(position.at(1))},
+        .color = color, 
+        .tex_coord = text_coord, 
+    });
+    return 1;
+}
+static void vertex_init(lua_State* L) {
+    luaL_newmetatable(L, bi::metatable_name<SDL_Vertex>());
+    lua_pushstring(L, vertex_tname);
+    lua_setfield(L, -2, mm::type);
+    lua_pop(L, 1);
+    lua_pushcfunction(L, vertex_ctor, vertex_tname);
+    lua_setglobal(L, vertex_tname);
+}
 void builtin::init_global_types(lua_State *L) {
     color_init(L);
     font_init(L);
     rect_init(L);
     recti_init(L);
     texture_init(L);
+    vertex_init(L);
 }

@@ -1,4 +1,7 @@
 --!strict
+export type EventSignal<Params...> = {
+    connect: (self: EventSignal<Params...>, (Params...)->()) -> Connection,
+}
 type _Handler<Params...> = (Params...) -> ()
 type _Event<Params...> = {
     _handlers: {_Handler<Params...>},

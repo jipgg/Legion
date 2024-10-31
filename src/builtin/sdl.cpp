@@ -8,6 +8,9 @@
 #include <SDL.h>
 #include <SDL_image.h>
 
+static std::vector<SDL_Point> point_buffer;
+static std::vector<SDL_Rect> rect_buffer;
+static std::vector<SDL_Vertex> vertex_buffer;
 using method = builtin::method_atom;
 namespace bi = builtin;
 namespace cm = common;
@@ -95,8 +98,6 @@ static int draw_rect(lua_State* L) {
     }
     return 0;
 }
-static std::vector<SDL_Point> point_buffer;
-static std::vector<SDL_Rect> rect_buffer;
 static int draw_rects(lua_State* L) {
     const int top = lua_gettop(L);
     rect_buffer.resize(0);
@@ -138,10 +139,9 @@ static int fill_rect(lua_State* L) {
 }
 static int fill_rects(lua_State* L) {
     const int top = lua_gettop(L);
-    rect_buffer.resize(0);
-    rect_buffer.reserve(top);
+    rect_buffer.resize(top);
     for (int i{1}; i <= top; ++i) {
-        rect_buffer.emplace_back(bi::check<SDL_Rect>(L, i));
+        rect_buffer[i - 1] = bi::check<SDL_Rect>(L, i);
     }
     SDL_RenderFillRects(renderer(), rect_buffer.data(), rect_buffer.size());
     return 0;
@@ -150,6 +150,46 @@ static int draw_line(lua_State* L) {
     auto& t0 = bi::check<bi::vec2i_t>(L, 1);
     auto& t1 = bi::check<bi::vec2i_t>(L, 2);
     SDL_RenderDrawLine(renderer(), t0.at(0), t0.at(1), t1.at(0), t1.at(1));
+    return 0;
+}
+static int render_geometry(lua_State* L) {
+    int vertex_count = lua_gettop(L);
+    int arg_offset = 1;
+    SDL_Texture* texture = nullptr;
+    if (bi::is_type<bi::texture_t>(L, 1)) {
+        texture = bi::check<bi::texture_t>(L, 1).get();
+        --vertex_count;
+        ++arg_offset;
+    }
+    vertex_buffer.resize(vertex_count);
+    for (int i{}; i < vertex_count; ++i) {
+        vertex_buffer[i] = bi::check<SDL_Vertex>(L, i + arg_offset);
+    }
+    if (SDL_RenderGeometry(renderer(), texture, vertex_buffer.data(), vertex_buffer.size(), nullptr, 0)) {
+        luaL_error(L, "SDL Error: %s", SDL_GetError());
+    }
+    return 0;
+}
+static int render_quad(lua_State* L) {
+    int vertex_count = lua_gettop(L);
+    int arg_offset = 1;
+    SDL_Texture* texture = nullptr;
+    if (bi::is_type<bi::texture_t>(L, 1)) {
+        texture = bi::check<bi::texture_t>(L, 1).get();
+        --vertex_count;
+        ++arg_offset;
+    }
+    vertex_buffer.resize(vertex_count);
+    for (int i{}; i < vertex_count; ++i) {
+        vertex_buffer[i] = bi::check<SDL_Vertex>(L, i + arg_offset);
+    }
+    int indices[] = {
+        0, 1, 2,
+        2, 3, 0
+    };
+    if (SDL_RenderGeometry(renderer(), texture, vertex_buffer.data(), 4, indices, 6)) {
+        luaL_error(L, "SDL Error: %s", SDL_GetError());
+    }
     return 0;
 }
 static int draw_point(lua_State* L) {
@@ -242,6 +282,8 @@ int bi::sdl_import_lib(lua_State *L) {
         {"drawLines", draw_lines},
         {"drawPoint", draw_point},
         {"drawPoints", draw_points},
+        {"renderGeometry", render_geometry},
+        {"renderQuad", render_quad},
         {nullptr, nullptr}
     };
     luaL_register(L, nullptr, render_lib);

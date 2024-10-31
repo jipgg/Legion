@@ -16,12 +16,10 @@ texture, w, h = SDL.loadImage(imagePath)
 if texture then
     insertEntry(texture, w, h)
 end
-texture, w, h = SDL.loadText(mainFont, "text", white)
+texture, w, h = SDL.loadText(mainFont, "Hello World!", white)
 if texture then
     insertEntry(texture, w, h)
 end
-
-local image_pack = table.pack(assert(SDL.loadImage(imagePath)))
 
 local spinnin_text_font = assert(SDL.openFont(mainFontPath, 25))
 local spinning_text, st_w, st_h = assert(SDL.loadText(spinnin_text_font, "spinning text", white))
@@ -41,12 +39,12 @@ RunModule.onUpdate:connect(function(deltaSeconds: number)
 end)
 
 RunModule.onRender:connect(function()
-    -- local dummy = Recti(100, 100)
-    -- for i, entry in textureEntries do
-    --     dummy.w = entry.srcRect.w * .5
-    --     dummy.h = entry.srcRect.h * .5
-    --     Render.renderCopy(entry.texture, dummy)
-    -- end
+    local dummy = Recti(100, 100)
+    for i, entry in textureEntries do
+        dummy.w = entry.srcRect.w * .5
+        dummy.h = entry.srcRect.h * .5
+        Render.renderCopy(entry.texture, dummy)
+    end
     local last = textureEntries[#textureEntries]
     Render.setDrawColor(Color(0xff, 0xff, 0x00, 0xff))
     Render.drawRects(Recti(300, 300, 100, 100), Recti(500, 500, 100, 100))
@@ -54,23 +52,12 @@ RunModule.onRender:connect(function()
     Render.drawRects(Recti(300, 500, 100, 100), Recti(500, 300, 100, 100))
     Render.renderCopy(last.texture, last.srcRect);
     Render.setDrawColor(Color(0xff, 0x00, 0x00, 0xff))
-    --Render.drawLines(V2i(0, 0), V2i(100, 100), V2i(100, 300), V2i(0, 0))
+    Render.drawLines(V2i(0, 0), V2i(100, 100), V2i(100, 300), V2i(0, 0))
     local offset = V2(70, 400)
     Render.renderGeometry(
         SDL_Vertex(Color(0, 0, 255), offset + V2(100, -50)),
         SDL_Vertex(Color(255, 0, 0), offset + V2(0, 100)),
         SDL_Vertex(Color(0, 255, 0), offset + V2(200, 100))
-    )
-    local translation = V2(100,100)
-    local scale = .5
-    local width = image_pack[2]::number * scale
-    local height = image_pack[3]::number * scale
-    local blend = Color(0xff, 0xff, 0xff)
-    Render.renderQuad(image_pack[1]::SDL_Texture,
-        SDL_Vertex(Color(), translation + V2(50, 0), V2(0, 0)),
-        SDL_Vertex(Color(), translation + V2(width - 50, 0), V2(1.0, 0)),
-        SDL_Vertex(blend, translation + V2(width, height), V2(1.0, 1.0)),
-        SDL_Vertex(blend, translation+ V2(0, height), V2(0, 1.0))
     )
     local src = Recti(0, 0, st_w, st_h)
     local dst = Recti(550, 150, st_w, st_h)
