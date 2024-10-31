@@ -1,5 +1,12 @@
 #include "builtin/utility.h"
 #include <unordered_map>
+std::optional<std::string> builtin::resolve_path_type(lua_State* L, int i) {
+    if (builtin::is_type<std::filesystem::path>(L, i)) {
+        return std::make_optional(builtin::check<std::filesystem::path>(L, i).string());
+    } else if (lua_isstring(L, i)) {
+        return std::make_optional(luaL_checkstring(L, i));
+    } else return std::nullopt;
+}
 static constexpr auto q = "q", w = "w", e = "e", r = "r",
     t = "t", y = "y", i = "i", o = "o", p = "p", a = "a",
     s = "s", d = "d", f = "f", g = "g", h = "h", j = "j",

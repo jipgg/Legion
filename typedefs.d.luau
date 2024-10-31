@@ -121,17 +121,23 @@ declare function Rect(x: number?, y: number?, w: number?, h: number?): Rect
 declare function Recti(x: number?, y: number?, w: number?, h: number?): Recti
 declare class SDL_Texture end
 declare class TTF_Font end
-export type SDLRenderModule = {
+export type LibSDLRender = {
     setDrawColor: (Coloru32) -> (),
     renderCopy: (SDL_Texture, dest: Recti?, src: Recti?) -> (),
     drawRect: ((Recti) ->()) & ((Rect) -> ()),
+    drawRects: (...Recti) -> (),
     fillRect: ((Recti) ->()) & ((Rect) -> ()),
+    fillRects: (...Recti) -> (),
+    drawLine: ((V2i, V2i) -> ()) & ((V2, V2) -> ()),
+    drawLines: (...V2i) -> (),
+    drawPoint: (V2i) -> (),
+    drawPoints: (...V2i) -> (),
 }
 export type LibSDL = {
-    openFont: (file: string, ptsize: number) -> TTF_Font?,
-    loadImage: (file: string) -> (SDL_Texture?, number, number),
+    openFont: (file: _Path, ptsize: number) -> TTF_Font?,
+    loadImage: (file: _Path) -> (SDL_Texture?, number, number),
     loadText: (font: TTF_Font, text: string, fg_or_black: Coloru32?) -> (SDL_Texture?, number, number),
-    render: SDLRenderModule,
+    Render: LibSDLRender,
 }
 declare SDL: LibSDL
 export type Keycode = 'esc'|'f1'|'f2'|'f3'|'f4'|'f5'|'f6'|'f7'|'f8'|'f9'|'f10'|'f11'|'f12'|

@@ -10,6 +10,7 @@
 namespace builtin {
 const char* scancode_to_string(SDL_Scancode scancode);
 SDL_Scancode string_to_scancode(std::string_view string);
+std::optional<std::string> resolve_path_type(lua_State* L, int i);
 namespace intern {
 inline int unique_tag_incr{0};
 }

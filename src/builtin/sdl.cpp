@@ -12,13 +12,21 @@ static SDL_Renderer* renderer() {
     return SDL_GetRenderer(engine::core::window());
 }
 static int open_font(lua_State* L) {
-    TTF_Font* font = TTF_OpenFont(luaL_checkstring(L, 1), luaL_checkinteger(L, 2));
+    auto path = bi::resolve_path_type(L, 1);
+    if (not path) {
+        return 0;
+    }
+    TTF_Font* font = TTF_OpenFont(path->c_str(), luaL_checkinteger(L, 2));
     if (not font) return 0;
     bi::create<bi::font_t>(L, font, TTF_CloseFont);
     return 1;
 }
 static int load_image(lua_State* L) {
-    SDL_Surface* surface = IMG_Load(luaL_checkstring(L, 1));
+    auto path = bi::resolve_path_type(L, 1);
+    if (not path) {
+        return 0;
+    }
+    SDL_Surface* surface = IMG_Load(path->c_str());
     if (not surface) {
         cm::printerr("surface is not");
         return 0;
@@ -87,6 +95,29 @@ static int draw_rect(lua_State* L) {
     }
     return 0;
 }
+static std::vector<SDL_Point> point_buffer;
+static std::vector<SDL_Rect> rect_buffer;
+static int draw_rects(lua_State* L) {
+    const int top = lua_gettop(L);
+    rect_buffer.resize(0);
+    rect_buffer.reserve(top);
+    for (int i{1}; i <= top; ++i) {
+        rect_buffer.emplace_back(bi::check<SDL_Rect>(L, i));
+    }
+    SDL_RenderDrawRects(renderer(), rect_buffer.data(), rect_buffer.size());
+    return 0;
+}
+static int draw_points(lua_State* L) {
+    const int top = lua_gettop(L);
+    point_buffer.resize(0);
+    point_buffer.reserve(top);
+    for (int i{1}; i <= top; ++i) {
+        auto& p = bi::check<bi::vec2i_t>(L, i);
+        point_buffer.emplace_back(SDL_Point{p.at(0), p.at(1)});
+    }
+    SDL_RenderDrawPoints(renderer(), point_buffer.data(), point_buffer.size());
+    return 0;
+}
 static int fill_rect(lua_State* L) {
     if (bi::is_type<bi::recti_t>(L, 1)) {
         auto& rect = bi::check<bi::recti_t>(L, 1);
@@ -103,6 +134,38 @@ static int fill_rect(lua_State* L) {
         SDL_RenderFillRect(renderer(), &dummy);
         return 0;
     }
+    return 0;
+}
+static int fill_rects(lua_State* L) {
+    const int top = lua_gettop(L);
+    rect_buffer.resize(0);
+    rect_buffer.reserve(top);
+    for (int i{1}; i <= top; ++i) {
+        rect_buffer.emplace_back(bi::check<SDL_Rect>(L, i));
+    }
+    SDL_RenderFillRects(renderer(), rect_buffer.data(), rect_buffer.size());
+    return 0;
+}
+static int draw_line(lua_State* L) {
+    auto& t0 = bi::check<bi::vec2i_t>(L, 1);
+    auto& t1 = bi::check<bi::vec2i_t>(L, 2);
+    SDL_RenderDrawLine(renderer(), t0.at(0), t0.at(1), t1.at(0), t1.at(1));
+    return 0;
+}
+static int draw_point(lua_State* L) {
+    auto& p = bi::check<bi::vec2i_t>(L, 1);
+    SDL_RenderDrawPoint(renderer(), p.at(0), p.at(1));
+    return 0;
+}
+static int draw_lines(lua_State* L) {
+    const int top = lua_gettop(L);
+    point_buffer.resize(0);
+    point_buffer.reserve(top);
+    for (int i{1}; i <= top; ++i) {
+        auto& p = bi::check<bi::vec2i_t>(L, i);
+        point_buffer.emplace_back(SDL_Point{p.at(0), p.at(1)});
+    }
+    SDL_RenderDrawLines(renderer(), point_buffer.data(), point_buffer.size());
     return 0;
 }
 static int render_copy(lua_State* L) {
@@ -133,11 +196,17 @@ int bi::sdl_import_lib(lua_State *L) {
         {"setDrawColor", set_draw_color},
         {"renderCopy", render_copy},
         {"drawRect", draw_rect},
+        {"drawRects", draw_rects},
         {"fillRect", fill_rect},
+        {"fillRects", fill_rects},
+        {"drawLine", draw_line},
+        {"drawLines", draw_lines},
+        {"drawPoint", draw_point},
+        {"drawPoints", draw_points},
         {nullptr, nullptr}
     };
     luaL_register(L, nullptr, render_lib);
-    lua_setfield(L, -2, "render");
+    lua_setfield(L, -2, "Render");
     return 1;
 }
 

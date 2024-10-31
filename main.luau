@@ -2,8 +2,9 @@
 local resourcePath = Path("resources");
 local mainFontPath = resourcePath / "main_font.ttf"
 local imagePath = resourcePath / "jw.png"
-local mainFont = assert(SDL.openFont(tostring(mainFontPath), 80))
+local mainFont = assert(SDL.openFont(mainFontPath, 80))
 local white = Coloru32(0xff, 0xff, 0xff, 0xff)
+local Render = SDL.Render
 type TextureEntry = {texture: SDL_Texture, srcRect: Recti}
 local textureEntries: {TextureEntry} = table.create(0) 
 local function insertEntry(txt: SDL_Texture, w: number, h: number)
@@ -11,7 +12,7 @@ local function insertEntry(txt: SDL_Texture, w: number, h: number)
 end
 
 local texture: SDL_Texture?, w: number, h: number
-texture, w, h = SDL.loadImage(tostring(imagePath))
+texture, w, h = SDL.loadImage(imagePath)
 if texture then
     insertEntry(texture, w, h)
 end
@@ -25,13 +26,18 @@ InputModule.onMousePressed:connect(function(type: MouseButtonType, mousePosition
 end)
 
 RunModule.onRender:connect(function()
-    local render = SDL.render.renderCopy
     local dummy = Recti(100, 100)
     for i, entry in textureEntries do
-        dummy.w = entry.srcRect.w * 1.5
-        dummy.h = entry.srcRect.h * 1.5
-        render(entry.texture, dummy)
+        dummy.w = entry.srcRect.w * .5
+        dummy.h = entry.srcRect.h * .5
+        Render.renderCopy(entry.texture, dummy)
     end
     local last = textureEntries[#textureEntries]
-    render(last.texture, last.srcRect)
+    Render.setDrawColor(Coloru32(0xff, 0xff, 0x00, 0xff))
+    Render.drawRects(Recti(300, 300, 100, 100), Recti(500, 500, 100, 100))
+    Render.setDrawColor(Coloru32(0, 0, 0xff))
+    Render.drawRects(Recti(300, 500, 100, 100), Recti(500, 300, 100, 100))
+    Render.renderCopy(last.texture, last.srcRect)
+    Render.setDrawColor(Coloru32(0xff, 0x00, 0x00, 0xff))
+    Render.drawLines(V2i(0, 0), V2i(100, 100), V2i(100, 300), V2i(0, 0))
 end)
