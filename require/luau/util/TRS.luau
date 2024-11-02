@@ -1,9 +1,5 @@
-type Scale = ((s: number) -> M3x3) & ((sx: number, sy: number) -> M3x3)
-export type TRS = {
-    translation: (x: number, y: number) -> M3x3,
-    scale: Scale,
-    rotation: (rad: number) -> M3x3,
-}
+local cos = math.cos
+local sin = math.sin
 local Module = {}
 function Module.translation(x: number, y: number): M3x3
     return M3x3(
@@ -13,6 +9,7 @@ function Module.translation(x: number, y: number): M3x3
     )
 end
 
+type Scale = ((s: number) -> M3x3) & ((sx: number, sy: number) -> M3x3)
 local scale: Scale = function(sx, sy)
     sy = if sy then sy else sx
     --sy = sy or sx
@@ -25,9 +22,17 @@ end
 Module.scale = scale
 function Module.rotation(rad: number): M3x3
     return M3x3(
-        math.cos(rad), -math.sin(rad), 0,
-        math.sin(rad), math.cos(rad), 0,
+        cos(rad), -sin(rad), 0,
+        sin(rad), cos(rad), 0,
         0, 0, 1
     )
 end
-return Module::TRS
+
+function Module.all(x: number, y: number, sx: number, sy: number, rad: number): M3x3
+    return M3x3(
+        sx * cos(rad), -sin(rad), x,
+        sin(rad), sy * cos(rad), y,
+        0, 0, 1
+    )
+end
+return Module

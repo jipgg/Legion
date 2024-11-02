@@ -1,6 +1,7 @@
 {
     "languageMode": "strict",
     "aliases": {
-        "tests": "./tests"
+        "tests": "./tests",
+        "util": "./require/luau/util/"
     }
 }

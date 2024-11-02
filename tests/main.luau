@@ -1,11 +1,11 @@
 --!strict
-local TRS = require '@tests/TRS'
+local TRS = require '@util/TRS'
 local resourcePath = Path("resources");
 local mainFontPath = resourcePath / "main_font.ttf"
 local imagePath = resourcePath / "jw.png"
 local mainFont = assert(SDL.openFont(mainFontPath, 80))
 local white = Color(0xff, 0xff, 0xff, 0xff)
-local Render = SDL.Render
+local SDLRender = SDL.Render
 type TextureEntry = {texture: SDL_Texture, srcRect: Recti}
 local textureEntries: {TextureEntry} = table.create(0) 
 local function insertEntry(txt: SDL_Texture, w: number, h: number)
@@ -63,32 +63,38 @@ RunModule.onRender:connect(function()
     --     dummy.h = entry.srcRect.h * .5
     --     Render.renderCopy(entry.texture, dummy)
     -- end
-    local translation = V2(100,100)
     local scale = .5
     local width = image_pack[2]::number * scale
     local height = image_pack[3]::number * scale
     local blend = Color(0xff, 0xff, 0xff)
-    Render.renderQuad(image_pack[1]::SDL_Texture,
-        SDL_Vertex(Color(), translation + V2(60, 0), V2(0, 0)),
-        SDL_Vertex(Color(), translation + V2(width - 60, 0), V2(1.0, 0)),
-        SDL_Vertex(blend, translation + V2(width, height), V2(1.0, 1.0)),
-        SDL_Vertex(blend, translation+ V2(0, height), V2(0, 1.0))
+    local transform = TRS.translation(250, 200)
+        * TRS.scale(math.sin(math.rad(spinning_angle % 360) / 2), .7)
+        * TRS.translation(-width / 2, - height / 2)
+        
+    SDLRender.renderQuad(image_pack[1]::SDL_Texture,
+        SDL_Vertex(Color(), transform * V2(60, 0), V2(0, 0)),
+        SDL_Vertex(Color(), transform * V2(width - 60, 0), V2(1.0, 0)),
+        SDL_Vertex(blend, transform * V2(width, height), V2(1.0, 1.0)),
+        SDL_Vertex(blend, transform * V2(0, height), V2(0, 1.0))
     )
     local last = textureEntries[#textureEntries]
-    Render.setDrawColor(Color(0xff, 0xff, 0x00, 0xff))
-    Render.drawRects(Recti(300, 300, 100, 100), Recti(500, 500, 100, 100))
-    Render.setDrawColor(Color(0, 0, 0xff))
-    Render.drawRects(Recti(300, 500, 100, 100), Recti(500, 300, 100, 100))
-    Render.renderCopy(last.texture, last.srcRect);
-    Render.setDrawColor(Color(0xff, 0x00, 0x00, 0xff))
+    SDLRender.setDrawColor(Color(0xff, 0xff, 0x00, 0xff))
+    SDLRender.drawRects(Recti(300, 300, 100, 100), Recti(500, 500, 100, 100))
+    SDLRender.setDrawColor(Color(0, 0, 0xff))
+    SDLRender.drawRects(Recti(300, 500, 100, 100), Recti(500, 300, 100, 100))
+    SDLRender.renderCopy(last.texture, last.srcRect);
+    SDLRender.setDrawColor(Color(0xff, 0x00, 0x00, 0xff))
     --Render.drawLines(V2i(0, 0), V2i(100, 100), V2i(100, 300), V2i(0, 0))
-    local trs = TRS.translation(150, 450) * TRS.rotation(math.rad(spinning_angle) / 4) * TRS.translation(-100, -50);
-    Render.renderGeometry(
+    local trs = TRS.translation(150, 450)
+    * TRS.rotation(math.rad(spinning_angle) / 4)
+    * TRS.scale(math.sin(math.rad(spinning_angle)), math.sin(math.rad(spinning_angle) / 4) * 1.2)
+    * TRS.translation(-100, -50);
+    SDLRender.renderGeometry(
         SDL_Vertex(Color(0, 0, 255), trs * V2(100, -50)),
         SDL_Vertex(Color(255, 0, 0), trs * V2(0, 100)),
         SDL_Vertex(Color(0, 255, 0), trs * V2(200, 100))
     )
     local src = Recti(0, 0, st_w, st_h)
     local dst = Recti(550, 150, st_w, st_h)
-    Render.renderCopy(spinning_text, dst, src, spinning_angle, spinning_center)
+    SDLRender.renderCopy(spinning_text, dst, src, spinning_angle, spinning_center)
 end)

@@ -39,12 +39,7 @@ static int mul(lua_State* L) {
         auto& rhs = bi::check<bi::vec2d_t>(L, 2);
         blaze::StaticVector<double, 3> rhs_c = {rhs.at(0), rhs.at(1), 1.0};
         blaze::StaticVector<double, 3> vec{lhs * rhs_c};
-        for (int i{}; i < 3; ++i) {
-            common::printerr(lhs.at(i, 0), lhs.at(i, 1), lhs.at(i, 2));
-        }
-        common::print("rhs: ", rhs_c.at(0), rhs_c.at(1), rhs_c.at(2));
-        common::print("cpp: ", vec.at(0), vec.at(1), vec.at(2));
-        bi::create<bi::vec2d_t>(L) = bi::vec2d_t{vec.at(0), vec.at(1)};
+        bi::create<bi::vec2d_t>(L) = bi::vec2d_t{vec.at(0), vec.at(1)}; //i should add a vector3d datatype to luau
         return 1;
     }
     return 0;
