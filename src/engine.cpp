@@ -192,6 +192,7 @@ static void init_luau_state(lua_State* L, const fs::path& main_entry_point) {
         fs_init_lib(L);
         vec2d_init_type(L);
         vec2i_init_type(L);
+        mat3x3_init_type(L);
     }
     static const luaL_Reg funcs[] = {
         {"loadstring", lua_loadstring},

@@ -1,4 +1,5 @@
 --!strict
+local TRS = require '@tests/TRS'
 local resourcePath = Path("resources");
 local mainFontPath = resourcePath / "main_font.ttf"
 local imagePath = resourcePath / "jw.png"
@@ -10,6 +11,21 @@ local textureEntries: {TextureEntry} = table.create(0)
 local function insertEntry(txt: SDL_Texture, w: number, h: number)
     table.insert(textureEntries, {texture = txt, srcRect = Recti(0, 0, w, h)})
 end
+
+local p = V2(20, 10)
+local t = M3x3(
+    2, 0, 10,
+    0, 3, 20,
+    0, 0, 1
+)
+local s = M3x3(
+    3, 0, 0,
+    0, 3, 0,
+    0, 0, 1
+)
+print(p, t)
+print(t * p)
+print(s * p)
 
 local texture: SDL_Texture?, w: number, h: number
 texture, w, h = SDL.loadImage(imagePath)
@@ -47,6 +63,17 @@ RunModule.onRender:connect(function()
     --     dummy.h = entry.srcRect.h * .5
     --     Render.renderCopy(entry.texture, dummy)
     -- end
+    local translation = V2(100,100)
+    local scale = .5
+    local width = image_pack[2]::number * scale
+    local height = image_pack[3]::number * scale
+    local blend = Color(0xff, 0xff, 0xff)
+    Render.renderQuad(image_pack[1]::SDL_Texture,
+        SDL_Vertex(Color(), translation + V2(60, 0), V2(0, 0)),
+        SDL_Vertex(Color(), translation + V2(width - 60, 0), V2(1.0, 0)),
+        SDL_Vertex(blend, translation + V2(width, height), V2(1.0, 1.0)),
+        SDL_Vertex(blend, translation+ V2(0, height), V2(0, 1.0))
+    )
     local last = textureEntries[#textureEntries]
     Render.setDrawColor(Color(0xff, 0xff, 0x00, 0xff))
     Render.drawRects(Recti(300, 300, 100, 100), Recti(500, 500, 100, 100))
@@ -55,22 +82,11 @@ RunModule.onRender:connect(function()
     Render.renderCopy(last.texture, last.srcRect);
     Render.setDrawColor(Color(0xff, 0x00, 0x00, 0xff))
     --Render.drawLines(V2i(0, 0), V2i(100, 100), V2i(100, 300), V2i(0, 0))
-    local offset = V2(70, 400)
+    local trs = TRS.translation(150, 450) * TRS.rotation(math.rad(spinning_angle) / 4) * TRS.translation(-100, -50);
     Render.renderGeometry(
-        SDL_Vertex(Color(0, 0, 255), offset + V2(100, -50)),
-        SDL_Vertex(Color(255, 0, 0), offset + V2(0, 100)),
-        SDL_Vertex(Color(0, 255, 0), offset + V2(200, 100))
-    )
-    local translation = V2(100,100)
-    local scale = .5
-    local width = image_pack[2]::number * scale
-    local height = image_pack[3]::number * scale
-    local blend = Color(0xff, 0xff, 0xff)
-    Render.renderQuad(image_pack[1]::SDL_Texture,
-        SDL_Vertex(Color(), translation + V2(50, 0), V2(0, 0)),
-        SDL_Vertex(Color(), translation + V2(width - 50, 0), V2(1.0, 0)),
-        SDL_Vertex(blend, translation + V2(width, height), V2(1.0, 1.0)),
-        SDL_Vertex(blend, translation+ V2(0, height), V2(0, 1.0))
+        SDL_Vertex(Color(0, 0, 255), trs * V2(100, -50)),
+        SDL_Vertex(Color(255, 0, 0), trs * V2(0, 100)),
+        SDL_Vertex(Color(0, 255, 0), trs * V2(200, 100))
     )
     local src = Recti(0, 0, st_w, st_h)
     local dst = Recti(550, 150, st_w, st_h)

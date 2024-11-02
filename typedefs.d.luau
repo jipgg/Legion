@@ -185,4 +185,16 @@ declare class PhysicalComponent
     --function bounds(self): Rect
 end
 declare function PhysicalComponent(): PhysicalComponent
-
+type M3x3_mul = ((M3x3, M3x3)->M3x3) & ((M3x3, V2)->V2)
+declare class M3x3
+    function inverse(self): M3x3
+    function transpose(self): M3x3
+    function __call(self, i: number, j: number): number
+    __mul: M3x3_mul
+    function __add(self, rhs: M3x3): M3x3
+    function __sub(self, rhs: M3x3): M3x3
+end
+declare function M3x3(
+            e1: number?, e2: number?, e3: number?,
+            e4: number?, e5: number?, e6: number?,
+            e7: number?, e8: number?, e9: number?): M3x3

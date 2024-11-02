@@ -4,6 +4,7 @@ namespace builtin {
 void init_global_types(lua_State* L);
 void vec2i_init_type(lua_State* L);
 void vec2d_init_type(lua_State* L);
+void mat3x3_init_type(lua_State* L);
 void physical_init_type(lua_State* L);
 void fs_init_lib(lua_State* L);
 
@@ -38,5 +39,7 @@ constexpr auto div = "__div";
 constexpr auto tostring = "__tostring";
 constexpr auto iter = "__iter";
 constexpr auto len = "__len";
+constexpr auto call = "__call";
+constexpr auto pow = "__pow";
 }
 }

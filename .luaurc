@@ -1,2 +1,6 @@
 {
+    "languageMode": "strict",
+    "aliases": {
+        "tests": "./tests"
+    }
 }

@@ -13,4 +13,5 @@ using color_t = SDL_Color;
 using vec2i_t = common::vec2i;
 using vec2d_t = common::vec2d;
 using physical_component_t = types::physical_component;
+using mat3x3_t = common::mat3x3;
 }
