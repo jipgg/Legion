@@ -12,6 +12,9 @@ local function insertEntry(txt: SDL_Texture, w: number, h: number)
     table.insert(textureEntries, {texture = txt, srcRect = Recti(0, 0, w, h)})
 end
 
+local v3 = V3(100, 100, 100)
+print(`magnitude = {v3:magnitude()}, dot = {v3:unit()}`)
+
 local p = V2(20, 10)
 local t = M3x3(
     2, 0, 10,

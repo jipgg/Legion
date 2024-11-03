@@ -198,3 +198,18 @@ declare function M3x3(
             e1: number?, e2: number?, e3: number?,
             e4: number?, e5: number?, e6: number?,
             e7: number?, e8: number?, e9: number?): M3x3
+declare class V3
+    x: number
+    y: number
+    z: number
+    function dot(self, a: V3): number
+    function unit(self): V3
+    function magnitude(self): number
+    function abs(self): V3
+    function __add(self, a: V3): V3
+    function __mul(self, scalar: number): V3
+    function __div(self, scalar: number): V3
+    function __sub(self, a: V3): V3
+    function __unm(self): V3
+end
+declare function V3(x: number?, y: number?, z: number?): V3

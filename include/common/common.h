@@ -17,6 +17,7 @@ namespace common {
 using vec2f = blaze::StaticVector<float, 2>;
 using vec2d = blaze::StaticVector<double, 2>;
 using vec2i16 = blaze::StaticVector<int16_t, 2>;
+using vec3d = blaze::StaticVector<double, 3>;
 using vec2i = blaze::StaticVector<int, 2>;
 using mat3x3 = blaze::StaticMatrix<double, 3, 3>;
 struct deferred {

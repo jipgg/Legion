@@ -10,6 +10,7 @@ enum class method_atom {
     /*fs_directory_entry*/ isDirectory, isFifo, path, isSocket,
     isOther, isRegularFile, isCharacterFile, isSymlink,
     isBlockFile,
+    v3_dot,
     /*texture*/ size,
     /*M3x3*/ transpose, inverse, 
     /*Rect*/ bounds /*last one always*/
