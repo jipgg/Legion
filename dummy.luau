@@ -11,24 +11,26 @@ local textureEntries: {TextureEntry} = table.create(0)
 local function insertEntry(txt: SDL_Texture, w: number, h: number)
     table.insert(textureEntries, {texture = txt, srcRect = Recti(0, 0, w, h)})
 end
+type sliceV2 = ( (Vec) -> Vec2 )
+    & ( (Vec3)-> Vec2 )
+    & ( ({get: (unknown, number) -> number}) -> Vec2 )
+local sliceV2: sliceV2 = function(v: any)
+    return Vec2(
+        v:get(0),
+        v:get(1)
+    )
+end
 
-local v3 = V3(100, 100, 100)
+local dyn = Vec(1, 2, 3, 4, 100, 200, -100)
+print(`dyn + dyn = {dyn + dyn}`)
+
+print(`dyn size {dyn:size()}`)
+dyn:extend(1)
+print(`dyn size {dyn:size()}`)
+print(`dyn is {dyn}, and dyn[1] {dyn(2)}`)
+
+local v3 = Vec3(100, 100, 100)
 print(`magnitude = {v3:magnitude()}, dot = {v3:unit()}`)
-
-local p = V2(20, 10)
-local t = M3x3(
-    2, 0, 10,
-    0, 3, 20,
-    0, 0, 1
-)
-local s = M3x3(
-    3, 0, 0,
-    0, 3, 0,
-    0, 0, 1
-)
-print(p, t)
-print(t * p)
-print(s * p)
 
 local texture: SDL_Texture?, w: number, h: number
 texture, w, h = SDL.loadImage(imagePath)
@@ -44,11 +46,11 @@ local image_pack = table.pack(assert(SDL.loadImage(imagePath)))
 
 local spinnin_text_font = assert(SDL.openFont(mainFontPath, 25))
 local spinning_text, st_w, st_h = assert(SDL.loadText(spinnin_text_font, "spinning text", white))
-local spinning_center = V2i(st_w / 2, st_h / 2)
+local spinning_center = Vec2i(st_w / 2, st_h / 2)
 local spinning_angle = 0
 
 local spinning: boolean = true 
-InputModule.onMousePressed:connect(function(type: MouseButtonType, mousePosition: V2i)
+InputModule.onMousePressed:connect(function(type: MouseButtonType, mousePosition: Vec2i)
     spinning = not spinning
 end)
 
@@ -73,12 +75,11 @@ RunModule.onRender:connect(function()
     local transform = TRS.translation(250, 200)
         * TRS.scale(math.sin(math.rad(spinning_angle % 360) / 2), .7)
         * TRS.translation(-width / 2, - height / 2)
-        
     SDLRender.renderQuad(image_pack[1]::SDL_Texture,
-        SDL_Vertex(Color(), transform * V2(60, 0), V2(0, 0)),
-        SDL_Vertex(Color(), transform * V2(width - 60, 0), V2(1.0, 0)),
-        SDL_Vertex(blend, transform * V2(width, height), V2(1.0, 1.0)),
-        SDL_Vertex(blend, transform * V2(0, height), V2(0, 1.0))
+        SDL_Vertex(Color(), sliceV2(transform * Vec3(60, 0, 1)), Vec2(0, 0)),
+        SDL_Vertex(Color(), sliceV2(transform * Vec3(width - 60, 0, 1)), Vec2(1.0, 0)),
+        SDL_Vertex(blend, sliceV2(transform * Vec3(width, height, 1)), Vec2(1.0, 1.0)),
+        SDL_Vertex(blend, sliceV2(transform * Vec3(0, height, 1)), Vec2(0, 1.0))
     )
     local last = textureEntries[#textureEntries]
     SDLRender.setDrawColor(Color(0xff, 0xff, 0x00, 0xff))
@@ -93,9 +94,9 @@ RunModule.onRender:connect(function()
     * TRS.scale(math.sin(math.rad(spinning_angle)), math.sin(math.rad(spinning_angle) / 4) * 1.2)
     * TRS.translation(-100, -50);
     SDLRender.renderGeometry(
-        SDL_Vertex(Color(0, 0, 255), trs * V2(100, -50)),
-        SDL_Vertex(Color(255, 0, 0), trs * V2(0, 100)),
-        SDL_Vertex(Color(0, 255, 0), trs * V2(200, 100))
+        SDL_Vertex(Color(0, 0, 255), sliceV2(trs * Vec3(100, -50, 1))),
+        SDL_Vertex(Color(255, 0, 0), sliceV2(trs * Vec3(0, 100, 1))),
+        SDL_Vertex(Color(0, 255, 0), sliceV2(trs * Vec3(200, 100, 1)))
     )
     local src = Recti(0, 0, st_w, st_h)
     local dst = Recti(550, 150, st_w, st_h)

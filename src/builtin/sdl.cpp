@@ -261,7 +261,7 @@ static int render_copy(lua_State* L) {
     }
     return 0;
 }
-int bi::sdl_import_lib(lua_State *L) {
+int bi::import_sdl_lib(lua_State *L) {
     const luaL_Reg lib[] = {
         {"openFont", open_font},
         {"loadImage", load_image},

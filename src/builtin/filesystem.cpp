@@ -333,12 +333,12 @@ static void init_types(lua_State* L) {
     }
 }
 
-void builtin::fs_init_lib(lua_State *L) {
+void builtin::init_filesystem_lib(lua_State *L) {
     init_types(L);
     lua_pushcfunction(L, path_ctor, path_type_name);
     lua_setglobal(L, path_type_name);
 }
-int builtin::fs_import_lib(lua_State *L) {
+int builtin::import_filesystem_lib(lua_State *L) {
     init_global_types(L);
     lua_newtable(L);
     luaL_register(L, nullptr, fs_lib);

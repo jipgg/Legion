@@ -2,14 +2,13 @@
 #include <lualib.h>
 namespace builtin {
 void init_global_types(lua_State* L);
-void vec2i_init_type(lua_State* L);
-void vec2d_init_type(lua_State* L);
-void mat3x3_init_type(lua_State* L);
+void init_vector_types(lua_State* L);
+void init_matrix_types(lua_State* L);
 void physical_init_type(lua_State* L);
-void fs_init_lib(lua_State* L);
+void init_filesystem_lib(lua_State* L);
 
-int sdl_import_lib(lua_State* L);
-int fs_import_lib(lua_State* L);
+int import_sdl_lib(lua_State* L);
+int import_filesystem_lib(lua_State* L);
 
 int read_file(lua_State* L);
 int get_mouse_position(lua_State* L);

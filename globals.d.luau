@@ -70,34 +70,39 @@ declare class Event
 end
 declare function Event(): Event
 
-declare class V2
+declare class Vec2
     x: number
     y: number
-    function dot(self, a: V2): number
-    function unit(self): V2
+    function dot(self, a: Vec2): number
+    function unit(self): Vec2
     function magnitude(self): number
-    function abs(self): V2
-    function __add(self, a: V2): V2
-    function __mul(self, scalar: number): V2
-    function __div(self, scalar: number): V2
-    function __sub(self, a: V2): V2
-    function __unm(self): V2
+    function abs(self): Vec2
+    function __add(self, a: Vec2): Vec2
+    function __mul(self, scalar: number): Vec2
+    function __div(self, scalar: number): Vec2
+    function __sub(self, a: Vec2): Vec2
+    function __unm(self): Vec2
+    function __call(self, index: number): number
+    function get(self, index: number): number
+    function set(self, index: number, value: number)
 end
-declare class V2i
+declare class Vec2i
     x: number
     y: number
-    function dot(self, a: V2i): number
- function unit(self): V2i
+    function dot(self, a: Vec2i): number
+ function unit(self): Vec2i
     function magnitude(self): number
-    function abs(self): V2i
-    function __add(self, a: V2i): V2i
-    function __mul(self, scalar: number): V2i
-    function __div(self, scalar: number): V2i
-    function __sub(self, a: V2i): V2i
-    function __unm(self): V2i
+    function abs(self): Vec2i
+    function __add(self, a: Vec2i): Vec2i
+    function __mul(self, scalar: number): Vec2i
+    function __div(self, scalar: number): Vec2i
+    function __sub(self, a: Vec2i): Vec2i
+    function __unm(self): Vec2i
+    function get(self, index: number): number
+    function set(self, index: number, value: number)
 end
-declare V2: ((x: number?, y: number?) -> V2) & ((v: V2i) -> V2)
-declare V2i: ((x: number?, y: number?) -> V2i) & ((v: V2) -> V2i)
+declare Vec2: ((x: number?, y: number?) -> Vec2) & ((v: Vec2i) -> Vec2)
+declare Vec2i: ((x: number?, y: number?) -> Vec2i) & ((v: Vec2) -> Vec2i)
 declare class Color
     r: number
     g: number
@@ -123,19 +128,19 @@ declare class SDL_Texture end
 declare class TTF_Font end
 declare class SDL_Vertex end
 export type SDL_RenderFlip = 'none'|'vertical'|'horizontal'
-declare function SDL_Vertex(color: Color, position: V2, textCoord: V2?): SDL_Vertex
+declare function SDL_Vertex(color: Color, position: Vec2, textCoord: Vec2?): SDL_Vertex
 export type LibSDLRender = {
     setDrawColor: (Color) -> (),
     renderCopy: ((SDL_Texture, dest: Recti?, src: Recti?) -> ())
-        & ((SDL_Texture, dest: Recti?, src: Recti?, angle: number?, center: V2i?, flip: SDL_RenderFlip?)->()),
+        & ((SDL_Texture, dest: Recti?, src: Recti?, angle: number?, center: Vec2i?, flip: SDL_RenderFlip?)->()),
     drawRect: ((Recti) ->()) & ((Rect) -> ()),
     drawRects: (...Recti) -> (),
     fillRect: ((Recti) ->()) & ((Rect) -> ()),
     fillRects: (...Recti) -> (),
-    drawLine: ((V2i, V2i) -> ()) & ((V2, V2) -> ()),
-    drawLines: (...V2i) -> (),
-    drawPoint: (V2i) -> (),
-    drawPoints: (...V2i) -> (),
+    drawLine: ((Vec2i, Vec2i) -> ()) & ((Vec2, Vec2) -> ()),
+    drawLines: (...Vec2i) -> (),
+    drawPoint: (Vec2i) -> (),
+    drawPoints: (...Vec2i) -> (),
     renderGeometry: ((...SDL_Vertex) -> ()) & ((SDL_Texture, ...SDL_Vertex) -> ()),
     renderQuad: ((SDL_Vertex, SDL_Vertex, SDL_Vertex, SDL_Vertex) -> ())
         & ((SDL_Texture, SDL_Vertex, SDL_Vertex, SDL_Vertex, SDL_Vertex) -> ()),
@@ -160,10 +165,10 @@ export type EventSignal<Params...> = {
 export type InputModule = {
     onKeyPressed: EventSignal<Keycode>,
     onKeyReleased: EventSignal<Keycode>, 
-    onMousePressed: EventSignal<MouseButtonType, V2i>,
-    onMouseReleased: EventSignal<MouseButtonType, V2i>,
+    onMousePressed: EventSignal<MouseButtonType, Vec2i>,
+    onMouseReleased: EventSignal<MouseButtonType, Vec2i>,
     isKeyDown: (Keycode) -> boolean,
-    getMousePosition: () -> V2i,
+    getMousePosition: () -> Vec2i,
 }
 declare InputModule: InputModule 
 export type RunModule = {
@@ -172,44 +177,70 @@ export type RunModule = {
 }
 declare RunModule: RunModule
 declare class PhysicalComponent
-    position: V2
-    velocity: V2
-    acceleration: V2
+    position: Vec2
+    velocity: Vec2
+    acceleration: Vec2
     welded: boolean
     falling: boolean
     obstructed: boolean
     elasticity_coeff: number
     friction_coeff: number
     mass: number
-    size: V2
+    size: Vec2
     --function bounds(self): Rect
 end
 declare function PhysicalComponent(): PhysicalComponent
-type M3x3_mul = ((M3x3, M3x3)->M3x3) & ((M3x3, V2)->V2)
-declare class M3x3
-    function inverse(self): M3x3
-    function transpose(self): M3x3
+type Mat3x3_mul = ((Mat3x3, Mat3x3)->Mat3x3) & ((Mat3x3, Vec3)->Vec3) & ((Mat3x3, Vec)->Vec)
+declare class Mat3x3
+    function inverse(self): Mat3x3
+    function transpose(self): Mat3x3
     function __call(self, i: number, j: number): number
-    __mul: M3x3_mul
-    function __add(self, rhs: M3x3): M3x3
-    function __sub(self, rhs: M3x3): M3x3
+    __mul: Mat3x3_mul
+    function __add(self, rhs: Mat3x3): Mat3x3
+    function __sub(self, rhs: Mat3x3): Mat3x3
 end
-declare function M3x3(
+declare function Mat3x3(
             e1: number?, e2: number?, e3: number?,
             e4: number?, e5: number?, e6: number?,
-            e7: number?, e8: number?, e9: number?): M3x3
-declare class V3
+            e7: number?, e8: number?, e9: number?): Mat3x3
+declare class Vec3
     x: number
     y: number
     z: number
-    function dot(self, a: V3): number
-    function unit(self): V3
+    function get(self, index: number): number
+    function set(self, index: number, value: number)
+    function dot(self, a: Vec3): number
+    function unit(self): Vec3
     function magnitude(self): number
-    function abs(self): V3
-    function __add(self, a: V3): V3
-    function __mul(self, scalar: number): V3
-    function __div(self, scalar: number): V3
-    function __sub(self, a: V3): V3
-    function __unm(self): V3
+    function abs(self): Vec3
+    function __add(self, a: Vec3): Vec3
+    function __mul(self, scalar: number): Vec3
+    function __div(self, scalar: number): Vec3
+    function __sub(self, a: Vec3): Vec3
+    function __unm(self): Vec3
 end
-declare function V3(x: number?, y: number?, z: number?): V3
+declare function Vec3(x: number?, y: number?, z: number?): Vec3
+declare class Vec
+    function dot(self, a: Vec): number
+    function unit(self): Vec
+    function magnitude(self): number
+    function abs(self): Vec
+    function get(self, index: number): number
+    function set(self, index: number, value: number)
+    function reset(self)
+    function extend(self, size: number, preserve: boolean?)
+    function size(self): number
+    function capacity(self): number
+    function resize(self, size: number, preserve: boolean?)
+    function reserve(self, amount: number)
+    function __add(self, a: Vec): Vec
+    function __mul(self, scalar: number): Vec
+    function __div(self, scalar: number): Vec
+    function __sub(self, a: Vec): Vec
+    function __unm(self): Vec
+    function __call(self, i: number): number
+end
+declare Vec: ((number, ...number) -> Vec)
+    & ((v: Vec2)->Vec)
+    & ((v: Vec3)->Vec)
+    & ((v: Vec2i)->Vec) 

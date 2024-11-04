@@ -19,12 +19,13 @@ int main(int argc, zstring* argv) {
     common::enable_ansi_escape_sequences();
     #endif
 
-    engine::engine_start_options opts {
+    engine::engine_start_options opts{
         .window_name{"Legion"},
         .window_size{800, 600},
         .window_resizable = true,
         .hardware_accelerated = true,
         .vsync_enabled = true,
+        .main_entry_point = "dummy.luau",
     };
     if (argc > 1) {
         opts.main_entry_point = argv[1];

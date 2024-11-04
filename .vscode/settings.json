@@ -1,5 +1,5 @@
 {
-    "luau-lsp.diagnostics.strictDatamodelTypes": true,
+    "luau-lsp.diagnostics.strictDatamodelTypes": false,
     "luau-lsp.require.directoryAliases": {
         "@util": "./require/luau/util/",
         "@tests": "./tests/"
@@ -8,5 +8,6 @@
     "luau-lsp.types.definitionFiles": [
         "globals.d.luau"
     ],
-    "luau-lsp.platform.type": "standard"
+    "luau-lsp.platform.type": "standard",
+    "luau-lsp.hover.strictDatamodelTypes": false
 }

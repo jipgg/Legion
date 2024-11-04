@@ -189,10 +189,9 @@ static void init_luau_state(lua_State* L, const fs::path& main_entry_point) {
     };
     {using namespace builtin;
         init_global_types(L);
-        fs_init_lib(L);
-        vec2d_init_type(L);
-        vec2i_init_type(L);
-        mat3x3_init_type(L);
+        init_filesystem_lib(L);
+        init_vector_types(L);
+        init_matrix_types(L);
     }
     static const luaL_Reg funcs[] = {
         {"loadstring", lua_loadstring},
@@ -211,12 +210,12 @@ static void init_luau_state(lua_State* L, const fs::path& main_entry_point) {
     lua_pushcfunction(L, bi::get_mouse_position, "getMousePosition");
     lua_setfield(L, -2, "getMousePosition");
     lua_setglobal(L, input_name);
-    builtin::sdl_import_lib(L);
+    builtin::import_sdl_lib(L);
     lua_setglobal(L, "SDL");
     constexpr auto run_name = "RunModule";
     push_luau_module(L, "require/RunModule.luau", run_name);
     lua_setglobal(L, run_name);
-    builtin::fs_import_lib(L);
+    builtin::import_filesystem_lib(L);
     lua_setglobal(L, "Filesystem");
 
     std::optional<std::string> source = common::read_file(main_entry_point);
