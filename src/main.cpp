@@ -9,7 +9,6 @@
 #include <windows.h>
 #endif
 using namespace std::string_view_literals;
-#include <span>
 
 using zstring = char*;
 int main(int argc, zstring* argv) {

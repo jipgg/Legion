@@ -7,6 +7,7 @@
 #include <luaconf.h>
 #include <SDL.h>
 #include <SDL_image.h>
+#include <cstddef>
 
 static std::vector<SDL_Point> point_buffer;
 static std::vector<SDL_Rect> rect_buffer;
@@ -14,6 +15,9 @@ static std::vector<SDL_Vertex> vertex_buffer;
 using method = builtin::method_atom;
 namespace bi = builtin;
 namespace cm = common;
+static int err_sdl(lua_State* L) {
+    luaL_error(L, "SDL Error: %s", SDL_GetError());
+}
 static SDL_Renderer* renderer() {
     return SDL_GetRenderer(engine::core::window());
 }
@@ -152,6 +156,42 @@ static int draw_line(lua_State* L) {
     SDL_RenderDrawLine(renderer(), t0.at(0), t0.at(1), t1.at(0), t1.at(1));
     return 0;
 }
+static int render_geometry_raw(lua_State* L) {
+    SDL_Texture* texture{nullptr};
+    if (builtin::is_type<bi::texture_t>(L, 1)) {
+        texture = bi::check<bi::texture_t>(L, 1).get();
+    }
+    size_t len{};
+    void* buffer = luaL_checkbuffer(L, 2, &len);
+    int xy_offset = luaL_checkinteger(L, 3);
+    int xy_stride = luaL_checkinteger(L, 4);
+    void* xy = static_cast<byte*>(buffer) + xy_offset;
+    int color_offset = luaL_checkinteger(L, 5);
+    int color_stride = luaL_checkinteger(L, 6);
+    void* color = static_cast<byte*>(buffer) + color_offset;
+    int uv_offset = luaL_checkinteger(L, 7);
+    int uv_stride = luaL_checkinteger(L, 8);
+    void* uv = static_cast<byte*>(buffer) + uv_offset;
+    int num_vertices = luaL_checkinteger(L, 9);
+    int indices_offset = luaL_checkinteger(L, 10);
+    int num_indices = luaL_checkinteger(L, 11);
+    int size_indices = luaL_checkinteger(L, 12);
+    void* indices = static_cast<byte*>(buffer) + indices_offset;
+    
+    if (SDL_RenderGeometryRaw(renderer(),
+        texture,
+        static_cast<float*>(xy),
+        xy_stride,
+        static_cast<SDL_Color*>(color),
+        color_stride,
+        static_cast<float*>(uv),
+        uv_stride, num_vertices,
+        indices,
+        num_indices,
+        size_indices
+    ) == -1) return err_sdl(L);
+    return 0;
+}
 static int render_geometry(lua_State* L) {
     int vertex_count = lua_gettop(L);
     int arg_offset = 1;
@@ -284,6 +324,7 @@ int bi::import_sdl_lib(lua_State *L) {
         {"drawPoints", draw_points},
         {"renderGeometry", render_geometry},
         {"renderQuad", render_quad},
+        {"renderGeometryRaw", render_geometry_raw},
         {nullptr, nullptr}
     };
     luaL_register(L, nullptr, render_lib);

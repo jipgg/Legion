@@ -60,7 +60,70 @@ RunModule.onUpdate:connect(function(deltaSeconds: number)
         spinning_angle += spin_speed * deltaSeconds
     end
 end)
+local textu = image_pack[1]::SDL_Texture
+local width = image_pack[2]::number
+local height = image_pack[3]::number
+local buf = buffer.create(250)
+local buf_curr_off = 0
+local function pushf32(v: number)
+    buffer.writef32(buf, buf_curr_off, v)
+    buf_curr_off += 4
+end
+local function push2f32(x: number, y: number)
+    pushf32(x)
+    pushf32(y)
+end
+local function pushi8(v: number)
+    buffer.writei8(buf, buf_curr_off, v)
+    buf_curr_off += 1
+end
+local function pushu8(v: number)
+    buffer.writeu8(buf, buf_curr_off, v)
+    buf_curr_off += 1
+end
+local function push4u8(r: number, g: number, b: number, a: number)
+    pushu8(r)
+    pushu8(g)
+    pushu8(b)
+    pushu8(a)
+end
+--vert
+local xy_offset = buf_curr_off
+push2f32(0, 0)
+push2f32(width /2, 0)
+push2f32(width /2, height /2)
+push2f32(0, height / 2)
+--color
+local color_offset = buf_curr_off
+push4u8(0x00, 0xff, 0xff, 0xff)
+push4u8(0xff, 0x00, 0xff, 0xff)
+push4u8(0xff, 0xff, 0x00, 0xff)
+push4u8(0x00, 0x00, 0xff, 0xff)
+--uv
+local uv_offset = buf_curr_off
+push2f32(0, 0)
+push2f32(1, 0)
+push2f32(1, 1)
+push2f32(0, 1)
+--indices
+local indices_offset = buf_curr_off
+pushi8(0)
+pushi8(1)
+pushi8(2)
 
+pushi8(2)
+pushi8(3)
+pushi8(0)
+
+RunModule.onRender:connect(function()
+    SDLRender.renderGeometryRaw(textu, buf,
+        xy_offset, 8,
+        color_offset, 4,
+        uv_offset, 8,
+        4, indices_offset, 6, 1)
+end)
+
+--[=[
 RunModule.onRender:connect(function()
     -- local dummy = Recti(100, 100)
     -- for i, entry in textureEntries do
@@ -102,3 +165,4 @@ RunModule.onRender:connect(function()
     local dst = Recti(550, 150, st_w, st_h)
     SDLRender.renderCopy(spinning_text, dst, src, spinning_angle, spinning_center)
 end)
+]=]

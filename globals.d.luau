@@ -144,6 +144,20 @@ export type LibSDLRender = {
     renderGeometry: ((...SDL_Vertex) -> ()) & ((SDL_Texture, ...SDL_Vertex) -> ()),
     renderQuad: ((SDL_Vertex, SDL_Vertex, SDL_Vertex, SDL_Vertex) -> ())
         & ((SDL_Texture, SDL_Vertex, SDL_Vertex, SDL_Vertex, SDL_Vertex) -> ()),
+    renderGeometryRaw: (
+                texture: SDL_Texture?,
+                buffer: buffer,
+                xyOff: number,
+                xyStride: number,
+                colorOff: number,
+                colorStride: number,
+                uvOff: number,
+                uvStride: number,
+                numVertices: number,
+                indicesOff: number,
+                numIndices: number,
+                sizeIndices: number
+            ) -> ()
 }
 export type LibSDL = {
     openFont: (file: _Path, ptsize: number) -> TTF_Font?,

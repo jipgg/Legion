@@ -1,4 +1,4 @@
 - remove FileUtils.h dependency, replace with std::filesystem
 - implement luau parser for native config file reading and writing
 - quad userdata type and SDL_Vertex buffer type
-
+- make require folder static
