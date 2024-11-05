@@ -1,5 +1,6 @@
 --!strict
 local TRS = require '@util/TRS'
+local Buffer = require '@util/Buffer'
 local resourcePath = Path("resources");
 local mainFontPath = resourcePath / "main_font.ttf"
 local imagePath = resourcePath / "jw.png"
@@ -60,63 +61,44 @@ RunModule.onUpdate:connect(function(deltaSeconds: number)
         spinning_angle += spin_speed * deltaSeconds
     end
 end)
+
 local textu = image_pack[1]::SDL_Texture
 local width = image_pack[2]::number
 local height = image_pack[3]::number
-local buf = buffer.create(250)
-local buf_curr_off = 0
-local function pushf32(v: number)
-    buffer.writef32(buf, buf_curr_off, v)
-    buf_curr_off += 4
-end
-local function push2f32(x: number, y: number)
-    pushf32(x)
-    pushf32(y)
-end
-local function pushi8(v: number)
-    buffer.writei8(buf, buf_curr_off, v)
-    buf_curr_off += 1
-end
-local function pushu8(v: number)
-    buffer.writeu8(buf, buf_curr_off, v)
-    buf_curr_off += 1
-end
-local function push4u8(r: number, g: number, b: number, a: number)
-    pushu8(r)
-    pushu8(g)
-    pushu8(b)
-    pushu8(a)
-end
+local buf = Buffer.create(250)
 --vert
-local xy_offset = buf_curr_off
-push2f32(0, 0)
-push2f32(width /2, 0)
-push2f32(width /2, height /2)
-push2f32(0, height / 2)
+local xy_offset = buf.size
+buf:push('f32',
+    0, 0,
+    width, 0,
+    width, height,
+    0, height
+)
 --color
-local color_offset = buf_curr_off
-push4u8(0x00, 0xff, 0xff, 0xff)
-push4u8(0xff, 0x00, 0xff, 0xff)
-push4u8(0xff, 0xff, 0x00, 0xff)
-push4u8(0x00, 0x00, 0xff, 0xff)
+local color_offset = buf.size
+buf:push('u8',
+    0x00, 0xff, 0xff, 0xff,
+    0xff, 0x00, 0xff, 0xff,
+    0xff, 0xff, 0x00, 0xff,
+    0x00, 0x00, 0xff, 0xff
+)
 --uv
-local uv_offset = buf_curr_off
-push2f32(0, 0)
-push2f32(1, 0)
-push2f32(1, 1)
-push2f32(0, 1)
+local uv_offset = buf.size 
+buf:push('f32',
+    0, 0,
+    1, 0,
+    1, 1,
+    0, 1
+)
 --indices
-local indices_offset = buf_curr_off
-pushi8(0)
-pushi8(1)
-pushi8(2)
-
-pushi8(2)
-pushi8(3)
-pushi8(0)
+local indices_offset = buf.size
+buf:push('i8',
+    0, 1, 2,
+    2, 3, 0
+)
 
 RunModule.onRender:connect(function()
-    SDLRender.renderGeometryRaw(textu, buf,
+    SDLRender.renderGeometryRaw(textu, buf.data,
         xy_offset, 8,
         color_offset, 4,
         uv_offset, 8,
