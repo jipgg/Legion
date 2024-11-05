@@ -8,57 +8,78 @@ export type self = typeof(setmetatable({
     capacity = 0,
     data = buffer.create(0)}, Buffer))
 
-function Buffer.create(bytesize: number)
+local function construct(bytesize: number)
     return setmetatable({
         capacity = bytesize,
         size = 0,
         data = buffer.create(bytesize)
     }, Buffer)
 end
-
-
-function Buffer:push(t: Type, ...: number)
-    if t == 'i8' then
+export type Buffer = typeof(construct(1))
+type TypeSwitch = {
+    i8: (self, ...number)->(),
+    i16: (self, ...number)->(),
+    i32: (self, ...number)->(),
+    u8: (self, ...number)->(),
+    u16: (self, ...number)->(),
+    u32: (self, ...number)->(),
+    f32: (self, ...number)->(),
+    f64: (self, ...number)->(),
+}
+local pushImpl: TypeSwitch = {
+    i8 = function(self, ...)
         for i = 1, select('#', ...) do
             buffer.writei8(self.data, self.size, select(i, ...))
             self.size += 1
         end
-    elseif t == 'i16' then
+    end,
+    i16 = function(self, ...)
         for i = 1, select('#', ...) do
             buffer.writei16(self.data, self.size, select(i, ...))
             self.size += 2
         end
-    elseif t == 'i32' then
+    end,
+    i32 = function(self, ...)
         for i = 1, select('#', ...) do
             buffer.writei32(self.data, self.size, select(i, ...))
             self.size += 4
         end
-    elseif t == 'u8' then
+    end,
+    u8 = function(self, ...)
         for i = 1, select('#', ...) do
             buffer.writeu8(self.data, self.size, select(i, ...))
             self.size += 1
         end
-    elseif t == 'u16' then
+    end,
+    u16 = function(self, ...)
         for i = 1, select('#', ...) do
             buffer.writeu16(self.data, self.size, select(i, ...))
             self.size += 2
         end
-    elseif t == 'u32' then
+    end,
+    u32 = function(self, ...)
         for i = 1, select('#', ...) do
             buffer.writeu32(self.data, self.size, select(i, ...))
             self.size += 4
         end
-    elseif t == 'f32' then
+    end,
+    f32 = function(self, ...)
         for i = 1, select('#', ...) do
             buffer.writef32(self.data, self.size, select(i, ...))
             self.size += 4
         end
-    elseif t == 'f64' then
+    end,
+    f64 = function(self, ...)
         for i = 1, select('#', ...) do
             buffer.writef64(self.data, self.size, select(i, ...))
             self.size += 8
         end
-    end
+    end,
+}
+
+function Buffer:push(t: Type, ...: number)
+    pushImpl[t](self, ...)
 end
 
-return Buffer 
+return construct
+

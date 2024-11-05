@@ -65,7 +65,7 @@ end)
 local textu = image_pack[1]::SDL_Texture
 local width = image_pack[2]::number
 local height = image_pack[3]::number
-local buf = Buffer.create(250)
+local buf = Buffer(90)
 --vert
 local xy_offset = buf.size
 buf:push('f32',
