@@ -45,10 +45,9 @@ function Event:connect(fn)
     local c = {_id = id, _opaque_event = self}
     return setmetatable(c, connection)
 end
-    --Constructor
-function construct<params...>(): Event<params...>
+function Event.new<params...>(): Event<params...>
     return setmetatable({
         _handlers = {},
     }, Event)::Event<params...>
 end
-return construct
+return Event

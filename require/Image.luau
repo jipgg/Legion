@@ -4,14 +4,14 @@ local Buffer = require 'Buffer'
 local trs = require 'TRS'
 local Image = {}
 Image.__index = Image
-local function construct(texturePath: Path, anchorPoint: Vec2?)
+function Image.new(texturePath: Path, anchorPoint: Vec2?)
     local texture, width, height = assert(sdl.loadImage(texturePath))
     local this = setmetatable({
         texture = texture,
         width = width,
         height = height,
         anchorPoint = anchorPoint or Vec2(0, 0),
-        renderBuffer = Buffer(90),
+        renderBuffer = Buffer.new(90),
     }, Image)
     return this
 end
@@ -78,6 +78,6 @@ function Image:render(trs: Mat3x3?)
     )
 end
 
-export type Image = typeof(construct(Path(""), nil))
+export type Image = typeof(Image.new(Path(""), nil))
 
-return construct
+return Image

@@ -3,6 +3,7 @@ local legion = require '@legion'
 local sdl = legion.sdl
 local trs = legion.trs
 local Image = legion.Image
+local ImageLabel = require '@legion/ui/ImageLabel'
 local resourcePath = Path("resources");
 local mainFontPath = resourcePath / "main_font.ttf"
 local imagePath = resourcePath / "jw.png"
@@ -55,18 +56,17 @@ local spinning: boolean = true
 legion.input.onMousePressed:connect(function(type: MouseButtonType, mousePosition: Vec2)
     spinning = not spinning
 end)
+local image = ImageLabel.new(imagePath, Vec2(.5, .5))
 
 legion.run.onUpdate:connect(function(deltaSeconds: number)
     if spinning then
         local spin_speed = 100
         spinning_angle += spin_speed * deltaSeconds
     end
+    image.position = Vec2(300, 300)
+    image.scale = Vec2(.5, .5)
+    image.rotation = math.rad(spinning_angle) / 5
 end)
-local image = Image(imagePath, Vec2(.5, .5))
-legion.run.onRender:connect(function()
-    image:render(trs.T(300, 300) * trs.R(spinning_angle / 100) * trs.S(.5))
-end)
-
 --[=[
 local textu = image_pack[1]::SDL_Texture
 local width = image_pack[2]::number

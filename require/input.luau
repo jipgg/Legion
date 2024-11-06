@@ -1,13 +1,13 @@
-local Event = require 'event'
+local Event = require 'Event'
 export type KeyboardEvent = Event.Event<Keycode>
 export type MouseButtonEvent = Event.Event<MouseButtonType, Vec2>
 export type KeyboardSignal = Event.EventSignal<Keycode>
 export type MouseButtonSignal = Event.EventSignal<MouseButtonType, Vec2>
 local Module = {
-    onKeyPressed = Event()::KeyboardEvent,
-    onKeyReleased = Event()::KeyboardEvent,
-    onMousePressed = Event()::MouseButtonEvent,
-    onMouseReleased = Event()::MouseButtonEvent,
+    onKeyPressed = Event.new()::KeyboardEvent,
+    onKeyReleased = Event.new()::KeyboardEvent,
+    onMousePressed = Event.new()::MouseButtonEvent,
+    onMouseReleased = Event.new()::MouseButtonEvent,
     isKeyDown = cimport('isKeyDown'),
     getMousePosition = cimport('getMousePosition')
 }

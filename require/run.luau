@@ -1,8 +1,8 @@
 local Event = require 'event'
 local Module = {
-    onUpdate = Event(),
-    onRender = Event(),
-    onShutdown = Event(),
+    onUpdate = Event.new()::Event.Event<number>,
+    onRender = Event.new(),
+    onShutdown = Event.new(),
 }
 
 _G.__builtin_update_socket = function(deltaSeconds: number)

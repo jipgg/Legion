@@ -3,14 +3,14 @@ export type Type = 'i8'|'i16'|'i32'|'u8'|'u16'|'u32'|'f32'|'f64'
 
 local Buffer = {}
 Buffer.__index = Buffer
-local function construct(bytesize: number)
+function Buffer.new(bytesize: number)
     return setmetatable({
         capacity = bytesize,
         size = 0,
         data = buffer.create(bytesize)
     }, Buffer)
 end
-export type Buffer = typeof(construct(1))
+export type Buffer = typeof(Buffer.new(1))
 type TypeSwitch<Ts...> = {
     i8: (Ts...)->(),
     i16: (Ts...)->(),
@@ -106,5 +106,5 @@ function Buffer:push(t: Type, ...: number)
     pushImpl[t](self, ...)
 end
 
-return construct
+return Buffer 
 
