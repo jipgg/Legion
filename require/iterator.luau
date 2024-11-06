@@ -43,4 +43,16 @@ function Library.filter<T>(t: { [any]: T }, pred: (e: T) -> boolean)
     end
 end
 
+function Library.values<T>(t: {[any]: T})
+    local key, value
+    return function(): T?
+        key, value = next(t, key)
+        if key ~= nil then
+            return value
+        else
+            return nil
+        end
+    end
+end
+
 return Library

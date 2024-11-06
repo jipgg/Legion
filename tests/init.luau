@@ -1,4 +1,4 @@
-local it = require '@std/iterator'
+local it = require '@legion/iterator'
 local tbl = {6, 5, 4, 3, 2, 1}
 
 local function fn(e: number): boolean
@@ -12,6 +12,11 @@ end
 print("filter:")
 for i, v in it.filter(tbl, fn) do
     print(`[{i}]: {v}`)
+end
+
+print('values:')
+for v in it.values(tbl) do
+    print(`[*]: {v}`)
 end
 
 print('all tests passed.')
