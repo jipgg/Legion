@@ -1,36 +1,36 @@
-local standard_library = {}
+local Library = {}
 local input = require 'input'
 export type MouseButtonEvent = input.MouseButtonEvent
 export type KeyboardEvent = input.KeyboardEvent
-standard_library.input = input
+Library.input = input
 
 local run = require 'run'
-standard_library.run = run
+Library.run = run
 local Event = require 'Event'
 export type Event<Ts...> = Event.Event<Ts...>
 export type EventSignal<Ts...> = Event.EventSignal<Ts...>
 export type Connection = Event.Connection
-standard_library.Event = Event
+Library.Event = Event
 
 local Buffer = require 'Buffer'
 export type Buffer = Buffer.Buffer
 export type FixedSizeType = Buffer.Type
-standard_library.Buffer = Buffer
+Library.Buffer = Buffer
 
 local iterator = require 'iterator'
-standard_library.iterator = iterator
+Library.iterator = iterator
 
 local fs = require 'filesystem'
-standard_library.fs = fs
+Library.fs = fs
 
 local sdl = require 'SDL'
-standard_library.sdl = sdl
+Library.sdl = sdl
 
 local trs = require 'TRS'
-standard_library.trs = trs
+Library.trs = trs
 
 local Image = require 'Image'
 export type Image = Image.Image
-standard_library.Image = Image
+Library.Image = Image
 
-return standard_library
+return Library

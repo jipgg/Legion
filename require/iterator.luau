@@ -1,6 +1,6 @@
-local iterator_library = {}
+local Library = {}
 
-function iterator_library.ireverse<T>(t: {T})
+function Library.ireverse<T>(t: {T})
     local i = #t + 1
     return function(): (number?, T?)
         i -= 1
@@ -13,7 +13,7 @@ function iterator_library.ireverse<T>(t: {T})
 end
 
 export type Predicate<T> = (e: T) -> boolean
-function iterator_library.ifilter<T>(t: {T}, pred: (e: T) -> boolean)
+function Library.ifilter<T>(t: {T}, pred: (e: T) -> boolean)
     local i = 0
     return function(): (number?, T)
         i += 1
@@ -29,7 +29,7 @@ function iterator_library.ifilter<T>(t: {T}, pred: (e: T) -> boolean)
         end
     end
 end
-function iterator_library.filter<T>(t: { [any]: T }, pred: (e: T) -> boolean)
+function Library.filter<T>(t: { [any]: T }, pred: (e: T) -> boolean)
     local key, value
     return function(): (any, T?)
         repeat
@@ -43,4 +43,4 @@ function iterator_library.filter<T>(t: { [any]: T }, pred: (e: T) -> boolean)
     end
 end
 
-return iterator_library
+return Library

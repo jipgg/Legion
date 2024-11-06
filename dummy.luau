@@ -62,7 +62,7 @@ legion.run.onUpdate:connect(function(deltaSeconds: number)
         spinning_angle += spin_speed * deltaSeconds
     end
 end)
-local image = Image{texturePath = imagePath, anchorPoint = Vec2(.5, .5)}
+local image = Image(imagePath, Vec2(.5, .5))
 legion.run.onRender:connect(function()
     image:render(trs.T(300, 300) * trs.R(spinning_angle / 100) * trs.S(.5))
 end)
