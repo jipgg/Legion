@@ -2,20 +2,19 @@ local Library = {}
 
 function Library.ireverse<T>(t: {T})
     local i = #t + 1
-    return function(): (number?, T?)
+    return function(): T?
         i -= 1
         if i > 0 then
-            return i, t[i]
+            return t[i]
         else
             return nil
         end
     end
 end
 
-export type Predicate<T> = (e: T) -> boolean
 function Library.ifilter<T>(t: {T}, pred: (e: T) -> boolean)
     local i = 0
-    return function(): (number?, T)
+    return function(): T?
         i += 1
         local v = t[i]
         while i <= #t and not pred(v) do
@@ -23,27 +22,27 @@ function Library.ifilter<T>(t: {T}, pred: (e: T) -> boolean)
             v = t[i]
         end
         if i <= #t then
-            return i, v
+            return v
         else
-            return nil, nil::never
+            return nil
         end
     end
 end
 function Library.filter<T>(t: { [any]: T }, pred: (e: T) -> boolean)
     local key, value
-    return function(): (any, T?)
+    return function(): T?
         repeat
             key, value = next(t, key)
         until key == nil or pred(value)
         if key ~= nil then
-            return key, value
+            return value
         else
-            return nil, nil::never
+            return nil
         end
     end
 end
 
-function Library.values<T>(t: {[any]: T})
+function Library.elements<T>(t: {[any]: T})
     local key, value
     return function(): T?
         key, value = next(t, key)
@@ -54,5 +53,17 @@ function Library.values<T>(t: {[any]: T})
         end
     end
 end
-
+function Library.imap<T, U>(t: {T}, u: {U})
+    local i = 0
+    return function(): (T?, U?)
+        i += 1
+        local tv = t[i]
+        local uv = u[i]
+        if i <= #t or i <= #u then
+            return tv, uv
+        else
+            return nil, nil
+        end
+    end
+end
 return Library

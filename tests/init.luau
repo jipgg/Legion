@@ -1,22 +1,28 @@
-local it = require '@legion/iterator'
-local tbl = {6, 5, 4, 3, 2, 1}
+local function test_iter()
+    local iter = require '@legion/iterator'
+    local tbl = {6, 5, 4, 3, 2, 1}
+    local function fn(e: number): boolean
+        return e % 2 == 0
+    end
+    print("ifilter:")
+    for v in iter.ifilter(tbl, fn) do
+        print(`[*]: {v}`)
+    end
+    print("filter:")
+    for v in iter.filter(tbl, fn) do
+        print(`[*]: {v}`)
+    end
 
-local function fn(e: number): boolean
-    return e % 2 == 0
-end
-print("ifilter:")
-for i, v in it.ifilter(tbl, fn) do
-    print(`[{i}]: {v}`)
-end
-
-print("filter:")
-for i, v in it.filter(tbl, fn) do
-    print(`[{i}]: {v}`)
+    print('values:')
+    for v in iter.elements(tbl) do
+        print(`[*]: {v}`)
+    end
+    print('imap:')
+    for v1, v2 in iter.imap(tbl, tbl) do
+        assert(v1 == v2)
+        print(`{v1} = {v2}`)
+    end
 end
 
-print('values:')
-for v in it.values(tbl) do
-    print(`[*]: {v}`)
-end
-
+test_iter()
 print('all tests passed.')
