@@ -29,4 +29,8 @@ standard_library.sdl = sdl
 local trs = require 'TRS'
 standard_library.trs = trs
 
+local Image = require 'Image'
+export type Image = Image.Image
+standard_library.Image = Image
+
 return standard_library

@@ -1,7 +1,7 @@
 {
     "luau-lsp.diagnostics.strictDatamodelTypes": false,
     "luau-lsp.require.directoryAliases": {
-        "@util": "./require/luau/util/",
+        "@legion": "./require/",
         "@tests": "./tests/"
     },
     "luau-lsp.require.mode": "relativeToFile",

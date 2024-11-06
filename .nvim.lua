@@ -9,8 +9,7 @@ require"lspconfig".luau_lsp.setup {
                 mode = "relativeToFile",
                 directoryAliases = {
                     ["@tests"] = "./tests/",
-                    ["@util"] = "./require/luau/util/",
-                    ["@std"] = "./require/",
+                    ["@legion"] = "./require/",
                 },
             },
         }

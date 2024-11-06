@@ -1,10 +1,12 @@
 --!strict
-local std = require '@std'
-local sdl = std.sdl
+local legion = require '@legion'
+local sdl = legion.sdl
+local trs = legion.trs
+local Image = legion.Image
 local resourcePath = Path("resources");
 local mainFontPath = resourcePath / "main_font.ttf"
 local imagePath = resourcePath / "jw.png"
-local mainFont = assert(std.sdl.openFont(mainFontPath, 80))
+local mainFont = assert(sdl.openFont(mainFontPath, 80))
 local white = Color(0xff, 0xff, 0xff, 0xff)
 type TextureEntry = {texture: SDL_Texture, srcRect: Recti}
 local textureEntries: {TextureEntry} = table.create(0) 
@@ -50,17 +52,22 @@ local spinning_center = Vec2i(st_w / 2, st_h / 2)
 local spinning_angle = 0
 
 local spinning: boolean = true 
-std.input.onMousePressed:connect(function(type: MouseButtonType, mousePosition: Vec2)
+legion.input.onMousePressed:connect(function(type: MouseButtonType, mousePosition: Vec2)
     spinning = not spinning
 end)
 
-std.run.onUpdate:connect(function(deltaSeconds: number)
+legion.run.onUpdate:connect(function(deltaSeconds: number)
     if spinning then
         local spin_speed = 100
         spinning_angle += spin_speed * deltaSeconds
     end
 end)
+local image = Image{texturePath = imagePath, anchorPoint = Vec2(.5, .5)}
+legion.run.onRender:connect(function()
+    image:render(trs.T(300, 300) * trs.R(spinning_angle / 100) * trs.S(.5))
+end)
 
+--[=[
 local textu = image_pack[1]::SDL_Texture
 local width = image_pack[2]::number
 local height = image_pack[3]::number
