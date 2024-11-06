@@ -44,32 +44,6 @@ declare class DirectoryEntry
     function isCharacterFile(self): boolean
 end
 type _Path = Path | string
-export type LibFilesystem = {
-    createDirectory: (path: _Path) -> boolean,
-    exists: (path: _Path) -> boolean,
-    isCharacterFile: (path: _Path) -> boolean,
-    copyFile: (from: _Path, to: _Path, opt: CopyOptions?) -> boolean,
-    rename: (from: _Path, to: _Path) -> (),
-    remove: (path: _Path) -> boolean,
-    removeAll: (path: _Path) -> number,
-    copy: (from: _Path, to: _Path, opt: CopyOptions?) -> (),
-    absolute: (path: _Path) -> Path,
-    childrenOf: (path: _Path) -> {DirectoryEntry},
-    descendantsOf: (path: _Path) -> {DirectoryEntry},
-    path: (file: string) -> Path,
-}
-declare Filesystem: LibFilesystem
-
-declare class Connection
-    function disconnect(self): ()
-end
-declare class Event
-    function destroy(self): ()
-    connect: <Params...>(self: Event, (Params...)->()) -> Connection
-    fire: <Params...>(self: Event, Params...) -> ()
-end
-declare function Event(): Event
-
 declare class Vec2
     x: number
     y: number
@@ -129,43 +103,6 @@ declare class TTF_Font end
 declare class SDL_Vertex end
 export type SDL_RenderFlip = 'none'|'vertical'|'horizontal'
 declare function SDL_Vertex(color: Color, position: Vec2, textCoord: Vec2?): SDL_Vertex
-export type LibSDLRender = {
-    setDrawColor: (Color) -> (),
-    renderCopy: ((SDL_Texture, dest: Recti?, src: Recti?) -> ())
-        & ((SDL_Texture, dest: Recti?, src: Recti?, angle: number?, center: Vec2i?, flip: SDL_RenderFlip?)->()),
-    drawRect: ((Recti) ->()) & ((Rect) -> ()),
-    drawRects: (...Recti) -> (),
-    fillRect: ((Recti) ->()) & ((Rect) -> ()),
-    fillRects: (...Recti) -> (),
-    drawLine: ((Vec2i, Vec2i) -> ()) & ((Vec2, Vec2) -> ()),
-    drawLines: (...Vec2i) -> (),
-    drawPoint: (Vec2i) -> (),
-    drawPoints: (...Vec2i) -> (),
-    renderGeometry: ((...SDL_Vertex) -> ()) & ((SDL_Texture, ...SDL_Vertex) -> ()),
-    renderQuad: ((SDL_Vertex, SDL_Vertex, SDL_Vertex, SDL_Vertex) -> ())
-        & ((SDL_Texture, SDL_Vertex, SDL_Vertex, SDL_Vertex, SDL_Vertex) -> ()),
-    renderGeometryRaw: (
-                texture: SDL_Texture?,
-                buffer: buffer,
-                xyOff: number,
-                xyStride: number,
-                colorOff: number,
-                colorStride: number,
-                uvOff: number,
-                uvStride: number,
-                numVertices: number,
-                indicesOff: number,
-                numIndices: number,
-                sizeIndices: number
-            ) -> ()
-}
-export type LibSDL = {
-    openFont: (file: _Path, ptsize: number) -> TTF_Font?,
-    loadImage: (file: _Path) -> (SDL_Texture?, number, number),
-    loadText: (font: TTF_Font, text: string, fg_or_black: Color?) -> (SDL_Texture?, number, number),
-    Render: LibSDLRender,
-}
-declare SDL: LibSDL
 export type Keycode = 'esc'|'f1'|'f2'|'f3'|'f4'|'f5'|'f6'|'f7'|'f8'|'f9'|'f10'|'f11'|'f12'|
     '1'|'2'|'3'|'4'|'5'|'6'|'7'|'8'|'9'|'0'|'minus'|'equals'|'backspace'|
     'q'|'w'|'e'|'r'|'t'|'y'|'u'|'i'|'o'|'p'|'backslash'|
@@ -173,23 +110,6 @@ export type Keycode = 'esc'|'f1'|'f2'|'f3'|'f4'|'f5'|'f6'|'f7'|'f8'|'f9'|'f10'|'
     'z'|'x'|'c'|'v'|'b'|'n'|'n'|'m'|'comma'|'period'|'slash'|
     'lshift'|'lctrl'|'lalt'|'space'|'ralt'|'left'|'up'|'down'|'right'
 export type MouseButtonType = "left" | "right"| "middle"
-export type EventSignal<Params...> = {
-            connect: (self: EventSignal<Params...>, (Params...)->()) -> Connection,
-}
-export type InputModule = {
-    onKeyPressed: EventSignal<Keycode>,
-    onKeyReleased: EventSignal<Keycode>, 
-    onMousePressed: EventSignal<MouseButtonType, Vec2i>,
-    onMouseReleased: EventSignal<MouseButtonType, Vec2i>,
-    isKeyDown: (Keycode) -> boolean,
-    getMousePosition: () -> Vec2i,
-}
-declare InputModule: InputModule 
-export type RunModule = {
-    onUpdate: EventSignal<number>,
-    onRender: EventSignal<>,
-}
-declare RunModule: RunModule
 declare class PhysicalComponent
     position: Vec2
     velocity: Vec2
@@ -258,3 +178,59 @@ declare Vec: ((number, ...number) -> Vec)
     & ((v: Vec2)->Vec)
     & ((v: Vec3)->Vec)
     & ((v: Vec2i)->Vec) 
+type isKeyDown = (Keycode) -> boolean
+type getMousePosition = () -> Vec2i
+export type filesystem_library = {
+    createDirectory: (path: _Path) -> boolean,
+    exists: (path: _Path) -> boolean,
+    isCharacterFile: (path: _Path) -> boolean,
+    copyFile: (from: _Path, to: _Path, opt: CopyOptions?) -> boolean,
+    rename: (from: _Path, to: _Path) -> (),
+    remove: (path: _Path) -> boolean,
+    removeAll: (path: _Path) -> number,
+    copy: (from: _Path, to: _Path, opt: CopyOptions?) -> (),
+    absolute: (path: _Path) -> Path,
+    childrenOf: (path: _Path) -> {DirectoryEntry},
+    descendantsOf: (path: _Path) -> {DirectoryEntry},
+    path: (file: string) -> Path,
+}
+export type SDL_render_library = {
+    setDrawColor: (Color) -> (),
+    renderCopy: ((SDL_Texture, dest: Recti?, src: Recti?) -> ())
+        & ((SDL_Texture, dest: Recti?, src: Recti?, angle: number?, center: Vec2i?, flip: SDL_RenderFlip?)->()),
+    drawRect: ((Recti) ->()) & ((Rect) -> ()),
+    drawRects: (...Recti) -> (),
+    fillRect: ((Recti) ->()) & ((Rect) -> ()),
+    fillRects: (...Recti) -> (),
+    drawLine: ((Vec2i, Vec2i) -> ()) & ((Vec2, Vec2) -> ()),
+    drawLines: (...Vec2i) -> (),
+    drawPoint: (Vec2i) -> (),
+    drawPoints: (...Vec2i) -> (),
+    renderGeometry: ((...SDL_Vertex) -> ()) & ((SDL_Texture, ...SDL_Vertex) -> ()),
+    renderQuad: ((SDL_Vertex, SDL_Vertex, SDL_Vertex, SDL_Vertex) -> ())
+        & ((SDL_Texture, SDL_Vertex, SDL_Vertex, SDL_Vertex, SDL_Vertex) -> ()),
+    renderGeometryRaw: (
+                texture: SDL_Texture?,
+                buffer: buffer,
+                xyOff: number,
+                xyStride: number,
+                colorOff: number,
+                colorStride: number,
+                uvOff: number,
+                uvStride: number,
+                numVertices: number,
+                indicesOff: number,
+                numIndices: number,
+                sizeIndices: number
+            ) -> ()
+}
+export type SDL_library = {
+    openFont: (file: _Path, ptsize: number) -> TTF_Font?,
+    loadImage: (file: _Path) -> (SDL_Texture?, number, number),
+    loadText: (font: TTF_Font, text: string, fg_or_black: Color?) -> (SDL_Texture?, number, number),
+    render: SDL_render_library,
+}
+declare cimport: ( ("SDL") -> SDL_library)
+    & ( ('filesystem') -> filesystem_library)
+    & (('getMousePosition') -> getMousePosition)
+    & (('isKeyDown') -> isKeyDown)

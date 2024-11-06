@@ -1,12 +1,11 @@
 --!strict
-local TRS = require '@util/TRS'
-local Buffer = require '@util/Buffer'
+local std = require '@std'
+local sdl = std.sdl
 local resourcePath = Path("resources");
 local mainFontPath = resourcePath / "main_font.ttf"
 local imagePath = resourcePath / "jw.png"
-local mainFont = assert(SDL.openFont(mainFontPath, 80))
+local mainFont = assert(std.sdl.openFont(mainFontPath, 80))
 local white = Color(0xff, 0xff, 0xff, 0xff)
-local SDLRender = SDL.Render
 type TextureEntry = {texture: SDL_Texture, srcRect: Recti}
 local textureEntries: {TextureEntry} = table.create(0) 
 local function insertEntry(txt: SDL_Texture, w: number, h: number)
@@ -34,28 +33,28 @@ local v3 = Vec3(100, 100, 100)
 print(`magnitude = {v3:magnitude()}, dot = {v3:unit()}`)
 
 local texture: SDL_Texture?, w: number, h: number
-texture, w, h = SDL.loadImage(imagePath)
+texture, w, h = sdl.loadImage(imagePath)
 if texture then
     insertEntry(texture, w, h)
 end
-texture, w, h = SDL.loadText(mainFont, "text", white)
+texture, w, h = sdl.loadText(mainFont, "text", white)
 if texture then
     insertEntry(texture, w, h)
 end
 
-local image_pack = table.pack(assert(SDL.loadImage(imagePath)))
+local image_pack = table.pack(assert(sdl.loadImage(imagePath)))
 
-local spinnin_text_font = assert(SDL.openFont(mainFontPath, 25))
-local spinning_text, st_w, st_h = assert(SDL.loadText(spinnin_text_font, "spinning text", white))
+local spinnin_text_font = assert(sdl.openFont(mainFontPath, 25))
+local spinning_text, st_w, st_h = assert(sdl.loadText(spinnin_text_font, "spinning text", white))
 local spinning_center = Vec2i(st_w / 2, st_h / 2)
 local spinning_angle = 0
 
 local spinning: boolean = true 
-InputModule.onMousePressed:connect(function(type: MouseButtonType, mousePosition: Vec2i)
+std.input.onMousePressed:connect(function(type: MouseButtonType, mousePosition: Vec2)
     spinning = not spinning
 end)
 
-RunModule.onUpdate:connect(function(deltaSeconds: number)
+std.run.onUpdate:connect(function(deltaSeconds: number)
     if spinning then
         local spin_speed = 100
         spinning_angle += spin_speed * deltaSeconds
@@ -65,7 +64,7 @@ end)
 local textu = image_pack[1]::SDL_Texture
 local width = image_pack[2]::number
 local height = image_pack[3]::number
-local buf = Buffer(90)
+local buf = std.Buffer(90)
 --vert
 local xy_offset = buf.size
 buf:push('f32',
@@ -96,9 +95,8 @@ buf:push('i8',
     0, 1, 2,
     2, 3, 0
 )
-
-RunModule.onRender:connect(function()
-    SDLRender.renderGeometryRaw(textu, buf.data,
+std.run.onRender:connect(function()
+    sdl.render.renderGeometryRaw(textu, buf.data,
         xy_offset, 8,
         color_offset, 4,
         uv_offset, 8,

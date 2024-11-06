@@ -1,18 +1,19 @@
-local Module = {
+local Event = require 'event'
+local run_library = {
     onUpdate = Event(),
     onRender = Event(),
     onShutdown = Event(),
 }
 
 _G.__builtin_update_socket = function(deltaSeconds: number)
-    Module.onUpdate:fire(deltaSeconds)
+    run_library.onUpdate:fire(deltaSeconds)
 end
 _G.__builtin_render_socket = function()
-    Module.onRender:fire()
+    run_library.onRender:fire()
 end
 _G.__builtin_shutdown_socket = function()
-    Module.onShutdown:fire()
+    run_library.onShutdown:fire()
     collectgarbage("collect")
 end
 
-return Module
+return run_library

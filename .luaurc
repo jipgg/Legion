@@ -2,6 +2,7 @@
     "languageMode": "strict",
     "aliases": {
         "tests": "./tests",
+        "std": "./require/",
         "util": "./require/luau/util/"
     }
 }

@@ -179,6 +179,45 @@ static void load_luau_module(lua_State* L, const fs::path& path, const char* as)
     lua_setglobal(L, as);
 
 }
+static int lua_cimport(lua_State* L) {
+    std::string key = luaL_checkstring(L, 1);
+ auto cache_import_lib = [&L, &key](const char* id, int(*fn)(lua_State* L)) {
+        constexpr auto cimported = "__cimport_cache";
+        lua_getglobal(L, cimported);
+        if (lua_isnil(L, -1)) {
+            lua_pop(L, 1);
+            lua_newtable(L);
+            lua_setglobal(L, cimported);
+            lua_getglobal(L, cimported);
+        }
+        lua_getfield(L, -1, id);
+        if (lua_isnil(L, -1)) {
+            lua_pop(L, 1);
+            if (fn(L) != 1) luaL_error(L, "Library function did not return exactly one value");
+            lua_setfield(L, -2, id);
+            lua_getfield(L, -1, id);
+        }
+        lua_remove(L, -2);
+        return 1;
+    };
+    constexpr auto ikd_id = "isKeyDown";
+    constexpr auto gmp_id = "getMousePosition";
+    constexpr auto sdl_id = "SDL";
+    constexpr auto fs_id = "filesystem";
+    if (key == ikd_id) {
+        lua_pushcfunction(L, bi::is_key_down, ikd_id);
+        return 1;
+    } else if (key == gmp_id) {
+        lua_pushcfunction(L, bi::get_mouse_position, gmp_id);
+        return 1;
+    } else if (key == sdl_id) {
+        return cache_import_lib(sdl_id, builtin::import_sdl_lib);
+    } else if (key == fs_id) {
+        return cache_import_lib(fs_id, builtin::import_filesystem_lib);
+    }
+    luaL_error(L, "invalid import specifier '%s'", key.c_str());
+    return 0;
+}
 static void init_luau_state(lua_State* L, const fs::path& main_entry_point) {
     luaL_openlibs(main_state);
     lua_callbacks(L)->useratom = [](const char* raw_name, size_t s) {
@@ -197,11 +236,13 @@ static void init_luau_state(lua_State* L, const fs::path& main_entry_point) {
         {"loadstring", lua_loadstring},
         {"require", lua_require},
         {"collectgarbage", lua_collectgarbage},
+        {"cimport", lua_cimport},
         {NULL, NULL}
     };
     lua_pushvalue(L, LUA_GLOBALSINDEX);
     luaL_register(L, NULL, funcs);
     lua_pop(L, 1);
+    /*
     load_luau_module(L, "require/Event.luau", "Event");
     constexpr auto input_name = "InputModule";
     push_luau_module(L, "require/InputModule.luau", input_name);
@@ -217,6 +258,7 @@ static void init_luau_state(lua_State* L, const fs::path& main_entry_point) {
     lua_setglobal(L, run_name);
     builtin::import_filesystem_lib(L);
     lua_setglobal(L, "Filesystem");
+    */
 
     std::optional<std::string> source = common::read_file(main_entry_point);
     if (not source) {

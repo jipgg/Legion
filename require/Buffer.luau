@@ -1,32 +1,54 @@
 --!strict
 export type Type = 'i8'|'i16'|'i32'|'u8'|'u16'|'u32'|'f32'|'f64'
 
-local Buffer = {}
-Buffer.__index = Buffer
-export type self = typeof(setmetatable({
-    size = 0,
-    capacity = 0,
-    data = buffer.create(0)}, Buffer))
-
+local class = {}
+class.__index = class
 local function construct(bytesize: number)
     return setmetatable({
         capacity = bytesize,
         size = 0,
         data = buffer.create(bytesize)
-    }, Buffer)
+    }, class)
 end
 export type Buffer = typeof(construct(1))
-type TypeSwitch = {
-    i8: (self, ...number)->(),
-    i16: (self, ...number)->(),
-    i32: (self, ...number)->(),
-    u8: (self, ...number)->(),
-    u16: (self, ...number)->(),
-    u32: (self, ...number)->(),
-    f32: (self, ...number)->(),
-    f64: (self, ...number)->(),
+type TypeSwitch<Ts...> = {
+    i8: (Ts...)->(),
+    i16: (Ts...)->(),
+    i32: (Ts...)->(),
+    u8: (Ts...)->(),
+    u16: (Ts...)->(),
+    u32: (Ts...)->(),
+    f32: (Ts...)->(),
+    f64: (Ts...)->(),
 }
-local pushImpl: TypeSwitch = {
+type TypeMap<T> = {
+    i8: T,
+    i16: T,
+    i32: T,
+    u8: T,
+    u16: T,
+    u32: T,
+    f32: T,
+    f64: T,
+}
+local bytesizes: TypeMap<number> = {i8=1, i16=2, i32=4, u8=1, u16=2, u32=4, f32=4, f64=8}
+function class:pop(t: Type, count: number)
+    (self::Buffer).size -= bytesizes[t] * count
+end
+local switch_read: TypeSwitch<buffer, number> = {
+    i8=function(b, off) buffer.readi8(b, off) end,
+    i16=function(b, off) buffer.readi16(b, off) end,
+    i32=function(b, off) buffer.readi32(b, off) end,
+    u8=function(b, off) buffer.readu8(b, off) end,
+    u16=function(b, off) buffer.readu16(b, off) end,
+    u32=function(b, off) buffer.readu32(b, off) end,
+    f32=function(b, off) buffer.readf32(b, off) end,
+    f64=function(b, off) buffer.readf64(b, off) end,
+}
+function class:read(t: Type, offset: number)
+    switch_read[t](self.data, offset)
+end
+local pushImpl: TypeSwitch<...any> = {
     i8 = function(self, ...)
         for i = 1, select('#', ...) do
             buffer.writei8(self.data, self.size, select(i, ...))
@@ -77,7 +99,7 @@ local pushImpl: TypeSwitch = {
     end,
 }
 
-function Buffer:push(t: Type, ...: number)
+function class:push(t: Type, ...: number)
     pushImpl[t](self, ...)
 end
 

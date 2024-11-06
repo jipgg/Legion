@@ -328,7 +328,7 @@ int bi::import_sdl_lib(lua_State *L) {
         {nullptr, nullptr}
     };
     luaL_register(L, nullptr, render_lib);
-    lua_setfield(L, -2, "Render");
+    lua_setfield(L, -2, "render");
     return 1;
 }
 

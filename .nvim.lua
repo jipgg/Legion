@@ -10,6 +10,7 @@ require"lspconfig".luau_lsp.setup {
                 directoryAliases = {
                     ["@tests"] = "./tests/",
                     ["@util"] = "./require/luau/util/",
+                    ["@std"] = "./require/",
                 },
             },
         }
