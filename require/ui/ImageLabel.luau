@@ -24,11 +24,6 @@ function ImageLabel.new(texturePath: Path, anchorPoint: Vec2?, position: Vec2?, 
     return self
 end
 
-function ImageLabel:destroy()
-    self = self::ImageLabel
-    self._renderConnection:disconnect()
-end
-
 export type ImageLabel = typeof(ImageLabel.new(Path("")))
 
 return ImageLabel

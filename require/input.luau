@@ -1,27 +1,25 @@
 local Event = require 'Event'
-export type KeyboardEvent = Event.Event<Keycode>
-export type MouseButtonEvent = Event.Event<MouseButtonType, Vec2>
-export type KeyboardSignal = Event.EventSignal<Keycode>
-export type MouseButtonSignal = Event.EventSignal<MouseButtonType, Vec2>
+export type KeyboardSignal = Event.Signal<Keycode>
+export type MouseButtonSignal = Event.Signal<MouseButtonType, Vec2>
 local Module = {
-    onKeyPressed = Event.new()::KeyboardEvent,
-    onKeyReleased = Event.new()::KeyboardEvent,
-    onMousePressed = Event.new()::MouseButtonEvent,
-    onMouseReleased = Event.new()::MouseButtonEvent,
+    onKeyPressed = Event.new():signal_cast()::KeyboardSignal,
+    onKeyReleased = Event.new():signal_cast()::KeyboardSignal,
+    onMousePressed = Event.new():signal_cast()::MouseButtonSignal,
+    onMouseReleased = Event.new():signal_cast()::MouseButtonSignal,
     isKeyDown = cimport('isKeyDown'),
     getMousePosition = cimport('getMousePosition')
 }
 _G.__builtin_keydown_socket = function(keycode: Keycode)
-    Module.onKeyPressed:fire(keycode)
+    Event.reveal(Module.onKeyPressed):fire(keycode)
 end
 _G.__builtin_keyup_socket = function(keycode: Keycode)
-    Module.onKeyReleased:fire(keycode)
+    Event.reveal(Module.onKeyReleased):fire(keycode)
 end
 _G.__builtin_mousedown_socket = function(button: MouseButtonType, pos: Vec2)
-    Module.onMousePressed:fire(button, pos)
+    Event.reveal(Module.onMousePressed):fire(button, pos)
 end
 _G.__builtin_mouseup_socket = function(button: MouseButtonType, pos: Vec2)
-    Module.onMouseReleased:fire(button, pos)
+    Event.reveal(Module.onMouseReleased):fire(button, pos)
 end
 
 return Module

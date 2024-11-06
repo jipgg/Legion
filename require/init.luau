@@ -1,14 +1,12 @@
 local Library = {}
 local input = require 'input'
-export type MouseButtonEvent = input.MouseButtonEvent
-export type KeyboardEvent = input.KeyboardEvent
 Library.input = input
 
 local run = require 'run'
 Library.run = run
 local Event = require 'Event'
-export type Event<Ts...> = Event.Event<Ts...>
-export type EventSignal<Ts...> = Event.EventSignal<Ts...>
+export type Event = Event.Event
+export type Signal<Ts...> = Event.Signal<Ts...>
 export type Connection = Event.Connection
 Library.Event = Event
 

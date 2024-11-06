@@ -1,53 +1,61 @@
 --!strict
-export type EventSignal<Params...> = {
-    connect: (self: EventSignal<Params...>, (Params...)->()) -> Connection,
-}
-type _Handler<Params...> = (Params...) -> ()
-type _Event<Params...> = {
-    _handlers: {_Handler<Params...>},
-    destroy: (Event<Params...>) -> (),
-    connect: (Event<Params...>, (Params...)->()) -> Connection,
-    fire: (Event<Params...>, Params...) -> (),
-};
-type _Connection = {
-    _id: number,
-    _opaque_event: unknown,
-    disconnect: (Connection)->(),
-};
-local connection = {
-    __type = 'connection',
-    __mode = 'v',
-}
-connection.__index = connection
-function connection:disconnect()
-    if self._opaque_event ~= nil then
-        local event = self._opaque_event
-        event.handlers[self.id] = nil
+local Connection = {}
+Connection.__index = Connection
+function Connection:disconnect()
+    self = self::Connection
+    local event = self.event
+    if event then
+        event.connected[self] = nil
     end
 end
-local Event = {
-    CURR_ID = 0,
-    __type = 'event',
-} 
+
+local function createConnection(event: Event)
+    local self = setmetatable({
+        event = event
+    }, Connection)
+    return self
+end
+
+local function createWeakTable<K, V>(t: {[K]: V})
+    return setmetatable({}::{[K]: V}, {__mode = 'k'})
+end
+
+local Event = {}
 Event.__index = Event
-export type Event<Params...> = typeof(setmetatable({}::_Event<Params...>, Event))
-export type Connection = typeof(setmetatable({}::_Connection, connection))
-function Event:destroy()
-    table.clear(self._handlers)
+
+function Event.new()
+    local self = setmetatable({
+        connected = createWeakTable({}::{[Connection]: (...any)->()}),
+    }, Event)
+    return self
 end
+
+function Event:connect(fn: (...any)->())
+    self = self::Event
+    local c = createConnection(self)
+    self.connected[c] = fn
+    return c
+end
+
+function Event.reveal<Ts...>(signal: Signal<Ts...>): Event
+    return signal::any
+end
+
 function Event:fire(...)
-    for i, handler in self._handlers do handler(...) end
+    self = self::Event
+    for connection, handler in self.connected do
+        handler(...)
+    end
 end
-function Event:connect(fn)
-    Event.CURR_ID += 1
-    local id = Event.CURR_ID
-    self._handlers[id] = fn
-    local c = {_id = id, _opaque_event = self}
-    return setmetatable(c, connection)
+
+function Event:signal_cast<Ts...>(): Signal<Ts...>
+    return (self::unknown)::Signal<Ts...>
 end
-function Event.new<params...>(): Event<params...>
-    return setmetatable({
-        _handlers = {},
-    }, Event)::Event<params...>
-end
+
+export type Connection = typeof(createConnection({}::Event))
+export type Event = typeof(Event.new())
+export type Signal<Ts...> = {
+    connect: (self: unknown, fn: (Ts...)->()) -> Connection
+}
+
 return Event

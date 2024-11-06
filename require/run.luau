@@ -1,18 +1,18 @@
 local Event = require 'event'
 local Module = {
-    onUpdate = Event.new()::Event.Event<number>,
-    onRender = Event.new(),
-    onShutdown = Event.new(),
+    onUpdate = Event.new():signal_cast()::Event.Signal<number>,
+    onRender = Event.new():signal_cast()::Event.Signal<>,
+    onShutdown = Event.new():signal_cast()::Event.Signal<>,
 }
 
 _G.__builtin_update_socket = function(deltaSeconds: number)
-    Module.onUpdate:fire(deltaSeconds)
+    Event.reveal(Module.onUpdate):fire(deltaSeconds)
 end
 _G.__builtin_render_socket = function()
-    Module.onRender:fire()
+    Event.reveal(Module.onRender):fire()
 end
 _G.__builtin_shutdown_socket = function()
-    Module.onShutdown:fire()
+    Event.reveal(Module.onShutdown):fire()
     collectgarbage("collect")
 end
 
