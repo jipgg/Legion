@@ -1,5 +1,5 @@
 require"lspconfig".luau_lsp.setup {
-    cmd = {"luau-lsp", "lsp", "--definitions=globals.d.luau", "--docs=api-docs.json"},
+    cmd = {"luau-lsp", "lsp", "--definitions=resources/type_definitions.d.luau"},
     settings = {
         ["luau-lsp"] = {
             platform = {
@@ -9,7 +9,7 @@ require"lspconfig".luau_lsp.setup {
                 mode = "relativeToFile",
                 directoryAliases = {
                     ["@tests"] = "./tests/",
-                    ["@legion"] = "./require/",
+                    ["@builtin"] = "./resources/luau_library/",
                 },
             },
         }

@@ -1,0 +1,149 @@
+#include "builtin.h"
+#include "lua_util.h"
+#include "lua_atom.h"
+static constexpr auto tname = "Vector";
+namespace bi = builtin;
+namespace mm = bi::metamethod;
+using ty =  bi::vector;
+
+static int ctor(lua_State *L) {
+    const int top = lua_gettop(L);
+    auto& r = create<ty>(L, ty{});
+    r.resize(top);
+    for (int i{}; i < top; ++i) {
+        r[i] = luaL_checknumber(L, i + 1);
+    }
+    return 1;
+}
+static int add(lua_State* L) {
+    create<ty>(L, check<ty>(L, 1) + check<ty>(L, 2));
+    return 1;
+}
+static int mul(lua_State *L) {
+    double scalar = luaL_checknumber(L, 2);
+    create<ty>(L, check<ty>(L, 1) * scalar);
+    return 1;
+}
+static int tostring(lua_State *L) {
+    const auto& self = check<ty>(L, 1);
+    std::stringstream ss{};
+    ss << tname << ": {";
+    for (int i{}; i < self.size(); ++i) {
+        double v = self[i];
+        std::string s = std::to_string(v);
+        if (std::floor(v) == v) s.erase(s.find('.'));
+        ss << s;
+        if (i != self.size() - 1) ss << ", ";
+        else ss << "}";
+    }
+    const std::string str = ss.str();
+    lua_pushlstring(L, str.data(), str.size());
+    return 1;
+}
+static int sub(lua_State* L) {
+    create<ty>(L, check<ty>(L, 1) - check<ty>(L, 2));
+    return 1;
+}
+static int div(lua_State *L) {
+    double scalar = luaL_checknumber(L, 2);
+    create<ty>(L, check<ty>(L, 1) / scalar);
+    return 1;
+}
+static int unm(lua_State* L) {
+    create<ty>(L, -check<ty>(L, 1));
+    return 1;
+}
+static int namecall(lua_State *L) {
+    int atom;
+    lua_namecallatom(L, &atom);
+    ty& r = check<ty>(L, 1);
+    using la = lua_atom;
+    switch(static_cast<lua_atom>(atom)) {
+        case la::dot: {
+            const double dot = blaze::dot(check<ty>(L, 1), check<ty>(L, 2));
+            lua_pushnumber(L, dot);
+            return 1;
+        }
+        case la::normalize: {
+            create<ty>(L, blaze::normalize(check<ty>(L, 1)));
+            return 1;
+        }
+        case la::abs: {
+            create<ty>(L, blaze::abs(check<ty>(L, 1)));
+            return 0;
+        }
+        case la::magnitude: {
+
+            auto& r = check<ty>(L, 1);
+            lua_pushnumber(L, blaze::length(r));
+            return 1;
+        }
+        case la::set: {
+            const int index = luaL_checkinteger(L, 2);
+            const double value = luaL_checknumber(L, 3);
+            if (not_in_range(index, r.size())) return err_out_of_range(L, tname);
+            r[index] = value;
+            return 0;
+        }
+        case la::at: {
+            const int index = luaL_checkinteger(L, 2);
+            if (not_in_range(index, r.size())) return err_out_of_range(L, tname);
+            lua_pushnumber(L, r[index]);
+            return 1;
+        }
+        case la::extend: {
+            const int size = luaL_checkinteger(L, 2);
+            r.extend(size, luaL_optboolean(L, 3, true));
+            return 0;
+        }
+        case la::reset: {
+            r.reset();
+            return 0;
+        }
+        case la::size: {
+            lua_pushinteger(L, r.size());
+            return 1;
+        }
+        case la::capacity: {
+            lua_pushinteger(L, r.capacity());
+            return 1;
+        }
+        case la::resize: {
+            r.resize(luaL_checkinteger(L, 2), luaL_optboolean(L, 3, true));
+            return 0;
+        }
+        case la::reserve: {
+            r.reserve(luaL_checkinteger(L, 2));
+            return 0;
+        }
+        default: return err_invalid_method(L, tname);
+    }
+}
+static int call(lua_State* L) {
+    ty& r = check<ty>(L, 1);
+    const int index = luaL_checkinteger(L, 2);
+    if (not_in_range(index, r.size())) return err_out_of_range(L, tname);
+    lua_pushnumber(L, r[index]);
+    return 1;
+}
+int builtin::class_vector(lua_State* L) {
+    if (luaL_newmetatable(L, metatable_name<ty>())) {
+        const luaL_Reg meta [] = {
+            {mm::add, add},
+            {mm::mul, mul},
+            {mm::unm, unm},
+            {mm::div, div},
+            {mm::sub, sub},
+            {mm::namecall, namecall},
+            {mm::tostring, tostring},
+            {mm::call, call},
+            {nullptr, nullptr}
+        };
+        lua_pushstring(L, tname);
+        lua_setfield(L, -2, mm::type);
+        luaL_register(L, nullptr, meta);
+    }
+    lua_pop(L, 1);
+    lua_pushcfunction(L, ctor, tname);
+    return 1;
+}

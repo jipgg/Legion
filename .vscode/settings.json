@@ -9,5 +9,8 @@
         "globals.d.luau"
     ],
     "luau-lsp.platform.type": "standard",
-    "luau-lsp.hover.strictDatamodelTypes": false
+    "luau-lsp.hover.strictDatamodelTypes": false,
+    "luau-lsp.types.documentationFiles": [
+        "api-docs.json"
+    ]
 }

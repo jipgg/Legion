@@ -1,14 +1,15 @@
-#include "common/common.h"
+#include "common.h"
 #include <luacode.h>
 #include <lua.h>
 #include <fstream>
+#include <optional>
+#include <filesystem>
 #ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #endif
 constexpr static lua_CompileOptions compile_opts{};
 namespace fs = std::filesystem;
-namespace common {
 std::optional<std::string> read_file(const fs::path &path) {
     if (not fs::exists(path)) [[unlikely]] {
         return std::nullopt;
@@ -47,4 +48,3 @@ void enable_ansi_escape_sequences() {
     SetConsoleMode(hout, mode);
 }
 #endif//_WIN32
-}

@@ -1,11 +1,11 @@
 #pragma once
-#include "common/common.h"  
+#include "common.h"  
 namespace component {
 using component_id = std::size_t;
 constexpr const component_id nullid = 0;
 template <class Ty>
-[[nodiscard]] common::sparse_set<component_id, Ty>& storage() {
-    static common::sparse_set<component_id, Ty> comps{};
+[[nodiscard]] sparse_set<component_id, Ty>& storage() {
+    static sparse_set<component_id, Ty> comps{};
     return comps;
 }
 [[nodiscard]] inline component_id create_unique_id() {

@@ -4,7 +4,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(source_dir ${CMAKE_SOURCE_DIR}/src)
 set(include_dir ${CMAKE_SOURCE_DIR}/include)
-
+set(resource_dir ${CMAKE_SOURCE_DIR}/resources)
+set(luau_library_dir ${resource_dir}/luau_library)
+set(resource_output_dir ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/resources)
 project(Legion LANGUAGES CXX C)
 
 find_package(SDL2 REQUIRED CONFIG REQUIRED COMPONENTS SDL2)
@@ -15,17 +17,16 @@ find_package(SDL2_mixer REQUIRED)
 find_package(blaze REQUIRED)
 add_subdirectory(extern/luau)
 
-file(GLOB source_files
-    ${source_dir}/*.cpp
-    ${source_dir}/common/*.cpp
-    ${source_dir}/builtin/*.cpp
-)
+file(COPY ${lib_dir} DESTINATION ${resource_output_dir})
+file(COPY ${CMAKE_SOURCE_DIR}/.luaurc DESTINATION ${resource_output_dir}/build_resources/.luaurc)
+
+file(GLOB_RECURSE source_files ${source_dir}/*.cpp)
 if (LINUX)
     add_executable(Legion ${source_files})
 elseif(WIN32)
     add_executable(Legion WIN32 ${source_files})
 endif()
-target_include_directories(Legion PRIVATE ${include_dir})
+target_include_directories(Legion PUBLIC ${include_dir})
 target_link_libraries(Legion PRIVATE
     SDL2::SDL2main
     SDL2::SDL2
@@ -38,3 +39,9 @@ target_link_libraries(Legion PRIVATE
     Luau.Config
 )
 target_link_libraries(Legion PUBLIC blaze::blaze )
+add_custom_command(
+    TARGET ${PROJECT_NAME} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+            "${resource_dir}"
+            "$<TARGET_FILE_DIR:${PROJECT_NAME}>/resources"
+)
