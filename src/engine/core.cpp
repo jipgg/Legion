@@ -27,6 +27,7 @@ static SDL_Rect sdl_rect_dummy{};
 static lua_State* main_state;
 static fs::path bin_path;
 static constexpr auto builtin_name = "builtin";
+static constexpr auto callbacks_name = "callback";
 
 namespace module {
 static builtin_module filesystem{"filesystem", builtin::lib_filesystem};
@@ -44,21 +45,24 @@ static constexpr auto mousemotion = "mousemotion";
 static constexpr auto update = "update";
 static constexpr auto render = "render";
 static constexpr auto shutdown = "shutdown";
-static constexpr auto window_resized = "resize";
+static constexpr auto resize = "resize";
+static constexpr auto move = "move";
+static constexpr auto sizechange = "sizechange";
 }
 
-static bool push_if_builtin_callback(const char* name) {
-    lua_getglobal(main_state, builtin_name);
-    lua_getfield(main_state, -1, name);
-    if (lua_isnil(main_state, -1)) {
-        lua_pop(main_state, 2);
+static bool push_callback(lua_State* L, const char* name) {
+    lua_getglobal(L, callbacks_name);
+    if (lua_isnil(L, -1)) {
+        lua_pop(L, 1);
+        luaL_error(L, "unexpected error");
         return false;
     }
-    lua_remove(main_state, -2);
-    if (not lua_isfunction(main_state, -1)) {
-        lua_pop(main_state, 1);
+    lua_getfield(L, -1, name);
+    if (not lua_isfunction(L, -1)) {
+        lua_pop(L, 2);
         return false;
     }
+    lua_remove(L, -2);
     return true;
 }
 namespace engine {
@@ -97,19 +101,17 @@ static void init_luau_state(lua_State* L, const fs::path& main_entry_point) {
         auto e = comptime_enum::item<lua_atom, count>(name);
         return static_cast<int16_t>(e.index);
     };
+    lua_newtable(L);
+    lua_setglobal(L, callbacks_name);
     bi::init_global_types(L);
     lua_register_globals(L);
     const luaL_Reg engine_functions[] = {
         {"load_module", load_builtin_module},
         {nullptr, nullptr}
     };
-    lua_pushvalue(L, LUA_GLOBALSINDEX);
     lua_newtable(L);
     luaL_register(L, nullptr, engine_functions);
-    builtin::lib_window(L);
-    lua_setfield(L, -2, "window");
-    lua_setfield(L, -2, builtin_name);
-    lua_pop(L, 1);
+    lua_setglobal(L, builtin_name);
     builtin::class_vector2(L);
     lua_setglobal(L, "Vector2");
     builtin::class_vector3(L);
@@ -164,7 +166,7 @@ static void run() {
                         quitting = true;
                     break;
                     case SDL_KEYDOWN:
-                        if (push_if_builtin_callback(callback::keydown)) {
+                        if (push_callback(main_state, callback::keydown)) {
                             lua_pushstring(main_state, scancode_to_string(e.key.keysym.scancode));
                             if (lua_pcall(main_state, 1, 0, 0) != LUA_OK) {
                                 printerr(luaL_checkstring(main_state, -1));
@@ -173,7 +175,7 @@ static void run() {
                         }
                     break;
                     case SDL_KEYUP:
-                        if (push_if_builtin_callback(callback::keyup)) {
+                        if (push_callback(main_state, callback::keyup)) {
                             lua_pushstring(main_state, scancode_to_string(e.key.keysym.scancode));
                             if (lua_pcall(main_state, 1, 0, 0) != LUA_OK) {
                                 printerr(luaL_checkstring(main_state, -1));
@@ -182,7 +184,7 @@ static void run() {
                         }
                     break;
                     case SDL_MOUSEBUTTONUP:
-                        if (push_if_builtin_callback(callback::mouseup)) {
+                        if (push_callback(main_state, callback::mouseup)) {
                             switch (e.button.button) {
                                 case SDL_BUTTON_LEFT:
                                     lua_pushstring(main_state, "left");
@@ -202,10 +204,10 @@ static void run() {
                                 printerr(luaL_checkstring(main_state, -1));
                                 lua_pop(main_state, 3);
                             }
-                        } else lua_pop(main_state, 1);
+                        }
                     break;
                     case SDL_MOUSEBUTTONDOWN:
-                        if (push_if_builtin_callback(callback::mousedown)) {
+                        if (push_callback(main_state, callback::mousedown)) {
                             switch (e.button.button) {
                                 case SDL_BUTTON_LEFT:
                                     lua_pushstring(main_state, "left");
@@ -227,36 +229,13 @@ static void run() {
                             }
                         }
                     break;
-                    case SDL_WINDOWEVENT:
-                        auto call_if = [](const char* cb) {
-                            if (module::window.push_if_callback(cb, main_state)) {
-                                lua_pushinteger(main_state, sdl_event_dummy.window.data1);
-                                lua_pushinteger(main_state, sdl_event_dummy.window.data2);
-                                if (lua_pcall(main_state, 2, 0, 0) != LUA_OK) {
-                                    printerr(luaL_checkstring(main_state, -1));
-                                    lua_pop(main_state, 3);
-                                }
-                            }
-                        };
-                        switch(e.window.event) {
-                            case SDL_WINDOWEVENT_RESIZED:
-                                call_if("on_resize");
-                            break;
-                            case SDL_WINDOWEVENT_SIZE_CHANGED:
-                                call_if("on_size_change");
-                            break;
-                            case SDL_WINDOWEVENT_MOVED:
-                                call_if("on_move");
-                            break;
-                        }
-                    break;
                 }
             }
         } {//updating
             const auto curr_tp = ch::steady_clock::now();
             const double delta_s = ch::duration<double>(curr_tp - cached_last_tp).count();
             cached_last_tp = curr_tp;
-            if (push_if_builtin_callback(callback::update)) {
+            if (push_callback(main_state, callback::update)) {
                 lua_pushnumber(main_state, delta_s);
                 if (lua_pcall(main_state, 1, 0, 0) != LUA_OK) {
                     printerr(luaL_checkstring(main_state, -1));
@@ -266,7 +245,7 @@ static void run() {
         } {//rendering
             SDL_SetRenderDrawColor(renderer_ptr, 0x00, 0x00, 0x00, 0xff);
             SDL_RenderClear(renderer_ptr);
-            if (push_if_builtin_callback(callback::render)) {
+            if (push_callback(main_state, callback::render)) {
                 if (lua_pcall(main_state, 0, 0, 0) != LUA_OK) {
                     printerr(luaL_checkstring(main_state, -1));
                     lua_pop(main_state, 1);
@@ -277,7 +256,7 @@ static void run() {
     }
 }
 static void shutdown() {
-    if (push_if_builtin_callback(callback::shutdown)) {
+    if (push_callback(main_state, callback::shutdown)) {
         if (lua_pcall(main_state, 0, 0, 0) != LUA_OK) {
             printerr(luaL_checkstring(main_state, -1));
             lua_pop(main_state, 1);

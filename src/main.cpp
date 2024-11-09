@@ -24,7 +24,7 @@ int main(int argc, zstring* argv) {
         .window_resizable = true,
         .hardware_accelerated = true,
         .vsync_enabled = true,
-        .main_entry_point = "dummy.luau",
+        .main_entry_point = "../tests/dummy_game.luau",
         .bin_path = fs::absolute(argv[0]).parent_path(),
     };
     if (argc > 1) {

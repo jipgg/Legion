@@ -6,11 +6,13 @@
     },
     "luau-lsp.require.mode": "relativeToFile",
     "luau-lsp.types.definitionFiles": [
-        "globals.d.luau"
+        "resources/type_definitions.d.luau"
     ],
     "luau-lsp.platform.type": "standard",
     "luau-lsp.hover.strictDatamodelTypes": false,
-    "luau-lsp.types.documentationFiles": [
-        "api-docs.json"
-    ]
+    "luau-lsp.completion.autocompleteEnd": false,
+    "luau-lsp.sourcemap.includeNonScripts": false,
+    "luau-lsp.sourcemap.enabled": false,
+    "luau-lsp.sourcemap.autogenerate": false,
+    "luau-lsp.signatureHelp.enabled": false
 }

@@ -10,31 +10,31 @@ export type perms = 'unknown'|'others exec'|'all'|'mask'|
     'set gid'|'set uid'|'group all'|'group exec'|'group read'|
     'owner exec'|'owner read'|'others read'|'others all'|'sticky bit'|
     'others read'|'group write'|'owner write'|'others write'|'none'
-declare class path
-    function stem(self): path
+declare class Path
+    function stem(self): Path
     function empty(self): boolean
-    function filename(self): path
+    function filename(self): Path
     function has_stem(self): boolean
-    function root_path(self): path
-    function parent_path(self): path
+    function root_path(self): Path
+    function parent_path(self): Path
     function is_absolute(self): boolean
     function is_relative(self): boolean
-    function extension(self): path
+    function extension(self): Path
     function replace_extension(self, s: string)
-    function relative_path(self): path
+    function relative_path(self): Path
     function compare(self): number
-    function root_name(self): path
-    function root_directory(self): path
+    function root_name(self): Path
+    function root_directory(self): Path
     function has_root_path(self): boolean
     function has_root_name(self): boolean
     function has_root_directory(self): boolean
     function __tostring(self): string
-    function __div(self, other: string | path): path
+    function __div(self, other: string | Path): Path
 end
 declare class directory_entry
     function is_directory(self): boolean
     function is_fifo(self): boolean
-    function path(self): path
+    function path(self): Path
     function is_socket(self): boolean
     function is_other(self): boolean
     function is_symlink(self): boolean
@@ -42,27 +42,27 @@ declare class directory_entry
     function is_regular_file(self): boolean
     function is_character_file(self): boolean
 end
-declare class vector2
+declare class Vector2
     x: number
     y: number
-    function dot(self, a: vector2): number
-    function unit(self): vector2
+    function dot(self, a: Vector2): number
+    function unit(self): Vector2
     function magnitude(self): number
-    function abs(self): vector2
-    function __add(self, a: vector2): vector2
-    function __mul(self, scalar: number): vector2
-    function __div(self, scalar: number): vector2
-    function __sub(self, a: vector2): vector2
-    function __unm(self): vector2
+    function abs(self): Vector2
+    function __add(self, a: Vector2): Vector2
+    function __mul(self, scalar: number): Vector2
+    function __div(self, scalar: number): Vector2
+    function __sub(self, a: Vector2): Vector2
+    function __unm(self): Vector2
     function __call(self, index: number): number
 end
-declare class color
+declare class Color
     r: number
     g: number
     b: number
     a: number
 end
-declare class rectangle
+declare class Rectangle
     x: number
     y: number
     w: number
@@ -79,34 +79,34 @@ export type keycode = 'esc'|'f1'|'f2'|'f3'|'f4'|'f5'|'f6'|'f7'|'f8'|'f9'|'f10'|'
     'z'|'x'|'c'|'v'|'b'|'n'|'n'|'m'|'comma'|'period'|'slash'|
     'lshift'|'lctrl'|'lalt'|'space'|'ralt'|'left'|'up'|'down'|'right'
 export type mouse_button_type = "left" | "right"| "middle"
-type matrix33_mul = ((matrix33, matrix33)->matrix33) & ((matrix33, vector3)->vector3) & ((matrix33, vector)->vector)
-declare class matrix33
-    function inverse(self): matrix33
-    function transpose(self): matrix33
+type matrix33_mul = ((Matrix33, Matrix33)->Matrix33) & ((Matrix33, Vector3)->Vector3) & ((Matrix33, Vector)->Vector)
+declare class Matrix33
+    function inverse(self): Matrix33
+    function transpose(self): Matrix33
     function __call(self, i: number, j: number): number
     __mul: matrix33_mul
-    function __add(self, other: matrix33): matrix33
-    function __sub(self, other: matrix33): matrix33
+    function __add(self, other: Matrix33): Matrix33
+    function __sub(self, other: Matrix33): Matrix33
 end
-declare class vector3
+declare class Vector3
     x: number
     y: number
     z: number
-    function dot(self, a: vector3): number
-    function unit(self): vector3
+    function dot(self, a: Vector3): number
+    function unit(self): Vector3
     function magnitude(self): number
-    function abs(self): vector3
-    function __add(self, a: vector3): vector3
-    function __mul(self, scalar: number): vector3
-    function __div(self, scalar: number): vector3
-    function __sub(self, a: vector3): vector3
-    function __unm(self): vector3
+    function abs(self): Vector3
+    function __add(self, a: Vector3): Vector3
+    function __mul(self, scalar: number): Vector3
+    function __div(self, scalar: number): Vector3
+    function __sub(self, a: Vector3): Vector3
+    function __unm(self): Vector3
 end
-declare class vector
-    function dot(self, a: vector): number
-    function unit(self): vector
+declare class Vector
+    function dot(self, a: Vector): number
+    function unit(self): Vector
     function magnitude(self): number
-    function abs(self): vector
+    function abs(self): Vector
     function at(self, index: number): number
     function set(self, index: number, value: number)
     function reset(self)
@@ -115,25 +115,25 @@ declare class vector
     function capacity(self): number
     function resize(self, size: number, preserve: boolean?)
     function reserve(self, amount: number)
-    function __add(self, a: vector): vector
-    function __mul(self, scalar: number): vector
-    function __div(self, scalar: number): vector
-    function __sub(self, a: vector): vector
-    function __unm(self): vector
+    function __add(self, a: Vector): Vector
+    function __mul(self, scalar: number): Vector
+    function __div(self, scalar: number): Vector
+    function __sub(self, a: Vector): Vector
+    function __unm(self): Vector
 end
 export type filesystem = {
-    create_directory: (path | string) -> boolean,
-    exists: (path: path | string) -> boolean,
-    is_character_file: (path: path | string) -> boolean,
-    copy_file: (from: path | string, to: path | string, opt: copy_options?) -> boolean,
-    rename: (from: path | string, to: path | string) -> (),
-    remove: (path: path | string) -> boolean,
-    remove_all: (path: path | string) -> number,
-    copy: (from: path | string, to: path | string, opt: copy_options?) -> (),
-    absolute: (path: path | string) -> path,
-    children_of: (path: path | string) -> {directory_entry},
-    descendants_of: (path: path | string) -> {directory_entry},
-    Path: (file: string) -> path,
+    create_directory: (Path | string) -> boolean,
+    exists: (path: Path | string) -> boolean,
+    is_character_file: (path: Path | string) -> boolean,
+    copy_file: (from: Path | string, to: Path | string, opt: copy_options?) -> boolean,
+    rename: (from: Path | string, to: Path | string) -> (),
+    remove: (path: Path | string) -> boolean,
+    remove_all: (path: Path | string) -> number,
+    copy: (from: Path | string, to: Path | string, opt: copy_options?) -> (),
+    absolute: (path: Path | string) -> Path,
+    children_of: (path: Path | string) -> {directory_entry},
+    descendants_of: (path: Path | string) -> {directory_entry},
+    Path: (file: string) -> Path,
 }
 export type window = {
     size: ()->(number, number),
@@ -149,8 +149,6 @@ export type window = {
     set_opacity: (opacity: number)->(),
     opacity: ()->number,
     set_icon: (file: string)->(),
-    size_changed: ((width: number, height: number)->())?,
-    moved: ((x: number, y: number)->())?,
     focus: ()->(),
 }
 export type blend_mode = 'none'|'mul'|'add'|'mod'|'blend'|'invalid'
@@ -160,25 +158,25 @@ export type rendering = {
         color_stride: number, uv_offset: number, uv_stride: number,
         num_vertices: number, indices_offset: number, num_indices: number,
         indices_size: number)->(),
-    clear: (bg: color?)->(),
+    clear: (bg: Color?)->(),
     flush: ()->(),
 }
 export type drawing = {
-    set_color: (col: color)->(),
+    set_color: (col: Color)->(),
     set_blend_mode: (mode: blend_mode)->(),
-    draw_rectangle: (rect: rectangle)->(),
-    draw_rectangles: ((...rectangle)->()) & ((buf: buffer)->()),
-    draw_point: (point: vector2)->(),
-    draw_points: ((...vector2)->()) & ((buf: buffer)->()),
-    fill_rectangle: (rect: rectangle)->(),
-    fill_rectangles: ((...rectangle)->()) & ((buf: buffer)->()),
-    draw_line: (t0: vector2, t1: vector2)->(),
-    draw_lines: ((...vector2)->()) & ((buf: buffer)->()), 
-    draw_polygon: ({vector2})->(),
-    fill_polygon: ({vector2})->(),
+    draw_rectangle: (rect: Rectangle)->(),
+    draw_rectangles: ((...Rectangle)->()) & ((buf: buffer)->()),
+    draw_point: (point: Vector2)->(),
+    draw_points: ((...Vector2)->()) & ((buf: buffer)->()),
+    fill_rectangle: (rect: Rectangle)->(),
+    fill_rectangles: ((...Rectangle)->()) & ((buf: buffer)->()),
+    draw_line: (t0: Vector2, t1: Vector2)->(),
+    draw_lines: ((...Vector2)->()) & ((buf: buffer)->()), 
+    draw_polygon: ({Vector2})->(),
+    fill_polygon: ({Vector2})->(),
 }
 export type keyboard_callback = ((key: keycode)->())?
-export type mouse_callback = ((button: mouse_button_type, pos: vector2)->())?
+export type mouse_callback = ((button: mouse_button_type, pos: Vector2)->())?
 export type void_callback = (()->())?
 export type update_callback = ((deltasec: number)->())?
 export type builtin = {
@@ -186,18 +184,24 @@ export type builtin = {
     & (('window')->window)
     & (('drawing')->drawing)
     & (('rendering')->rendering),
-    key_pressed: keyboard_callback,
-    key_released: keyboard_callback,
-    mouse_pressed: mouse_callback,
-    mouse_released: mouse_callback,
-    updating: update_callback,
-    rendering: void_callback,
-    shutting_down: void_callback,
 }
+export type callbacks = {
+    window_sizechange: ((width: number, height: number)->())?,
+    window_move: ((x: number, y: number)->())?,
+    window_resize: ((width: number, height: number)->())?,
+    keydown: keyboard_callback,
+    keyup: keyboard_callback,
+    mousedown: mouse_callback,
+    mouseup: mouse_callback,
+    update: update_callback,
+    render: void_callback,
+    shutdown: void_callback,
+}
+declare callback: callbacks
 declare builtin: builtin
-declare Rectangle: (x: number?, y: number?, w: number?, h: number?)->rectangle
-declare Vector2: (x: number?, y: number?)->vector2
-declare Vector3: (x: number?, y: number?, z: number?)->vector3
-declare Vector: (...number)->vector
-declare Matrix33: (...number)->matrix33
-declare Color: (r: number?, g: number?, b: number?, a: number?)->color
+declare Rectangle: (x: number?, y: number?, w: number?, h: number?)->Rectangle
+declare Vector2: (x: number?, y: number?)->Vector2
+declare Vector3: (x: number?, y: number?, z: number?)->Vector3
+declare Vector: (...number)->Vector
+declare Matrix33: (...number)->Matrix33
+declare Color: (r: number?, g: number?, b: number?, a: number?)->Color

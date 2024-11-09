@@ -7,9 +7,7 @@
             "generator": "Visual Studio 17",
             "binaryDir": "${sourceDir}/cmake-out",
             "cacheVariables": {
-                "CMAKE_RUNTIME_OUTPUT_DIRECTORY": "${sourceDir}/bin/runtime",
-                "CMAKE_LIBRARY_OUTPUT_DIRECTORY": "${sourceDir}/bin/lib",
-                "CMAKE_ARCHIVE_OUTPUT_DIRECTORY": "${sourceDir}/bin/archive"
+                "CMAKE_RUNTIME_OUTPUT_DIRECTORY": "${sourceDir}/bin"
             }
         },
         {

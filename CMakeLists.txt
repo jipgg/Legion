@@ -17,8 +17,8 @@ find_package(SDL2_mixer REQUIRED)
 find_package(blaze REQUIRED)
 add_subdirectory(extern/luau)
 
-file(COPY ${lib_dir} DESTINATION ${resource_output_dir})
-file(COPY ${CMAKE_SOURCE_DIR}/.luaurc DESTINATION ${resource_output_dir}/build_resources/.luaurc)
+#file(COPY ${lib_dir} DESTINATION ${resource_output_dir})
+#file(COPY ${CMAKE_SOURCE_DIR}/.luaurc DESTINATION ${resource_output_dir}/build_resources/.luaurc)
 
 file(GLOB_RECURSE source_files ${source_dir}/*.cpp)
 if (LINUX)
@@ -39,9 +39,5 @@ target_link_libraries(Legion PRIVATE
     Luau.Config
 )
 target_link_libraries(Legion PUBLIC blaze::blaze )
-add_custom_command(
-    TARGET ${PROJECT_NAME} POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_directory
-            "${resource_dir}"
-            "$<TARGET_FILE_DIR:${PROJECT_NAME}>/resources"
-)
+add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory "${resource_dir}" "$<TARGET_FILE_DIR:${PROJECT_NAME}>/resources")
