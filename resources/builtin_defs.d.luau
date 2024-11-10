@@ -187,11 +187,24 @@ export type luau_iterator_library = {
     elements: <T>(t: {[any]: T})->(()->T?),
     imap: <T, U>(t: {T}, u: {U})->(()->(T?, U?)),
 }
+declare class Event
+    connect: <Ts...>(self: Event, (Ts...)->())->()
+end
+export type typed_event_alias<Ts...> = {
+    connect: (self: unknown, (Ts...)->())->(),
+}
 export type engine_module = {
     get_module: (('filesystem') -> filesystem_module)
     & (('drawing')->drawing_module)
     & (('rendering')->rendering_module)
     & (('iterator')->luau_iterator_library),
+    updating: typed_event_alias<number>,
+    rendering: typed_event_alias<>,
+    key_pressed: typed_event_alias<keycode>,
+    key_released: typed_event_alias<keycode>,
+    mouse_pressed: typed_event_alias<mouse_button_type, Vector2>,
+    mouse_released: typed_event_alias<mouse_button_type, Vector2>,
+    shutting_down: typed_event_alias<>,
     on_keydown: keyboard_callback,
     on_keyup: keyboard_callback,
     on_mousedown: mouse_callback,
@@ -205,9 +218,6 @@ export type luau_task_library = {
     spawn: <Ts...>(fn: (Ts...)->(), Ts...)->(),
     wait: (count: number)->(),
 }
-declare class Event
-    connect: <Ts...>(self: Event, (Ts...)->())->()
-end
 declare event_update: Event
 declare task: luau_task_library
 declare engine: engine_module

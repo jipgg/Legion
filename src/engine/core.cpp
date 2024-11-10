@@ -30,7 +30,15 @@ static SDL_Rect sdl_rect_dummy{};
 static lua_State* main_state;
 static fs::path bin_path;
 static constexpr auto builtin_name = "engine";
-static lua_event* update_event;
+namespace events {
+static lua_event* updating;
+static lua_event* rendering;
+static lua_event* key_pressed;
+static lua_event* key_released;
+static lua_event* mouse_pressed;
+static lua_event* mouse_released;
+static lua_event* shutting_down;
+}
 
 static fs::path res_path() {
     return bin_path / "resources/luau_library";
@@ -139,8 +147,22 @@ static void init_luau_state(lua_State* L, const fs::path& main_entry_point) {
     lua_setglobal(L, "task");
     builtin::class_event(L);
     lua_setglobal(L, "Event");
-    update_event = &create<lua_event>(L, lua_event{L});
-    lua_setglobal(L, "event_update");
+    lua_getglobal(L, builtin_name);
+    events::updating = &create<lua_event>(L, lua_event{L});
+    lua_setfield(L, -2, "updating");
+    events::rendering = &create<lua_event>(L, lua_event{L});
+    lua_setfield(L, -2, "rendering");
+    events::key_pressed = &create<lua_event>(L, lua_event{L});
+    lua_setfield(L, -2, "key_pressed");
+    events::key_released = &create<lua_event>(L, lua_event{L});
+    lua_setfield(L, -2, "key_released");
+    events::mouse_pressed = &create<lua_event>(L, lua_event{L});
+    lua_setfield(L, -2, "mouse_pressed");
+    events::mouse_released = &create<lua_event>(L, lua_event{L});
+    lua_setfield(L, -2, "mouse_released");
+    events::shutting_down = &create<lua_event>(L, lua_event{L});
+    lua_setfield(L, -2, "shutting_down");
+    lua_pop(L, 1);
     std::optional<std::string> source = read_file(main_entry_point);
     if (not source) {
         using namespace std::string_literals;
@@ -187,6 +209,8 @@ static void run() {
                         quitting = true;
                     break;
                     case SDL_KEYDOWN:
+                        lua_pushstring(main_state, scancode_to_string(e.key.keysym.scancode));
+                        events::key_pressed->fire(1);
                         if (push_callback(main_state, callback::keydown)) {
                             lua_pushstring(main_state, scancode_to_string(e.key.keysym.scancode));
                             if (lua_pcall(main_state, 1, 0, 0) != LUA_OK) {
@@ -196,6 +220,8 @@ static void run() {
                         }
                     break;
                     case SDL_KEYUP:
+                        lua_pushstring(main_state, scancode_to_string(e.key.keysym.scancode));
+                        events::key_released->fire(1);
                         if (push_callback(main_state, callback::keyup)) {
                             lua_pushstring(main_state, scancode_to_string(e.key.keysym.scancode));
                             if (lua_pcall(main_state, 1, 0, 0) != LUA_OK) {
@@ -256,9 +282,9 @@ static void run() {
             const auto curr_tp = ch::steady_clock::now();
             const double delta_s = ch::duration<double>(curr_tp - cached_last_tp).count();
             cached_last_tp = curr_tp;
-            if (update_event) {
+            if (events::updating) {
                 lua_pushnumber(main_state, delta_s);
-                update_event->fire(1);
+                events::updating->fire(1);
             }
             if (push_callback(main_state, callback::update)) {
                 lua_pushnumber(main_state, delta_s);
@@ -270,6 +296,7 @@ static void run() {
         } {//rendering
             SDL_SetRenderDrawColor(renderer_ptr, 0x00, 0x00, 0x00, 0xff);
             SDL_RenderClear(renderer_ptr);
+            events::rendering->fire(0);
             if (push_callback(main_state, callback::render)) {
                 if (lua_pcall(main_state, 0, 0, 0) != LUA_OK) {
                     printerr(luaL_checkstring(main_state, -1));
@@ -281,6 +308,7 @@ static void run() {
     }
 }
 static void shutdown() {
+    events::shutting_down->fire(0);
     if (push_callback(main_state, callback::shutdown)) {
         if (lua_pcall(main_state, 0, 0, 0) != LUA_OK) {
             printerr(luaL_checkstring(main_state, -1));
