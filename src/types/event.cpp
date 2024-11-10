@@ -1,20 +1,61 @@
 #include "builtin.h"
 #include "lua_util.h"
 #include "lua_atom.h"
-#include "lua_event.h"
 namespace bi = builtin;
 namespace tn = bi::tname;
-using event = lua_event;
+using bi::event;
 
+event::event(lua_State* L): L(L), refs() {
+
+}
+event::~event() {
+    for (auto& [id, ref] : refs) {
+        lua_unref(L, ref);
+    }
+}
+int event::connect(int idx) {
+    if (!lua_isfunction(L, idx)) {
+        printerr("connect() error: Value is not a function\n");
+        lua_pop(L, 1); // Pop table from stack
+        return nullid;
+    }
+    refs.push_back(std::make_pair(++curr_id, lua_ref(L, idx)));
+    return curr_id;
+}
+void event::disconnect(int id) {
+    using pair_t = std::pair<int, int>;
+    const pair_t dummy{id, 0};
+    auto it = std::lower_bound(refs.begin(), refs.end(), dummy, [](const pair_t& e, const pair_t& v) {
+        return e.first < v.first;
+    });
+    if (it != refs.end() and it->first == id) {
+        refs.erase(it);
+    } else luaL_error(L, "invalid id");
+}
+void event::fire(int arg_count) {
+    for (auto& [id, ref] : refs) {
+        lua_getref(L, ref);
+        if (lua_isfunction(L, -1)) {
+            lua_pushvalue(L, -1); // Push a copy of the function
+            for (int i = 0; i < arg_count; ++i) {
+                lua_pushvalue(L, -(arg_count + 2));
+            }
+            if (lua_pcall(L, arg_count, 0, 0) != LUA_OK) {
+                std::cerr << "Error calling function: " << lua_tostring(L, -1) << "\n";
+                lua_pop(L, 1);
+            }
+        }
+        lua_pop(L, 1);
+    }
+    lua_pop(L, arg_count);
+}
 static int ctor(lua_State* L) {
     create<event>(L, L);
     return 1;
 }
-
-
 static int namecall(lua_State* L) {
     int atom;
-    auto& r = check<lua_event>(L, 1); 
+    auto& r = check<event>(L, 1); 
     lua_namecallatom(L, &atom);
     using la = lua_atom;
     switch (static_cast<la>(atom)) {

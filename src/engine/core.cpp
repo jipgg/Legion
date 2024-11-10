@@ -16,9 +16,9 @@
 #include "lua_base.h"
 #include "builtin_module.h"
 #include "systems.h"
-#include "lua_event.h"
 namespace ch = std::chrono;
 namespace fs = std::filesystem;
+using czstring = const char*;
 
 namespace bi = builtin;
 static SDL_Window* window_ptr{nullptr};
@@ -31,17 +31,24 @@ static lua_State* main_state;
 static fs::path bin_path;
 static constexpr auto builtin_name = "engine";
 namespace events {
-static lua_event* updating;
-static lua_event* rendering;
-static lua_event* key_pressed;
-static lua_event* key_released;
-static lua_event* mouse_pressed;
-static lua_event* mouse_released;
-static lua_event* shutting_down;
+static bi::event* updating;
+static bi::event* rendering;
+static bi::event* key_pressed;
+static bi::event* key_released;
+static bi::event* mouse_pressed;
+static bi::event* mouse_released;
+static bi::event* shutting_down;
 }
 
 static fs::path res_path() {
     return bin_path / "resources/luau_library";
+}
+static czstring mouse_button_to_string(Uint8 button) {
+    switch (button) {
+        case SDL_BUTTON_RIGHT: return "right";
+        case SDL_BUTTON_MIDDLE: return "middle";
+        default: return "left";
+    }
 }
 
 namespace module {
@@ -148,19 +155,19 @@ static void init_luau_state(lua_State* L, const fs::path& main_entry_point) {
     builtin::class_event(L);
     lua_setglobal(L, "Event");
     lua_getglobal(L, builtin_name);
-    events::updating = &create<lua_event>(L, lua_event{L});
+    events::updating = &create<bi::event>(L, L);
     lua_setfield(L, -2, "updating");
-    events::rendering = &create<lua_event>(L, lua_event{L});
+    events::rendering = &create<bi::event>(L, L);
     lua_setfield(L, -2, "rendering");
-    events::key_pressed = &create<lua_event>(L, lua_event{L});
+    events::key_pressed = &create<bi::event>(L, L);
     lua_setfield(L, -2, "key_pressed");
-    events::key_released = &create<lua_event>(L, lua_event{L});
+    events::key_released = &create<bi::event>(L, L);
     lua_setfield(L, -2, "key_released");
-    events::mouse_pressed = &create<lua_event>(L, lua_event{L});
+    events::mouse_pressed = &create<bi::event>(L, L);
     lua_setfield(L, -2, "mouse_pressed");
-    events::mouse_released = &create<lua_event>(L, lua_event{L});
+    events::mouse_released = &create<bi::event>(L, L);
     lua_setfield(L, -2, "mouse_released");
-    events::shutting_down = &create<lua_event>(L, lua_event{L});
+    events::shutting_down = &create<bi::event>(L, L);
     lua_setfield(L, -2, "shutting_down");
     lua_pop(L, 1);
     std::optional<std::string> source = read_file(main_entry_point);
@@ -217,17 +224,7 @@ static void run() {
                         events::key_released->fire(1);
                     break;
                     case SDL_MOUSEBUTTONUP:
-                        switch (e.button.button) {
-                            case SDL_BUTTON_LEFT:
-                                lua_pushstring(main_state, "left");
-                            break;
-                            case SDL_BUTTON_RIGHT:
-                                lua_pushstring(main_state, "right");
-                            break;
-                            case SDL_BUTTON_MIDDLE:
-                                lua_pushstring(main_state, "middle");
-                            break;
-                        }
+                        lua_pushstring(main_state, mouse_button_to_string(e.button.button));
                         create<bi::vector2>(main_state) = {
                             static_cast<double>(sdl_event_dummy.button.x),
                             static_cast<double>(sdl_event_dummy.button.y)
@@ -235,17 +232,7 @@ static void run() {
                         events::mouse_released->fire(2);
                     break;
                     case SDL_MOUSEBUTTONDOWN:
-                        switch (e.button.button) {
-                            case SDL_BUTTON_LEFT:
-                                lua_pushstring(main_state, "left");
-                            break;
-                            case SDL_BUTTON_RIGHT:
-                                lua_pushstring(main_state, "right");
-                            break;
-                            case SDL_BUTTON_MIDDLE:
-                                lua_pushstring(main_state, "middle");
-                            break;
-                        }
+                        lua_pushstring(main_state, mouse_button_to_string(e.button.button));
                         create<bi::vector2>(main_state) = {
                             static_cast<double>(sdl_event_dummy.button.x),
                             static_cast<double>(sdl_event_dummy.button.y)
@@ -261,8 +248,6 @@ static void run() {
             lua_pushnumber(main_state, delta_s);
             events::updating->fire(1);
         } {//rendering
-            //SDL_SetRenderDrawColor(renderer_ptr, 0x00, 0x00, 0x00, 0xff);
-            //SDL_RenderClear(renderer_ptr);
             events::rendering->fire(0);
             SDL_RenderPresent(renderer_ptr);
         }

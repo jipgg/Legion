@@ -3,10 +3,10 @@ local rendering = engine.get_module("rendering")
 local drawing = engine.get_module('drawing')
 local white = Color(0xff, 0xff, 0xff, 0xff)
 
-
 local my_event: Event<number> = Event()
+
 my_event:connect(function(num: number)
-    print('yooo am connected and fire', num)
+    engine.window.set_title("yoooooooooooooooooooooo")
 end)
 
 local accumulated = 0

@@ -73,6 +73,21 @@ using vector = blaze::DynamicVector<double>;
 using matrix33 = mat3x3;
 using path = std::filesystem::path;
 using directory_entry = std::filesystem::directory_entry;
+struct event {
+    std::vector<std::pair<int, int>> refs;
+    lua_State* L;
+    static constexpr int nullid = 0;
+    int curr_id{nullid};
+    event(lua_State* L);
+    ~event();
+    int connect(int idx);
+    void disconnect(int id);
+    void fire(int arg_count);
+};
+struct font {
+     opaque_font opaque;
+    font(std::string_view file);
+};
 //using event = lua_event;
 //using connection = lua_event::connection;
 //using signal = lua_event::signal;
