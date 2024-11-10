@@ -3,6 +3,12 @@ local rendering = engine.get_module("rendering")
 local drawing = engine.get_module('drawing')
 local white = Color(0xff, 0xff, 0xff, 0xff)
 
+
+local my_event: Event<number> = Event()
+my_event:connect(function(num: number)
+    print('yooo am connected and fire', num)
+end)
+
 local accumulated = 0
 local accumulated2 = 0
 engine.updating:connect(function(deltasec: number)
@@ -17,11 +23,14 @@ engine.rendering:connect(function()
     drawing.fill_rectangle(Rectangle(100, 100, 200, 100))
 end)
 
-engine.updating:connect(function(deltasec: number)
+local connection: number
+connection = engine.updating:connect(function(deltasec: number)
     accumulated2 += deltasec
     if (accumulated2 > 5) then
         print(`accumulated2: {accumulated2} {deltasec}`)
         accumulated2 = 0;
+        engine.updating:disconnect(connection);
+        my_event:fire(11000)
     end
 end)
 

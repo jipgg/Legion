@@ -176,10 +176,6 @@ export type drawing_module = {
     draw_polygon: ({Vector2})->(),
     fill_polygon: ({Vector2})->(),
 }
-export type keyboard_callback = ((key: keycode)->())?
-export type mouse_callback = ((button: mouse_button_type, pos: Vector2)->())?
-export type void_callback = (()->())?
-export type update_callback = ((deltasec: number)->())?
 export type luau_iterator_library = {
     ireverse: <T>(t:{T})->(()->T?),
     ifilter: <T>(t:{T}, pred: (e: T)->boolean)->(()->T?),
@@ -187,38 +183,35 @@ export type luau_iterator_library = {
     elements: <T>(t: {[any]: T})->(()->T?),
     imap: <T, U>(t: {T}, u: {U})->(()->(T?, U?)),
 }
-declare class Event
-    connect: <Ts...>(self: Event, (Ts...)->())->()
-end
-export type typed_event_alias<Ts...> = {
-    connect: (self: unknown, (Ts...)->())->(),
+
+-- declare class Event
+--     connect: <Ts...>(self: Event, (Ts...)->())->number
+--     disconnect: (self: Event, id: number)->()
+--     fire: <Ts...>(self: Event, Ts...)->()
+-- end
+export type Event<params...> = {
+    connect: (self: Event<params...>, (params...)->())->number,
+    disconnect: (self: Event<params...>, id: number)->(),
+    fire: (self: Event<params...>, params...)->(),
 }
 export type engine_module = {
     get_module: (('filesystem') -> filesystem_module)
     & (('drawing')->drawing_module)
     & (('rendering')->rendering_module)
     & (('iterator')->luau_iterator_library),
-    updating: typed_event_alias<number>,
-    rendering: typed_event_alias<>,
-    key_pressed: typed_event_alias<keycode>,
-    key_released: typed_event_alias<keycode>,
-    mouse_pressed: typed_event_alias<mouse_button_type, Vector2>,
-    mouse_released: typed_event_alias<mouse_button_type, Vector2>,
-    shutting_down: typed_event_alias<>,
-    on_keydown: keyboard_callback,
-    on_keyup: keyboard_callback,
-    on_mousedown: mouse_callback,
-    on_mouseup: mouse_callback,
-    on_update: update_callback,
-    on_render: void_callback,
-    on_shutdown: void_callback,
+    updating: Event<number>,
+    rendering: Event<>,
+    key_pressed: Event<keycode>,
+    key_released: Event<keycode>,
+    mouse_pressed: Event<mouse_button_type, Vector2>,
+    mouse_released: Event<mouse_button_type, Vector2>,
+    shutting_down: Event<>,
     window: window_module,
 }
 export type luau_task_library = {
     spawn: <Ts...>(fn: (Ts...)->(), Ts...)->(),
     wait: (count: number)->(),
 }
-declare event_update: Event
 declare task: luau_task_library
 declare engine: engine_module
 declare Rectangle: (x: number?, y: number?, w: number?, h: number?)->Rectangle
@@ -236,4 +229,4 @@ declare Vector: ((...number)->Vector)
 declare Matrix33: (...number)->Matrix33
 declare Color: (r: number?, g: number?, b: number?, a: number?)->Color
 declare Path: (path: string)->Path
-declare Event: ()->Event
+declare Event: <params...>()->Event<params...>

@@ -19,9 +19,19 @@ static int namecall(lua_State* L) {
     using la = lua_atom;
     switch (static_cast<la>(atom)) {
         case la::connect: {
-            print("hmm", luaL_typename(L, 1), luaL_typename(L, 2));
             if (not lua_isfunction(L, 2)) return err_invalid_type(L);
-            r.connect(2);
+            int id = r.connect(2);
+            lua_pushinteger(L, id);
+            return 1;
+        }
+        case la::disconnect: {
+            r.disconnect(luaL_checkinteger(L, 2));
+            return 0;
+        }
+        case la::fire: {
+            lua_remove(L, -lua_gettop(L));//removes event from stack
+            //print("top is", lua_gettop(L));
+            r.fire(lua_gettop(L));
             return 0;
         }
         default:

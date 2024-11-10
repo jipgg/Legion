@@ -102,7 +102,7 @@ static int load_builtin_module(lua_State* L) {
         return 1;
     };
     if (key == module::filesystem.name) return module::filesystem.load(L);
-    if (key == module::window.name) return module::window.load(L);
+    //if (key == module::window.name) return module::window.load(L);
     if (key == module::rendering.name) return module::rendering.load(L);
     if (key ==  module::drawing.name) return module::drawing.load(L);
     if (key == "iterator") {
@@ -211,70 +211,46 @@ static void run() {
                     case SDL_KEYDOWN:
                         lua_pushstring(main_state, scancode_to_string(e.key.keysym.scancode));
                         events::key_pressed->fire(1);
-                        if (push_callback(main_state, callback::keydown)) {
-                            lua_pushstring(main_state, scancode_to_string(e.key.keysym.scancode));
-                            if (lua_pcall(main_state, 1, 0, 0) != LUA_OK) {
-                                printerr(luaL_checkstring(main_state, -1));
-                                lua_pop(main_state, 2);
-                            }
-                        }
                     break;
                     case SDL_KEYUP:
                         lua_pushstring(main_state, scancode_to_string(e.key.keysym.scancode));
                         events::key_released->fire(1);
-                        if (push_callback(main_state, callback::keyup)) {
-                            lua_pushstring(main_state, scancode_to_string(e.key.keysym.scancode));
-                            if (lua_pcall(main_state, 1, 0, 0) != LUA_OK) {
-                                printerr(luaL_checkstring(main_state, -1));
-                                lua_pop(main_state, 2);
-                            }
-                        }
                     break;
                     case SDL_MOUSEBUTTONUP:
-                        if (push_callback(main_state, callback::mouseup)) {
-                            switch (e.button.button) {
-                                case SDL_BUTTON_LEFT:
-                                    lua_pushstring(main_state, "left");
-                                break;
-                                case SDL_BUTTON_RIGHT:
-                                    lua_pushstring(main_state, "right");
-                                break;
-                                case SDL_BUTTON_MIDDLE:
-                                    lua_pushstring(main_state, "middle");
-                                break;
-                            }
-                            create<bi::vector2>(main_state) = {
-                                static_cast<double>(sdl_event_dummy.button.x),
-                                static_cast<double>(sdl_event_dummy.button.y)
-                            };
-                            if (LUA_OK != lua_pcall(main_state, 2, 0, 0)) {
-                                printerr(luaL_checkstring(main_state, -1));
-                                lua_pop(main_state, 3);
-                            }
+                        switch (e.button.button) {
+                            case SDL_BUTTON_LEFT:
+                                lua_pushstring(main_state, "left");
+                            break;
+                            case SDL_BUTTON_RIGHT:
+                                lua_pushstring(main_state, "right");
+                            break;
+                            case SDL_BUTTON_MIDDLE:
+                                lua_pushstring(main_state, "middle");
+                            break;
                         }
+                        create<bi::vector2>(main_state) = {
+                            static_cast<double>(sdl_event_dummy.button.x),
+                            static_cast<double>(sdl_event_dummy.button.y)
+                        };
+                        events::mouse_released->fire(2);
                     break;
                     case SDL_MOUSEBUTTONDOWN:
-                        if (push_callback(main_state, callback::mousedown)) {
-                            switch (e.button.button) {
-                                case SDL_BUTTON_LEFT:
-                                    lua_pushstring(main_state, "left");
-                                break;
-                                case SDL_BUTTON_RIGHT:
-                                    lua_pushstring(main_state, "right");
-                                break;
-                                case SDL_BUTTON_MIDDLE:
-                                    lua_pushstring(main_state, "middle");
-                                break;
-                            }
-                            create<bi::vector2>(main_state) = {
-                                static_cast<double>(sdl_event_dummy.button.x),
-                                static_cast<double>(sdl_event_dummy.button.y)
-                            };
-                            if (lua_pcall(main_state, 2, 0, 0) != LUA_OK) {
-                                printerr(luaL_checkstring(main_state, -1));
-                                lua_pop(main_state, 3);
-                            }
+                        switch (e.button.button) {
+                            case SDL_BUTTON_LEFT:
+                                lua_pushstring(main_state, "left");
+                            break;
+                            case SDL_BUTTON_RIGHT:
+                                lua_pushstring(main_state, "right");
+                            break;
+                            case SDL_BUTTON_MIDDLE:
+                                lua_pushstring(main_state, "middle");
+                            break;
                         }
+                        create<bi::vector2>(main_state) = {
+                            static_cast<double>(sdl_event_dummy.button.x),
+                            static_cast<double>(sdl_event_dummy.button.y)
+                        };
+                        events::mouse_pressed->fire(2);
                     break;
                 }
             }
@@ -282,39 +258,18 @@ static void run() {
             const auto curr_tp = ch::steady_clock::now();
             const double delta_s = ch::duration<double>(curr_tp - cached_last_tp).count();
             cached_last_tp = curr_tp;
-            if (events::updating) {
-                lua_pushnumber(main_state, delta_s);
-                events::updating->fire(1);
-            }
-            if (push_callback(main_state, callback::update)) {
-                lua_pushnumber(main_state, delta_s);
-                if (lua_pcall(main_state, 1, 0, 0) != LUA_OK) {
-                    printerr(luaL_checkstring(main_state, -1));
-                    lua_pop(main_state, 3);
-                }
-            }
+            lua_pushnumber(main_state, delta_s);
+            events::updating->fire(1);
         } {//rendering
-            SDL_SetRenderDrawColor(renderer_ptr, 0x00, 0x00, 0x00, 0xff);
-            SDL_RenderClear(renderer_ptr);
+            //SDL_SetRenderDrawColor(renderer_ptr, 0x00, 0x00, 0x00, 0xff);
+            //SDL_RenderClear(renderer_ptr);
             events::rendering->fire(0);
-            if (push_callback(main_state, callback::render)) {
-                if (lua_pcall(main_state, 0, 0, 0) != LUA_OK) {
-                    printerr(luaL_checkstring(main_state, -1));
-                    lua_pop(main_state, 1);
-                }
-            }
             SDL_RenderPresent(renderer_ptr);
         }
     }
 }
 static void shutdown() {
     events::shutting_down->fire(0);
-    if (push_callback(main_state, callback::shutdown)) {
-        if (lua_pcall(main_state, 0, 0, 0) != LUA_OK) {
-            printerr(luaL_checkstring(main_state, -1));
-            lua_pop(main_state, 1);
-        }
-    }
     lua_close(main_state);
     SDL_DestroyRenderer(renderer_ptr);
     SDL_DestroyWindow(window_ptr);
