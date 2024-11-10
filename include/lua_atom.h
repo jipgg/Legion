@@ -52,5 +52,9 @@ enum class lua_atom {
     libimport,
     use,
     create,
+    connect,
+    disconnect,
+    once,
+    fire,
     _last
 };

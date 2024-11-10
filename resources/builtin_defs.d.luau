@@ -119,7 +119,7 @@ declare class Vector
     function __sub(self, a: Vector): Vector
     function __unm(self): Vector
 end
-export type filesystem = {
+export type filesystem_module = {
     create_directory: (Path | string) -> boolean,
     exists: (path: Path | string) -> boolean,
     is_character_file: (path: Path | string) -> boolean,
@@ -133,7 +133,7 @@ export type filesystem = {
     descendants_of: (path: Path | string) -> {Directory_entry},
     Path: (file: string) -> Path,
 }
-export type window = {
+export type window_module = {
     size: ()->(number, number),
     set_size: (w: number, h: number)->(),
     maximize: ()->(),
@@ -148,9 +148,12 @@ export type window = {
     opacity: ()->number,
     set_icon: (file: string)->(),
     focus: ()->(),
+    on_resize: ((w: number, h: number)->())?,
+    on_move: ((x: number, y: number)->())?,
+    on_sizechange: ((w: number, h: number)->())?,
 }
 export type blend_mode = 'none'|'mul'|'add'|'mod'|'blend'|'invalid'
-export type rendering = {
+export type rendering_module = {
     render_geometry_raw: (txt: Texture_ptr?, buf: buffer,
     xy_offset: number, xy_stride: number, color_offset: number,
         color_stride: number, uv_offset: number, uv_stride: number,
@@ -159,7 +162,7 @@ export type rendering = {
     clear: (bg: Color?)->(),
     flush: ()->(),
 }
-export type drawing = {
+export type drawing_module = {
     set_color: (col: Color)->(),
     set_blend_mode: (mode: blend_mode)->(),
     draw_rectangle: (rect: Rectangle)->(),
@@ -177,18 +180,6 @@ export type keyboard_callback = ((key: keycode)->())?
 export type mouse_callback = ((button: mouse_button_type, pos: Vector2)->())?
 export type void_callback = (()->())?
 export type update_callback = ((deltasec: number)->())?
-export type core_engine_callbacks = {
-    window_sizechange: ((width: number, height: number)->())?,
-    window_move: ((x: number, y: number)->())?,
-    window_resize: ((width: number, height: number)->())?,
-    keydown: keyboard_callback,
-    keyup: keyboard_callback,
-    mousedown: mouse_callback,
-    mouseup: mouse_callback,
-    update: update_callback,
-    render: void_callback,
-    shutdown: void_callback,
-}
 export type luau_iterator_library = {
     ireverse: <T>(t:{T})->(()->T?),
     ifilter: <T>(t:{T}, pred: (e: T)->boolean)->(()->T?),
@@ -196,20 +187,30 @@ export type luau_iterator_library = {
     elements: <T>(t: {[any]: T})->(()->T?),
     imap: <T, U>(t: {T}, u: {U})->(()->(T?, U?)),
 }
-export type builtin = {
-    module: (('filesystem') -> filesystem)
-    & (('window')->window)
-    & (('drawing')->drawing)
-    & (('rendering')->rendering)
+export type engine_module = {
+    get_module: (('filesystem') -> filesystem_module)
+    & (('drawing')->drawing_module)
+    & (('rendering')->rendering_module)
     & (('iterator')->luau_iterator_library),
+    on_keydown: keyboard_callback,
+    on_keyup: keyboard_callback,
+    on_mousedown: mouse_callback,
+    on_mouseup: mouse_callback,
+    on_update: update_callback,
+    on_render: void_callback,
+    on_shutdown: void_callback,
+    window: window_module,
 }
 export type luau_task_library = {
     spawn: <Ts...>(fn: (Ts...)->(), Ts...)->(),
     wait: (count: number)->(),
 }
-declare callbacks: core_engine_callbacks
+declare class Event
+    connect: <Ts...>(self: Event, (Ts...)->())->()
+end
+declare event_update: Event
 declare task: luau_task_library
-declare engine: builtin
+declare engine: engine_module
 declare Rectangle: (x: number?, y: number?, w: number?, h: number?)->Rectangle
 type x_field = {x: number}
 type y_field = {y: number}
@@ -225,3 +226,4 @@ declare Vector: ((...number)->Vector)
 declare Matrix33: (...number)->Matrix33
 declare Color: (r: number?, g: number?, b: number?, a: number?)->Color
 declare Path: (path: string)->Path
+declare Event: ()->Event

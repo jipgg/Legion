@@ -19,7 +19,6 @@
 #include "lua_event.h"
 namespace ch = std::chrono;
 namespace fs = std::filesystem;
-
 namespace bi = builtin;
 static SDL_Window* window_ptr{nullptr};
 static SDL_Renderer* renderer_ptr{nullptr};
@@ -139,7 +138,7 @@ static void init_luau_state(lua_State* L, const fs::path& main_entry_point) {
     lua_setglobal(L, "task");
     builtin::class_event(L);
     lua_setglobal(L, "Event");
-    update_event = &create<lua_event>(L, lua_event{L});
+    update_event = &create<lua_event>(L, lua_event{});
     lua_setglobal(L, "event_update");
     std::optional<std::string> source = read_file(main_entry_point);
     if (not source) {
@@ -258,7 +257,7 @@ static void run() {
             cached_last_tp = curr_tp;
             if (update_event) {
                 lua_pushnumber(main_state, delta_s);
-                update_event->fire(1);
+                update_event->fire(main_state);
             }
             if (push_callback(main_state, callback::update)) {
                 lua_pushnumber(main_state, delta_s);

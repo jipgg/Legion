@@ -1,5 +1,6 @@
 local lib = {}
 
+--- reverses an array
 function lib.ireverse<T>(t: {T})
     local i = #t + 1
     return function(): T?

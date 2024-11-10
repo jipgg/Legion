@@ -5,6 +5,7 @@
 #include <SDL_ttf.h>
 #include <blaze/Blaze.h>
 #include <lualib.h>
+//#include "lua_event.h"
 namespace builtin {
 void init_global_types(lua_State* L);
 void physical_init_type(lua_State* L);
@@ -32,6 +33,7 @@ int class_vector2i(lua_State* L);
 int class_vector3(lua_State* L);
 int class_vector(lua_State* L);
 int class_path(lua_State* L);
+int class_event(lua_State* L);
 
 int fn_read_file(lua_State* L);
 int fn_get_mouse_position(lua_State* L);
@@ -56,6 +58,9 @@ constexpr auto vector2 = "Vector2";
 constexpr auto vector3 = "Vector3";
 static constexpr auto path = "Path";
 static constexpr auto directory_entry = "Directory_entry";
+static constexpr auto event = "Event";
+static constexpr auto connection = "Connection";
+static constexpr auto signal = "Signal";
 }
 using opaque_texture = std::unique_ptr<SDL_Texture, decltype(&SDL_DestroyTexture)>;
 using opaque_font = std::unique_ptr<TTF_Font, decltype(&TTF_CloseFont)>;
@@ -68,4 +73,7 @@ using vector = blaze::DynamicVector<double>;
 using matrix33 = mat3x3;
 using path = std::filesystem::path;
 using directory_entry = std::filesystem::directory_entry;
+//using event = lua_event;
+//using connection = lua_event::connection;
+//using signal = lua_event::signal;
 }

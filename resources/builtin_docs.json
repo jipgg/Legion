@@ -1,0 +1,21 @@
+{
+    "@roblox/global/Path": {
+        "documentation": "filesystem path constructor yo"
+    },
+    "@roblox/global/Vector2": {
+        "documentation": "creates a new Vector2 object."
+    },
+    "@roblox/global/engine": {
+        "documentation": "engine library",
+        "keys": {
+            "keydown": "@roblox/global/engine.keydown",
+            "update": "@roblox/global/engine.update"
+        }
+    },
+    "@roblox/global/engine.keydown": {
+        "documentation": "the callback for engine's keydown event"
+    },
+    "@roblox/global/engine.update": {
+        "documentation": "callback for update"
+    }
+}
