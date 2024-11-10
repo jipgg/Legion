@@ -7,9 +7,9 @@
 #include <luacode.h>
 #include <luacodegen.h>
 using namespace std::string_literals;
-static constexpr auto tname = "Vector3"; 
 namespace bi = builtin;
 using bi::vector3;
+static constexpr auto tn = bi::tname::vector3;
 
 static int ctor(lua_State *L) {
     const double x = luaL_optnumber(L, 1, 0);
@@ -29,9 +29,9 @@ static int index(lua_State *L) {
         case 'x': lua_pushnumber(L, self.at(0)); return 1;
         case 'y': lua_pushnumber(L, self.at(1)); return 1;
         case 'z': lua_pushnumber(L, self.at(2)); return 1;
-        default: return err_invalid_member(L, tname);
+        default: return err_invalid_member(L, tn);
     }
-    return err_invalid_member(L, tname);
+    return err_invalid_member(L, tn);
 }
 static int newindex(lua_State *L) {
     const double n = luaL_checknumber(L, 3);
@@ -41,11 +41,11 @@ static int newindex(lua_State *L) {
             case 'x': self.at(0) = n; return 0;
             case 'y': self.at(1) = n; return 0;
             case 'z': self.at(2) = n; return 0;
-            default: return err_invalid_member(L, tname);
+            default: return err_invalid_member(L, tn);
         }
     } else if (lua_isnumber(L, 2)) {
         const int index = luaL_checkinteger(L, 2);
-        if (index >= self.size() or index < 0) return err_out_of_range(L, tname);
+        if (index >= self.size() or index < 0) return err_out_of_range(L, tn);
         self[index] = n;
         return 0;
     }
@@ -68,7 +68,7 @@ static int tostring(lua_State *L) {
     if (std::floor(x_v) == x_v) x.erase(x.find('.'));
     if (std::floor(y_v) == y_v) y.erase(y.find('.'));
     if (std::floor(z_v) == z_v) z.erase(z.find('.'));
-    std::string str = tname + ": {"s + x + ", " + y + ", " + z + "}";
+    std::string str = tn + ": {"s + x + ", " + y + ", " + z + "}";
     lua_pushstring(L, str.c_str());
     return 1;
 }
@@ -125,12 +125,12 @@ int builtin::class_vector3(lua_State* L) {
             {mm::tostring, tostring},
             {nullptr, nullptr}
     };
-    lua_pushstring(L, tname);
+    lua_pushstring(L, tn);
     lua_setfield(L, -2, mm::type);
     luaL_register(L, nullptr, meta);
 
     }
     lua_pop(L, 1);
-    lua_pushcfunction(L, ctor, tname);
+    lua_pushcfunction(L, ctor, tn);
     return 1;
 }

@@ -10,17 +10,6 @@ void init_global_types(lua_State* L);
 void physical_init_type(lua_State* L);
 void init_filesystem_lib(lua_State* L);
 
-namespace event_sockets {
-constexpr auto update = "update";
-constexpr auto shutdown = "shutdown";
-constexpr auto render = "render";
-constexpr auto mouse_up = "mouseup";
-constexpr auto mouse_down = "mousedown";
-constexpr auto mouse_motion = "mousemoton";
-constexpr auto mouse_scroll = "mousescroll";
-constexpr auto key_down = "keydown";
-constexpr auto key_up = "keyup";
-}
 namespace metamethod {
 constexpr auto type = "__type";
 constexpr auto namecall = "__namecall";
@@ -42,6 +31,7 @@ int class_vector2(lua_State* L);
 int class_vector2i(lua_State* L);
 int class_vector3(lua_State* L);
 int class_vector(lua_State* L);
+int class_path(lua_State* L);
 
 int fn_read_file(lua_State* L);
 int fn_get_mouse_position(lua_State* L);
@@ -54,6 +44,19 @@ int lib_window(lua_State* L);
 int lib_rendering(lua_State* L);
 int lib_drawing(lua_State* L);
 
+namespace tname {
+constexpr auto opaque_texture = "Texture_ptr";
+constexpr auto color = "Color";
+constexpr auto opaque_font = "Font_ptr";
+constexpr auto rectangle = "Rectangle";
+constexpr auto vertex = "Vertex";
+constexpr auto matrix33 = "Matrix33";
+constexpr auto vector = "Vector";
+constexpr auto vector2 = "Vector2";
+constexpr auto vector3 = "Vector3";
+static constexpr auto path = "Path";
+static constexpr auto directory_entry = "Directory_entry";
+}
 using opaque_texture = std::unique_ptr<SDL_Texture, decltype(&SDL_DestroyTexture)>;
 using opaque_font = std::unique_ptr<TTF_Font, decltype(&TTF_CloseFont)>;
 struct rectangle {double x, y, w, h;};
@@ -63,4 +66,6 @@ using vector3 = blaze::StaticVector<double, 3, blaze::defaultTransposeFlag, blaz
     blaze::unpadded /*not 100% sure why but this causes issues when turning ud back to blaze type if set padded*/>; 
 using vector = blaze::DynamicVector<double>;
 using matrix33 = mat3x3;
+using path = std::filesystem::path;
+using directory_entry = std::filesystem::directory_entry;
 }

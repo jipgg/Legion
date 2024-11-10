@@ -4,11 +4,7 @@
 #include "lua_util.h"
 namespace bi = builtin;
 namespace mm = bi::metamethod;
-static constexpr auto texture_tname = "Opaque_texture";
-static constexpr auto color_tname = "Color";
-static constexpr auto font_tname = "Opaque_font";
-static constexpr auto rectangle_tname = "Rectangle";
-static constexpr auto vertex_tname = "Opaque_vertex";
+namespace tn = bi::tname;
 static int color_ctor(lua_State *L) {
     uint8_t r{}, g{}, b{}, a{};
     create<bi::color>(L,
@@ -39,17 +35,17 @@ void color_init(lua_State *L) {
         {mm::newindex, color_newindex},
         {nullptr, nullptr}
     };
-    lua_pushstring(L, color_tname);
+    lua_pushstring(L, tn::color);
     lua_setfield(L, -2, mm::type);
     luaL_register(L, nullptr, metadata);
     lua_pop(L, 1);
-    lua_pushcfunction(L, color_ctor, color_tname);
-    lua_setglobal(L, color_tname);
+    lua_pushcfunction(L, color_ctor, tn::color);
+    lua_setglobal(L, tn::color);
 }
 //font
 static void font_init(lua_State* L) {
     luaL_newmetatable(L, metatable_name<bi::opaque_font>());
-    lua_pushstring(L, font_tname);
+    lua_pushstring(L, tn::opaque_font);
     lua_setfield(L, -2, mm::type);
     lua_pop(L, 1);
 }
@@ -95,15 +91,15 @@ static void rectangle_init(lua_State* L) {
         {nullptr, nullptr}
     };
     luaL_register(L, nullptr, meta);
-    lua_pushstring(L, rectangle_tname);
+    lua_pushstring(L, tn::rectangle);
     lua_setfield(L, -2, mm::type);
     lua_pop(L, 1);
-    lua_pushcfunction(L, rectangle_ctor, rectangle_tname);
-    lua_setglobal(L, rectangle_tname);
+    lua_pushcfunction(L, rectangle_ctor, tn::rectangle);
+    lua_setglobal(L, tn::rectangle);
 }
 static void texture_init(lua_State* L) {
     luaL_newmetatable(L, metatable_name<bi::opaque_texture>());
-    lua_pushstring(L, texture_tname);
+    lua_pushstring(L, tn::opaque_texture);
     lua_setfield(L, -2, mm::type);
     lua_pop(L, 1);
 }

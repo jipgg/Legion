@@ -1,9 +1,9 @@
 #include "builtin.h"
 #include "lua_util.h"
 #include "lua_atom.h"
-static constexpr auto tname = "Vector";
 namespace bi = builtin;
 namespace mm = bi::metamethod;
+static constexpr auto tn = bi::tname::vector;
 using ty =  bi::vector;
 
 static int ctor(lua_State *L) {
@@ -27,7 +27,7 @@ static int mul(lua_State *L) {
 static int tostring(lua_State *L) {
     const auto& self = check<ty>(L, 1);
     std::stringstream ss{};
-    ss << tname << ": {";
+    ss << tn << ": {";
     for (int i{}; i < self.size(); ++i) {
         double v = self[i];
         std::string s = std::to_string(v);
@@ -81,13 +81,13 @@ static int namecall(lua_State *L) {
         case la::set: {
             const int index = luaL_checkinteger(L, 2);
             const double value = luaL_checknumber(L, 3);
-            if (not_in_range(index, r.size())) return err_out_of_range(L, tname);
+            if (not_in_range(index, r.size())) return err_out_of_range(L, tn);
             r[index] = value;
             return 0;
         }
         case la::at: {
             const int index = luaL_checkinteger(L, 2);
-            if (not_in_range(index, r.size())) return err_out_of_range(L, tname);
+            if (not_in_range(index, r.size())) return err_out_of_range(L, tn);
             lua_pushnumber(L, r[index]);
             return 1;
         }
@@ -116,13 +116,13 @@ static int namecall(lua_State *L) {
             r.reserve(luaL_checkinteger(L, 2));
             return 0;
         }
-        default: return err_invalid_method(L, tname);
+        default: return err_invalid_method(L, tn);
     }
 }
 static int call(lua_State* L) {
     ty& r = check<ty>(L, 1);
     const int index = luaL_checkinteger(L, 2);
-    if (not_in_range(index, r.size())) return err_out_of_range(L, tname);
+    if (not_in_range(index, r.size())) return err_out_of_range(L, tn);
     lua_pushnumber(L, r[index]);
     return 1;
 }
@@ -139,11 +139,11 @@ int builtin::class_vector(lua_State* L) {
             {mm::call, call},
             {nullptr, nullptr}
         };
-        lua_pushstring(L, tname);
+        lua_pushstring(L, tn);
         lua_setfield(L, -2, mm::type);
         luaL_register(L, nullptr, meta);
     }
     lua_pop(L, 1);
-    lua_pushcfunction(L, ctor, tname);
+    lua_pushcfunction(L, ctor, tn);
     return 1;
 }

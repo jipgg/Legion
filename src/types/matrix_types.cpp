@@ -5,8 +5,8 @@
 namespace bi = builtin;
 using namespace std::string_literals;
 namespace mm = bi::metamethod;
-static constexpr auto tname{"Matrix33"};
 using bi::matrix33;
+namespace tn = bi::tname;
 
 static int err_invalid_vector_size(lua_State* L, int size, int expected) {
     luaL_error(L, "invalid vector size '%d', expected %d", size, expected);
@@ -63,7 +63,7 @@ static int sub(lua_State* L) {
 static int tostring(lua_State* L) {
     auto& r = check<matrix33>(L, 1);
     std::stringstream ss{};
-    ss << tname << ": {[";
+    ss << tn::matrix33 << ": {[";
     ss << r.at(0, 0) << ", " << r.at(0, 1) << ", " << r.at(0, 2) << "][";
     ss << r.at(1, 0) << ", " << r.at(1, 1) << ", " << r.at(1, 2) << "][";
     ss << r.at(2, 0) << ", " << r.at(2, 1) << ", " << r.at(2, 2) << "]}";
@@ -102,10 +102,10 @@ int builtin::class_matrix33(lua_State *L) {
             {nullptr, nullptr}
         };
         luaL_register(L, nullptr, meta);
-        lua_pushstring(L, tname);
+        lua_pushstring(L, tn::matrix33);
         lua_setfield(L, -2, mm::type);
     }
     lua_pop(L, 1);
-    lua_pushcfunction(L, ctor, tname);
+    lua_pushcfunction(L, ctor, tn::matrix33);
     return 1;
 }

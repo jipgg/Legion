@@ -3,8 +3,6 @@
 #include "lua_atom.h"
 #include <filesystem>
 namespace fs = std::filesystem;
-static constexpr auto path_tname = "Path";
-static constexpr auto directory_entry_tname = "Directory_entry";
 using path = fs::path;
 using directory_entry = fs::directory_entry;
 
@@ -291,6 +289,7 @@ static int path_ctor(lua_State* L) {
     return 1;
 }
 
+
 static const luaL_Reg fs_lib[] = {
     {"create_directory", create_directory},
     {"exists", exists},
@@ -318,16 +317,26 @@ const luaL_Reg directory_entry_metatable[] = {
     {builtin::metamethod::namecall, directory_entry_namecall},
     {nullptr, nullptr}
 };
+int builtin::class_path(lua_State *L) {
+    if (luaL_newmetatable(L, metatable_name<path>())) {
+        luaL_register(L, nullptr, path_metatable);
+        lua_pushstring(L, builtin::tname::path);
+        lua_setfield(L, -2, builtin::metamethod::type);
+        lua_pop(L, 1);
+    }
+    lua_pushcfunction(L, path_ctor, builtin::tname::path);
+    return 1;
+}
 static void init_types(lua_State* L) {
     if (luaL_newmetatable(L, metatable_name<path>())) {
         luaL_register(L, nullptr, path_metatable);
-        lua_pushstring(L, path_tname);
+        lua_pushstring(L, builtin::tname::path);
         lua_setfield(L, -2, builtin::metamethod::type);
         lua_pop(L, 1);
     }
     if (luaL_newmetatable(L, metatable_name<directory_entry>())) {
         luaL_register(L, nullptr, directory_entry_metatable);
-        lua_pushstring(L, directory_entry_tname);
+        lua_pushstring(L, builtin::tname::path);
         lua_setfield(L, -2, builtin::metamethod::type);
         lua_pop(L, 1);
     }

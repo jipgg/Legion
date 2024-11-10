@@ -26,8 +26,12 @@ static SDL_Event sdl_event_dummy{};
 static SDL_Rect sdl_rect_dummy{};
 static lua_State* main_state;
 static fs::path bin_path;
-static constexpr auto builtin_name = "builtin";
-static constexpr auto callbacks_name = "callback";
+static constexpr auto builtin_name = "engine";
+static constexpr auto callbacks_name = "callbacks";
+
+static fs::path res_path() {
+    return bin_path / "resources/luau_library";
+}
 
 namespace module {
 static builtin_module filesystem{"filesystem", builtin::lib_filesystem};
@@ -90,6 +94,10 @@ static int load_builtin_module(lua_State* L) {
     if (key == module::window.name) return module::window.load(L);
     if (key == module::rendering.name) return module::rendering.load(L);
     if (key ==  module::drawing.name) return module::drawing.load(L);
+    if (key == "iterator") {
+        push_luau_module(L, res_path() / "iterator.luau");
+        return 1;
+    }
     luaL_error(L, "invalid module name '%s'.", key.c_str());
     return 0;
 }
@@ -106,7 +114,7 @@ static void init_luau_state(lua_State* L, const fs::path& main_entry_point) {
     bi::init_global_types(L);
     lua_register_globals(L);
     const luaL_Reg engine_functions[] = {
-        {"load_module", load_builtin_module},
+        {"module", load_builtin_module},
         {nullptr, nullptr}
     };
     lua_newtable(L);
@@ -120,6 +128,10 @@ static void init_luau_state(lua_State* L, const fs::path& main_entry_point) {
     lua_setglobal(L, "Vector");
     builtin::class_matrix33(L);
     lua_setglobal(L, "Matrix33");
+    builtin::class_path(L);
+    lua_setglobal(L, "Path");
+    push_luau_module(L, res_path() / "task.luau");
+    lua_setglobal(L, "task");
     std::optional<std::string> source = read_file(main_entry_point);
     if (not source) {
         using namespace std::string_literals;

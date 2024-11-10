@@ -31,7 +31,7 @@ declare class Path
     function __tostring(self): string
     function __div(self, other: string | Path): Path
 end
-declare class directory_entry
+declare class Directory_entry
     function is_directory(self): boolean
     function is_fifo(self): boolean
     function path(self): Path
@@ -68,9 +68,7 @@ declare class Rectangle
     w: number
     h: number
 end
-declare class opaque_texture end
-declare class opaque_font end
-declare class opaque_vertex end
+declare class Texture_ptr end
 export type render_flip = 'none'|'vertical'|'horizontal'
 export type keycode = 'esc'|'f1'|'f2'|'f3'|'f4'|'f5'|'f6'|'f7'|'f8'|'f9'|'f10'|'f11'|'f12'|
     '1'|'2'|'3'|'4'|'5'|'6'|'7'|'8'|'9'|'0'|'minus'|'equals'|'backspace'|
@@ -131,8 +129,8 @@ export type filesystem = {
     remove_all: (path: Path | string) -> number,
     copy: (from: Path | string, to: Path | string, opt: copy_options?) -> (),
     absolute: (path: Path | string) -> Path,
-    children_of: (path: Path | string) -> {directory_entry},
-    descendants_of: (path: Path | string) -> {directory_entry},
+    children_of: (path: Path | string) -> {Directory_entry},
+    descendants_of: (path: Path | string) -> {Directory_entry},
     Path: (file: string) -> Path,
 }
 export type window = {
@@ -153,7 +151,7 @@ export type window = {
 }
 export type blend_mode = 'none'|'mul'|'add'|'mod'|'blend'|'invalid'
 export type rendering = {
-    render_geometry_raw: (txt: opaque_texture?, buf: buffer,
+    render_geometry_raw: (txt: Texture_ptr?, buf: buffer,
     xy_offset: number, xy_stride: number, color_offset: number,
         color_stride: number, uv_offset: number, uv_stride: number,
         num_vertices: number, indices_offset: number, num_indices: number,
@@ -179,13 +177,7 @@ export type keyboard_callback = ((key: keycode)->())?
 export type mouse_callback = ((button: mouse_button_type, pos: Vector2)->())?
 export type void_callback = (()->())?
 export type update_callback = ((deltasec: number)->())?
-export type builtin = {
-    load_module: (('filesystem') -> filesystem)
-    & (('window')->window)
-    & (('drawing')->drawing)
-    & (('rendering')->rendering),
-}
-export type callbacks = {
+export type core_engine_callbacks = {
     window_sizechange: ((width: number, height: number)->())?,
     window_move: ((x: number, y: number)->())?,
     window_resize: ((width: number, height: number)->())?,
@@ -197,11 +189,39 @@ export type callbacks = {
     render: void_callback,
     shutdown: void_callback,
 }
-declare callback: callbacks
-declare builtin: builtin
+export type luau_iterator_library = {
+    ireverse: <T>(t:{T})->(()->T?),
+    ifilter: <T>(t:{T}, pred: (e: T)->boolean)->(()->T?),
+    filter: <T>(t:{[any]: T}, pred: (e: T)->boolean)->(()->T?),
+    elements: <T>(t: {[any]: T})->(()->T?),
+    imap: <T, U>(t: {T}, u: {U})->(()->(T?, U?)),
+}
+export type builtin = {
+    module: (('filesystem') -> filesystem)
+    & (('window')->window)
+    & (('drawing')->drawing)
+    & (('rendering')->rendering)
+    & (('iterator')->luau_iterator_library),
+}
+export type luau_task_library = {
+    spawn: <Ts...>(fn: (Ts...)->(), Ts...)->(),
+    wait: (count: number)->(),
+}
+declare callbacks: core_engine_callbacks
+declare task: luau_task_library
+declare engine: builtin
 declare Rectangle: (x: number?, y: number?, w: number?, h: number?)->Rectangle
-declare Vector2: (x: number?, y: number?)->Vector2
-declare Vector3: (x: number?, y: number?, z: number?)->Vector3
-declare Vector: (...number)->Vector
+type x_field = {x: number}
+type y_field = {y: number}
+type z_field = {z: number}
+declare Vector2: ((x: number?, y: number?)->Vector2)
+        & ((fields: x_field | y_field)->Vector2) 
+        & ((copy: Vector2)->Vector2)
+declare Vector3: ((x: number?, y: number?, z: number?)->Vector3)
+        & ((fields: x_field | y_field | z_field)->Vector3)
+        & ((copy: Vector3)->Vector3)
+declare Vector: ((...number)->Vector)
+        & (({number})->Vector)
 declare Matrix33: (...number)->Matrix33
 declare Color: (r: number?, g: number?, b: number?, a: number?)->Color
+declare Path: (path: string)->Path
