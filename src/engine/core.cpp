@@ -209,6 +209,7 @@ static void start(engine_start_options opts) {
 }
 static void run() {
     auto cached_last_tp = ch::steady_clock::now();
+    //SDL_SetRenderDrawBlendMode(renderer_ptr, SDL_BLENDMODE_BLEND);
     auto& e = sdl_event_dummy;
     while (not quitting) {
         {// event handling

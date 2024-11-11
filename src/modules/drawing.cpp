@@ -17,6 +17,35 @@ using bi::vector2;
 static int err_sdl(lua_State* L) {
     luaL_error(L, "SDL Error: %s", SDL_GetError());
 }
+__forceinline static void fill_ellipse_with_alpha_channel_impl(
+    SDL_Renderer* renderer, int center_x, int center_y, int radius_x, int radius_y) {
+    SDL_Color color;
+    SDL_GetRenderDrawColor(renderer, &color.r, &color.g, &color.b, &color.a);
+    int rx_squared = radius_x * radius_x;
+    int ry_squared = radius_y * radius_y;
+    for (int y = -radius_y; y <= radius_y; y++) {
+        for (int x = -radius_x; x <= radius_x; x++) {
+            float distance_squared = (x * x) / (float)rx_squared + (y * y) / (float)ry_squared;
+            if (distance_squared <= 1.0f) {
+                SDL_RenderDrawPoint(renderer, center_x + x, center_y + y);
+            }
+        }
+    }
+    SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
+}
+__forceinline static void fill_circle_with_alpha_channel_impl(SDL_Renderer* renderer, int center_x, int center_y, int radius) {
+    int inner = radius - 1;
+    int inner_squared = inner * inner;
+    int radius_squared = radius * radius;
+    for (int y = -radius; y <= radius; y++) {
+        for (int x = -radius; x <= radius; x++) {
+            int distance_squared = x * x + y * y;
+            if (distance_squared <= radius_squared) {
+                SDL_RenderDrawPoint(renderer, center_x + x, center_y + y);
+            }
+        }
+    }
+}
 __forceinline static void fill_circle_impl(SDL_Renderer* renderer, int x, int y, int radius) {
     int dx = 0;
     int dy = radius;
@@ -92,13 +121,26 @@ static int set_blend_mode(lua_State* L) {
     return 0;
 }
 static int draw_rectangle(lua_State* L) {
-    auto& rect = check<rectangle>(L, 1);
-    SDL_Rect dummy{
-        static_cast<int>(rect.x),
-        static_cast<int>(rect.y),
-        static_cast<int>(rect.w),
-        static_cast<int>(rect.h)
-    };
+    SDL_Rect dummy{};
+    if (is_type<rectangle>(L, 1)) {
+        auto& rect = check<rectangle>(L, 1);
+        dummy = {
+            static_cast<int>(rect.x),
+            static_cast<int>(rect.y),
+            static_cast<int>(rect.w),
+            static_cast<int>(rect.h)
+        };
+    } else if (is_type<vector2>(L, 1)) {
+        auto& origin = check<vector2>(L, 1);
+        auto& size = check<vector2>(L, 2);
+        dummy = {
+            static_cast<int>(origin[0]),
+            static_cast<int>(origin[1]),
+            static_cast<int>(size[0]),
+            static_cast<int>(size[1])
+        };
+    
+    } else return err_invalid_type(L);
     SDL_RenderDrawRect(renderer(), &dummy);
     return 0;
 }
@@ -132,13 +174,26 @@ static int draw_points(lua_State* L) {
     return 0;
 }
 static int fill_rectangle(lua_State* L) {
-    auto& rect = check<rectangle>(L, 1);
-    SDL_Rect dummy{
-        static_cast<int>(rect.x),
-        static_cast<int>(rect.y),
-        static_cast<int>(rect.w),
-        static_cast<int>(rect.h)
-    };
+    SDL_Rect dummy{};
+    if (is_type<rectangle>(L, 1)) {
+        auto& rect = check<rectangle>(L, 1);
+        dummy = {
+            static_cast<int>(rect.x),
+            static_cast<int>(rect.y),
+            static_cast<int>(rect.w),
+            static_cast<int>(rect.h)
+        };
+    } else if (is_type<vector2>(L, 1)) {
+        auto& origin = check<vector2>(L, 1);
+        auto& size = check<vector2>(L, 2);
+        dummy = {
+            static_cast<int>(origin[0]),
+            static_cast<int>(origin[1]),
+            static_cast<int>(size[0]),
+            static_cast<int>(size[1])
+        };
+    
+    } else return err_invalid_type(L);
     SDL_RenderFillRect(renderer(), &dummy);
     return 0;
 }
@@ -199,12 +254,27 @@ static int draw_polygon(lua_State* L) {
 static int fill_circle(lua_State* L) {
     auto& center = check<vector2>(L, 1);
     double radius = luaL_checknumber(L, 2);
+    const bool has_alpha_channel = luaL_optboolean(L, 3, false);
+    if (has_alpha_channel) {
+        fill_circle_with_alpha_channel_impl(renderer(), int(center[0]), int(center[1]), int(radius));
+        return 0;
+    }
     fill_circle_impl(renderer(), int(center[0]), int(center[1]), int(radius));
     return 0;
 }
 static int fill_ellipse(lua_State* L) {
     auto& center = check<vector2>(L, 1);
     auto& radius = check<vector2>(L, 2);
+
+    const int x = int(center[0]);
+    const int y = int(center[1]);
+    const int rx = int(radius[0]);
+    const int ry = int(radius[1]);
+    const bool has_alpha_channel = luaL_optboolean(L, 3, false);
+    if (has_alpha_channel) {
+        fill_ellipse_with_alpha_channel_impl(renderer(), x, y, rx, ry);
+        return 0;
+    }
     fill_ellipse_impl(renderer(), int(center[0]), int(center[1]), int(radius[0]), int(radius[1]));
     return 0;
 }

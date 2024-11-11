@@ -165,18 +165,22 @@ export type rendering_module = {
 export type drawing_module = {
     set_color: (col: Color)->(),
     set_blend_mode: (mode: blend_mode)->(),
-    draw_rectangle: (rect: Rectangle)->(),
-    draw_rectangles: ((...Rectangle)->()) & ((buf: buffer)->()),
+    draw_rectangle: ((rect: Rectangle)->())
+        & ((origin: Vector2, size: Vector2)->()),
+    draw_rectangles: ((...Rectangle)->())
+        & ((buf: buffer_int32)->()),
     draw_point: (point: Vector2)->(),
-    draw_points: ((...Vector2)->()) & ((buf: buffer)->()),
-    fill_rectangle: (rect: Rectangle)->(),
-    fill_rectangles: ((...Rectangle)->()) & ((buf: buffer)->()),
+    draw_points: ((...Vector2)->())
+        & ((buf: buffer_int32)->()),
+    fill_rectangle: ((rect: Rectangle)->())
+        & ((origin: Vector2, size: Vector2)->()),
+    fill_rectangles: ((...Rectangle)->()) & ((buf: buffer_int32)->()),
     draw_line: (t0: Vector2, t1: Vector2)->(),
-    draw_lines: ((...Vector2)->()) & ((buf: buffer)->()), 
+    draw_lines: ((...Vector2)->()) & ((buf: buffer_int32)->()), 
     draw_polygon: ({Vector2})->(),
     fill_polygon: ({Vector2})->(),
-    fill_circle: (center: Vector2, radius: number)->(),
-    fill_ellipse: (center: Vector2, radius: Vector2)->(),
+    fill_circle: (center: Vector2, radius: number, smooth_alpha_channel: boolean?)->(),
+    fill_ellipse: (center: Vector2, radius: Vector2, smooth_alpha_channel: boolean?)->(),
 }
 export type luau_iterator_library = {
     ireverse: <T>(t:{T})->(()->T?),

@@ -23,10 +23,17 @@ local plgn: polygon = {
 }
 engine.rendering:connect(function()
     rendering.clear(Color())
-    drawing.set_color(Color(100, 0, 0, 0))
-    drawing.fill_rectangle(Rectangle(100, 100, 200, 100))
-    --drawing.fill_circle(Vector2(500, 400), 50)
-    drawing.fill_ellipse(Vector2(500, 400), Vector2(100, 10))
+    drawing.set_blend_mode('blend')
+end)
+
+engine.rendering:connect(function()
+    drawing.set_color(Color(255, 0, 0, 100))
+    drawing.fill_rectangle(Vector2(100, 100), Vector2(200, 100))
+    drawing.fill_rectangle(Rectangle(200, 100, 100, 200))
+    drawing.fill_circle(Vector2(500, 400), 50, true)
+    drawing.set_color(Color(0, 0, 255, 20))
+    drawing.fill_circle(Vector2(300, 400), 50, true)
+    drawing.fill_ellipse(Vector2(500, 400), Vector2(100, 300), true)
     --drawing.fill_polygon(plgn)
 end)
 
