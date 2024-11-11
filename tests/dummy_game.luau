@@ -22,9 +22,11 @@ local plgn: polygon = {
     Vector2(100, 230),
 }
 engine.rendering:connect(function()
+    rendering.clear(Color())
     drawing.set_color(Color(100, 0, 0, 0))
     drawing.fill_rectangle(Rectangle(100, 100, 200, 100))
-    drawing.set_color(Color(0, 0xff, 0, 0xff))
+    --drawing.fill_circle(Vector2(500, 400), 50)
+    drawing.fill_ellipse(Vector2(500, 400), Vector2(100, 10))
     --drawing.fill_polygon(plgn)
 end)
 
@@ -38,7 +40,7 @@ engine.updating:connect(function(deltasec: number)
     end
 end)
 
-local connection: number
+local connection: event_connection_id
 connection = engine.updating:connect(function(deltasec: number)
     accumulated2 += deltasec
     if (accumulated2 > 5) then

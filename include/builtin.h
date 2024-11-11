@@ -47,20 +47,18 @@ int lib_rendering(lua_State* L);
 int lib_drawing(lua_State* L);
 
 namespace tname {
-constexpr auto opaque_texture = "Texture_ptr";
-constexpr auto color = "Color";
-constexpr auto opaque_font = "Font_ptr";
-constexpr auto rectangle = "Rectangle";
-constexpr auto vertex = "Vertex";
-constexpr auto matrix33 = "Matrix33";
-constexpr auto vector = "Vector";
-constexpr auto vector2 = "Vector2";
-constexpr auto vector3 = "Vector3";
-static constexpr auto path = "Path";
-static constexpr auto directory_entry = "Directory_entry";
-static constexpr auto event = "Event";
-static constexpr auto connection = "Connection";
-static constexpr auto signal = "Signal";
+constexpr auto opaque_texture = "texture_ptr";
+constexpr auto color = "color";
+constexpr auto opaque_font = "font_ptr";
+constexpr auto rectangle = "rectangle";
+constexpr auto vertex = "vertex";
+constexpr auto matrix33 = "matrix33";
+constexpr auto vector = "vector";
+constexpr auto vector2 = "vector2";
+constexpr auto vector3 = "vector3";
+static constexpr auto path = "path";
+static constexpr auto directory_entry = "directory_entry";
+static constexpr auto event = "event";
 }
 using opaque_texture = std::unique_ptr<SDL_Texture, decltype(&SDL_DestroyTexture)>;
 using opaque_font = std::unique_ptr<TTF_Font, decltype(&TTF_CloseFont)>;
@@ -74,21 +72,21 @@ using matrix33 = mat3x3;
 using path = std::filesystem::path;
 using directory_entry = std::filesystem::directory_entry;
 struct event {
-    std::vector<std::pair<int, int>> refs;
+    struct connection {
+        size_t id;
+    };
+    std::vector<std::pair<size_t, int>> refs;
     lua_State* L;
-    static constexpr int nullid = 0;
-    int curr_id{nullid};
+    static constexpr size_t nullid = 0;
+    size_t curr_id{nullid};
     event(lua_State* L);
     ~event();
-    int connect(int idx);
-    void disconnect(int id);
+    connection connect(int idx);
+    void disconnect(connection id);
     void fire(int arg_count);
 };
 struct font {
      opaque_font opaque;
     font(std::string_view file);
 };
-//using event = lua_event;
-//using connection = lua_event::connection;
-//using signal = lua_event::signal;
 }

@@ -39,8 +39,8 @@ void color_init(lua_State *L) {
     lua_setfield(L, -2, mm::type);
     luaL_register(L, nullptr, metadata);
     lua_pop(L, 1);
-    lua_pushcfunction(L, color_ctor, tn::color);
-    lua_setglobal(L, tn::color);
+    lua_pushcfunction(L, color_ctor, "color_ctor");
+    lua_setglobal(L, "Color");
 }
 //font
 static void font_init(lua_State* L) {
@@ -94,8 +94,8 @@ static void rectangle_init(lua_State* L) {
     lua_pushstring(L, tn::rectangle);
     lua_setfield(L, -2, mm::type);
     lua_pop(L, 1);
-    lua_pushcfunction(L, rectangle_ctor, tn::rectangle);
-    lua_setglobal(L, tn::rectangle);
+    lua_pushcfunction(L, rectangle_ctor, "rectangle_ctor");
+    lua_setglobal(L, "Rectangle");
 }
 static void texture_init(lua_State* L) {
     luaL_newmetatable(L, metatable_name<bi::opaque_texture>());

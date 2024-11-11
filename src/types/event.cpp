@@ -6,29 +6,28 @@ namespace tn = bi::tname;
 using bi::event;
 
 event::event(lua_State* L): L(L), refs() {
-
 }
 event::~event() {
     for (auto& [id, ref] : refs) {
         lua_unref(L, ref);
     }
 }
-int event::connect(int idx) {
+event::connection event::connect(int idx) {
     if (!lua_isfunction(L, idx)) {
         printerr("connect() error: Value is not a function\n");
         lua_pop(L, 1); // Pop table from stack
-        return nullid;
+        return connection{nullid};
     }
     refs.push_back(std::make_pair(++curr_id, lua_ref(L, idx)));
-    return curr_id;
+    return connection{curr_id};
 }
-void event::disconnect(int id) {
-    using pair_t = std::pair<int, int>;
-    const pair_t dummy{id, 0};
+void event::disconnect(event::connection connection) {
+    using pair_t = std::pair<size_t, int>;
+    const pair_t dummy{connection.id, 0};
     auto it = std::lower_bound(refs.begin(), refs.end(), dummy, [](const pair_t& e, const pair_t& v) {
         return e.first < v.first;
     });
-    if (it != refs.end() and it->first == id) {
+    if (it != refs.end() and it->first == connection.id) {
         refs.erase(it);
     } else luaL_error(L, "invalid id");
 }
@@ -61,12 +60,12 @@ static int namecall(lua_State* L) {
     switch (static_cast<la>(atom)) {
         case la::connect: {
             if (not lua_isfunction(L, 2)) return err_invalid_type(L);
-            int id = r.connect(2);
-            lua_pushinteger(L, id);
+            event::connection connection = r.connect(2);
+            create<event::connection>(L, std::move(connection));
             return 1;
         }
         case la::disconnect: {
-            r.disconnect(luaL_checkinteger(L, 2));
+            r.disconnect(check<event::connection>(L, 2));
             return 0;
         }
         case la::fire: {
@@ -80,7 +79,20 @@ static int namecall(lua_State* L) {
     }
 }
 
+int connection_id_tostring(lua_State* L) {
+    auto& connection = check<event::connection>(L, 1);
+    lua_pushstring(L, std::to_string(connection.id).c_str());
+    return 1;
+}
+
 int builtin::class_event(lua_State* L) {
+    if (luaL_newmetatable(L, metatable_name<event::connection>())) {
+        lua_pushcfunction(L, connection_id_tostring, "event_connection_id_tostring");
+        lua_setfield(L, -2, bi::metamethod::tostring);
+        lua_pushstring(L, "event_connection");
+        lua_setfield(L, -2, bi::metamethod::type);
+    }
+    lua_pop(L, 1);
     if (luaL_newmetatable(L, metatable_name<event>())) {
         const luaL_Reg lib[] = {
             {"__namecall", namecall},
@@ -89,8 +101,8 @@ int builtin::class_event(lua_State* L) {
         luaL_register(L, nullptr, lib);
         lua_pushstring(L, tn::event);
         lua_setfield(L, -2, bi::metamethod::type);
-        lua_pop(L, 1);
     }
+    lua_pop(L, 1);
     lua_pushcfunction(L, ctor, tn::event);
     return 1;
 }
