@@ -17,8 +17,61 @@ using bi::vector2;
 static int err_sdl(lua_State* L) {
     luaL_error(L, "SDL Error: %s", SDL_GetError());
 }
-
-static SDL_Renderer* renderer() {
+__forceinline static void fill_circle_impl(SDL_Renderer* renderer, int x, int y, int radius) {
+    int dx = 0;
+    int dy = radius;
+    int d = 1 - radius;
+    while (dy >= dx) {
+        SDL_RenderDrawLine(renderer, x - dx, y + dy, x + dx, y + dy);
+        SDL_RenderDrawLine(renderer, x - dx, y - dy, x + dx, y - dy);
+        SDL_RenderDrawLine(renderer, x - dy, y + dx, x + dy, y + dx);
+        SDL_RenderDrawLine(renderer, x - dy, y - dx, x + dy, y - dx);
+        if (d < 0) d += 2 * dx + 3;
+        else {
+            d += 2 * (dx - dy) + 5;
+            dy--;
+        }
+        dx++;
+    }
+}
+__forceinline static void fill_ellipse_impl(SDL_Renderer* renderer, int center_x, int center_y, int radius_x, int radius_y) {
+    int x = 0;
+    int y = radius_y;
+    int rx_squared = radius_x * radius_x;
+    int ry_squared = radius_y * radius_y;
+    int rx_squared_x2 = 2 * rx_squared;
+    int ry_squared_x2 = 2 * ry_squared;
+    int px = 0;
+    int py = rx_squared_x2 * y;
+    int p1 = ry_squared - (rx_squared * radius_y) + (0.25 * rx_squared);
+    while (px < py) {
+        SDL_RenderDrawLine(renderer, center_x - x, center_y + y, center_x + x, center_y + y);
+        SDL_RenderDrawLine(renderer, center_x - x, center_y - y, center_x + x, center_y - y);
+        x++;
+        px += ry_squared_x2;
+        if (p1 < 0) p1 += ry_squared + px;
+        else {
+            y--;
+            py -= rx_squared_x2;
+            p1 += ry_squared + px - py;
+        }
+    }
+    int p2 = (ry_squared * (x + 0.5) * (x + 0.5)) + (rx_squared * (y - 1) * (y - 1)) - (rx_squared * ry_squared);
+    while (y >= 0) {
+        SDL_RenderDrawLine(renderer, center_x - x, center_y + y, center_x + x, center_y + y);
+        SDL_RenderDrawLine(renderer, center_x - x, center_y - y, center_x + x, center_y - y);
+        y--;
+        py -= rx_squared_x2;
+        if (p2 > 0) {
+            p2 += rx_squared - py;
+        } else {
+            x++;
+            px += ry_squared_x2;
+            p2 += rx_squared - py + px;
+        }
+    }
+}
+__forceinline static SDL_Renderer* renderer() {
     return SDL_GetRenderer(engine::window());
 }
 static int set_color(lua_State* L) {
@@ -142,6 +195,19 @@ static int draw_polygon(lua_State* L) {
     SDL_RenderDrawLines(renderer(), point_buffer.data(), point_buffer.size());
     return 0;
 }
+
+static int fill_circle(lua_State* L) {
+    auto& center = check<vector2>(L, 1);
+    double radius = luaL_checknumber(L, 2);
+    fill_circle_impl(renderer(), int(center[0]), int(center[1]), int(radius));
+    return 0;
+}
+static int fill_ellipse(lua_State* L) {
+    auto& center = check<vector2>(L, 1);
+    auto& radius = check<vector2>(L, 2);
+    fill_ellipse_impl(renderer(), int(center[0]), int(center[1]), int(radius[0]), int(radius[1]));
+    return 0;
+}
 static int fill_polygon(lua_State* L) {
     float_buffer.resize(0);
     const int len = lua_objlen(L, 1);
@@ -177,6 +243,8 @@ int builtin::lib_drawing(lua_State *L) {
         {"draw_points", draw_points},
         {"draw_polygon", draw_polygon},
         {"fill_polygon", fill_polygon},
+        {"fill_circle", fill_circle},
+        {"fill_ellipse", fill_ellipse},
         {nullptr, nullptr}
     };
     lua_newtable(L);

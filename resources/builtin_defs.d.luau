@@ -175,6 +175,8 @@ export type drawing_module = {
     draw_lines: ((...Vector2)->()) & ((buf: buffer)->()), 
     draw_polygon: ({Vector2})->(),
     fill_polygon: ({Vector2})->(),
+    fill_circle: (center: Vector2, radius: number)->(),
+    fill_ellipse: (center: Vector2, radius: Vector2)->(),
 }
 export type luau_iterator_library = {
     ireverse: <T>(t:{T})->(()->T?),
@@ -189,9 +191,12 @@ export type luau_iterator_library = {
 --     disconnect: (self: Event, id: number)->()
 --     fire: <Ts...>(self: Event, Ts...)->()
 -- end
+declare class event_connection_id
+    function __tostring(self): string
+end
 export type Event<params...> = {
-    connect: (self: Event<params...>, (params...)->())->number,
-    disconnect: (self: Event<params...>, id: number)->(),
+    connect: (self: Event<params...>, (params...)->())->event_connection_id,
+    disconnect: (self: Event<params...>, id: event_connection_id)->(),
     fire: (self: Event<params...>, params...)->(),
 }
 export type engine_module = {
