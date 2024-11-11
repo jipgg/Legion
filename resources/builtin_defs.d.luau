@@ -212,6 +212,14 @@ export type luau_task_library = {
     spawn: <Ts...>(fn: (Ts...)->(), Ts...)->(),
     wait: (count: number)->(),
 }
+declare class buffer_float end
+declare class buffer_double end
+declare class buffer_int8 end
+declare class buffer_int16 end
+declare class buffer_int32 end
+declare class buffer_uint8 end
+declare class buffer_uint16 end
+declare class buffer_uint32 end
 declare task: luau_task_library
 declare engine: engine_module
 declare Rectangle: (x: number?, y: number?, w: number?, h: number?)->Rectangle
@@ -230,3 +238,55 @@ declare Matrix33: (...number)->Matrix33
 declare Color: (r: number?, g: number?, b: number?, a: number?)->Color
 declare Path: (path: string)->Path
 declare Event: <params...>()->Event<params...>
+
+type float = 'float'
+type double = 'double'
+type int8 = 'int8'
+type uint8 = 'uint8'
+type int16 = 'int16'
+type uint16 = 'uint16'
+type int32 = 'int32'
+type uint32 = 'uint32'
+export type fixed_width_buffer_library = {
+    create: ((float, size: number)->buffer_float)
+        & ((double, size: number)->buffer_double)
+        & ((int8, size: number)->buffer_int8)
+        & ((uint8, size: number)->buffer_uint8)
+        & ((int16, size: number)->buffer_int16)
+        & ((uint16, size: number)->buffer_uint16)
+        & ((int32, size: number)->buffer_int32)
+        & ((uint32, size: number)->buffer_uint32),
+    read: ((float, b: buffer_float, idx: number)->number)
+        & ((double, b: buffer_double, idx: number)->number)
+        & ((int8, b: buffer_int8, idx: number)->number)
+        & ((uint8, b: buffer_uint8, idx: number)->number)
+        & ((int16, b: buffer_int16, idx: number)->number)
+        & ((uint16, b: buffer_uint16, idx: number)->number)
+        & ((int32, b: buffer_int32, idx: number)->number)
+        & ((uint32, b: buffer_uint32, idx: number)->number),
+    write: ((float, b: buffer_float, idx: number, val: number)->number)
+        & ((double, b: buffer_double, idx: number, val: number)->number)
+        & ((int8, b: buffer_int8, idx: number, val: number)->number)
+        & ((uint8, b: buffer_uint8, idx: number, val: number)->number)
+        & ((int16, b: buffer_int16, idx: number, val: number)->number)
+        & ((uint16, b: buffer_uint16, idx: number, val: number)->number)
+        & ((int32, b: buffer_int32, idx: number, val: number)->number)
+        & ((uint32, b: buffer_uint32, idx: number, val: number)->number),
+    len: ((float, b: buffer_float)->number)
+        & ((double, b: buffer_double)->number)
+        & ((int8, b: buffer_int8)->number)
+        & ((uint8, b: buffer_uint8)->number)
+        & ((int16, b: buffer_int16)->number)
+        & ((uint16, b: buffer_uint16)->number)
+        & ((int32, b: buffer_int32)->number)
+        & ((uint32, b: buffer_uint32)->number),
+    copy: ((float, target: buffer_float, target_idx: number, source: buffer_float, source_idx: number?, count: number?)->())
+        & ((double, target: buffer_double, target_idx: number, source: buffer_double, source_idx: number?, count: number?)->())
+        & ((int8, target: buffer_int8, target_idx: number, source: buffer_int8, source_idx: number?, count: number?)->())
+        & ((uint8, target: buffer_uint8, target_idx: number, source: buffer_uint8, source_idx: number?, count: number?)->())
+        & ((int16, target: buffer_int16, target_idx: number, source: buffer_int16, source_idx: number?, count: number?)->())
+        & ((uint16, target: buffer_uint16, target_idx: number, source: buffer_uint16, source_idx: number?, count: number?)->())
+        & ((int32, target: buffer_int32, target_idx: number, source: buffer_int32, source_idx: number?, count: number?)->())
+        & ((uint32, target: buffer_uint32, target_idx: number, source: buffer_uint32, source_idx: number?, count: number?)->())
+}
+declare fixed_buffer: fixed_width_buffer_library

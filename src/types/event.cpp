@@ -41,7 +41,7 @@ void event::fire(int arg_count) {
                 lua_pushvalue(L, -(arg_count + 2));
             }
             if (lua_pcall(L, arg_count, 0, 0) != LUA_OK) {
-                std::cerr << "Error calling function: " << lua_tostring(L, -1) << "\n";
+                printerr("Error:", lua_tostring(L, -1));
                 lua_pop(L, 1);
             }
         }

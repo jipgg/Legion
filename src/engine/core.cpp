@@ -152,6 +152,8 @@ static void init_luau_state(lua_State* L, const fs::path& main_entry_point) {
     lua_setglobal(L, "Path");
     push_luau_module(L, res_path() / "task.luau");
     lua_setglobal(L, "task");
+    push_luau_module(L, res_path() / "fixed_width_buffer.luau");
+    lua_setglobal(L, "fixed_buffer");
     builtin::class_event(L);
     lua_setglobal(L, "Event");
     lua_getglobal(L, builtin_name);

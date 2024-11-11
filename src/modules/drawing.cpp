@@ -128,37 +128,39 @@ static int draw_lines(lua_State* L) {
 }
 
 static int draw_polygon(lua_State* L) {
-    lua_pushnil(L);
     point_buffer.resize(0);
-    while (lua_next(L, 1)) {
+    for (int i{1}; i <= lua_objlen(L, 1); ++i) {
+        lua_rawgeti(L, 1, i);
         auto& point = check<vector2>(L, -1);
         point_buffer.emplace_back(SDL_Point{
             static_cast<int>(point[0]),
             static_cast<int>(point[1])
         });
+        lua_pop(L, 1);
     }
     point_buffer.emplace_back(point_buffer.front());
     SDL_RenderDrawLines(renderer(), point_buffer.data(), point_buffer.size());
     return 0;
 }
 static int fill_polygon(lua_State* L) {
-    lua_pushnil(L);
-    point_buffer.resize(0);
-    int num_vertices{};
-    while (lua_next(L, 1)) {
-        ++num_vertices;
+    float_buffer.resize(0);
+    const int len = lua_objlen(L, 1);
+    for (int i{1}; i <= len; ++i) {
+        lua_rawgeti(L, 1, i);
         auto& point = check<vector2>(L, -1);
-        point_buffer.emplace_back(SDL_Point{
-            static_cast<int>(point[0]),
-            static_cast<int>(point[1])
-        });
+        float_buffer.emplace_back(static_cast<float>(point[0]));
+        float_buffer.emplace_back(static_cast<float>(point[1]));
+        lua_pop(L, 1);
     }
-    point_buffer.emplace_back(point_buffer.front());
+    float_buffer.emplace_back(float_buffer.front());
+    float_buffer.emplace_back(float_buffer.front() + 1);
     SDL_Color c{};
     SDL_GetRenderDrawColor(renderer(), &c.r, &c.g, &c.b, &c.a);
-    SDL_RenderGeometryRaw(
+    if (SDL_RenderGeometryRaw(
         renderer(), nullptr,
-        float_buffer.data(), 8, &c, 0, nullptr, 0, num_vertices, nullptr, 0, 0);
+        float_buffer.data(), 8, &c, 0, nullptr, 0, float_buffer.size() / 2, nullptr, 0, 0)) {
+        printerr(SDL_GetError());
+    }
     return 0;
 }
 int builtin::lib_drawing(lua_State *L) {
@@ -173,6 +175,8 @@ int builtin::lib_drawing(lua_State *L) {
         {"draw_lines", draw_lines},
         {"draw_point", draw_point},
         {"draw_points", draw_points},
+        {"draw_polygon", draw_polygon},
+        {"fill_polygon", fill_polygon},
         {nullptr, nullptr}
     };
     lua_newtable(L);
