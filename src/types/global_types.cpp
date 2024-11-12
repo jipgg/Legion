@@ -2,6 +2,7 @@
 #include <lualib.h>
 #include "builtin.h"
 #include "lua_util.h"
+#include "lua_atom.h"
 namespace bi = builtin;
 namespace mm = bi::metamethod;
 namespace tn = bi::tname;
@@ -44,7 +45,7 @@ void color_init(lua_State *L) {
 }
 //font
 static void font_init(lua_State* L) {
-    luaL_newmetatable(L, metatable_name<bi::opaque_font>());
+    luaL_newmetatable(L, metatable_name<bi::font_ptr>());
     lua_pushstring(L, tn::opaque_font);
     lua_setfield(L, -2, mm::type);
     lua_pop(L, 1);
@@ -95,10 +96,42 @@ static void rectangle_init(lua_State* L) {
     lua_setfield(L, -2, mm::type);
     lua_pop(L, 1);
     lua_pushcfunction(L, rectangle_ctor, "rectangle_ctor");
-    lua_setglobal(L, "Rectangle");
+    lua_setglobal(L, "Rect");
+}
+static int texture_index(lua_State* L) {
+    auto& r = check<bi::texture>(L, 1);
+    const char key = *luaL_checkstring(L, 2);
+    switch (key) {
+        case 'w': lua_pushinteger(L, r.w); return 1;
+        case 'h': lua_pushinteger(L, r.h); return 1;
+        default: return err_invalid_member(L, tn::texture);
+    }
+}
+static int texture_newindex(lua_State* L) {
+    auto& r = check<bi::texture>(L, 1);
+    const char key = *luaL_checkstring(L, 2);
+    int v = luaL_checkinteger(L, 3);
+    switch (key) {
+        case 'w': r.w = v; return 0;
+        case 'h': r.h = v; return 0;
+        default: return err_invalid_member(L, tn::texture);
+    }
 }
 static void texture_init(lua_State* L) {
-    luaL_newmetatable(L, metatable_name<bi::opaque_texture>());
+    if (luaL_newmetatable(L, metatable_name<bi::texture>())) {
+        const luaL_Reg meta[] = {
+            {mm::index, texture_index},
+            {mm::newindex, texture_newindex},
+            {nullptr, nullptr}
+        };
+        luaL_register(L, nullptr, meta);
+        lua_pushstring(L, tn::texture);
+        lua_setfield(L, -2, mm::type);
+    }
+    lua_pop(L, 1);
+}
+static void opaque_texture_init(lua_State* L) {
+    luaL_newmetatable(L, metatable_name<bi::texture_ptr>());
     lua_pushstring(L, tn::opaque_texture);
     lua_setfield(L, -2, mm::type);
     lua_pop(L, 1);
@@ -107,5 +140,6 @@ void builtin::init_global_types(lua_State *L) {
     color_init(L);
     font_init(L);
     rectangle_init(L);
+    opaque_texture_init(L);
     texture_init(L);
 }

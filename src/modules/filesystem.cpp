@@ -304,7 +304,7 @@ static const luaL_Reg fs_lib[] = {
     {"is_empty", is_empty},
     {"children_of", children_of},
     {"descendants_of", descendants_of},
-    {"Path", path_ctor},
+    {"path", path_ctor},
     {nullptr, nullptr}
 };
 static const luaL_Reg path_metatable[] = {

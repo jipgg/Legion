@@ -1,40 +1,57 @@
 --!strict
-local rendering = engine.get_module("rendering")
-local drawing = engine.get_module('drawing')
-local white = Color(0xff, 0xff, 0xff, 0xff)
+local render = engine.get_module("rendering")
+local draw = engine.get_module('drawing')
+local res_dir = Path("resources")
+local jw = engine.load_image(res_dir / "jw.png")
 
 local b = fixed_buffer.create('double', 40)
 fixed_buffer.write('double', b, 1, 100)
 print(fixed_buffer.read('double', b, 1))
 print(fixed_buffer.len('double', b), buffer.len(b::any))
 
-local my_event: Event<number> = Event()
+local my_event: event<number> = Event()
 
 my_event:connect(function(num: number)
     engine.window.set_title("yoooooooooooooooooooooo")
 end)
 
-type polygon = {Vector2}
-local plgn: polygon = {
-    Vector2(100, 120),
-    Vector2(200, 100),
-    Vector2(200, 200),
-    Vector2(100, 230),
-}
 engine.rendering:connect(function()
-    rendering.clear(Color())
-    drawing.set_blend_mode('blend')
+    render.clear(Color())
+    draw.set_blend_mode('blend')
+    draw.set_color(Color(255, 0, 0, 100))
+    draw.fill_rectangle(Vec2(100, 100), Vec2(200, 100))
+    draw.fill_rectangle(Rect(200, 100, 100, 200))
+    draw.fill_circle(Vec2(500, 400), 50, true)
+    draw.set_color(Color(0, 0, 255, 20))
+    draw.fill_circle(Vec2(300, 400), 50, true)
+    draw.fill_ellipse(Vec2(500, 400), Vec2(100, 300), true)
+    --render.texture(jw, Rectangle(0, 0, jw.w / 3, jw.h / 3))
 end)
-
+local jw_angle = 0
 engine.rendering:connect(function()
-    drawing.set_color(Color(255, 0, 0, 100))
-    drawing.fill_rectangle(Vector2(100, 100), Vector2(200, 100))
-    drawing.fill_rectangle(Rectangle(200, 100, 100, 200))
-    drawing.fill_circle(Vector2(500, 400), 50, true)
-    drawing.set_color(Color(0, 0, 255, 20))
-    drawing.fill_circle(Vector2(300, 400), 50, true)
-    drawing.fill_ellipse(Vector2(500, 400), Vector2(100, 300), true)
-    --drawing.fill_polygon(plgn)
+    local t = Mat3(
+        1, 0, 200,
+        0, 1, 300,
+        0, 0, 1)
+    local angle = jw_angle
+    local r = Mat3(
+        math.cos(angle), -math.sin(angle), 0,
+        math.sin(angle), math.cos(angle), 0,
+        0, 0, 1)
+    local s = Mat3(
+        math.sin(angle) * .5, 0, 0,
+        0, .5, 0,
+        0, 0, 1)
+    local off = Mat3(
+        1, 0, -jw.w / 2,
+        0, 1, -jw.h / 2,
+        0, 0, 1
+    )
+    local transform = t * r * s * off
+    render.render_texture(jw, transform)
+end)
+engine.updating:connect(function(dt: number)
+    jw_angle += math.rad(30) * dt
 end)
 
 local accumulated = 0

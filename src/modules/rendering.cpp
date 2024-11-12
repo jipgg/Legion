@@ -14,6 +14,7 @@ namespace bi = builtin;
 using bi::color;
 using bi::rectangle;
 using bi::vector2;
+using bi::texture;
 static int err_sdl(lua_State* L) {
     luaL_error(L, "SDL Error: %s", SDL_GetError());
 }
@@ -116,8 +117,8 @@ static int draw_lines(lua_State* L) {
 }
 static int render_geometry_raw(lua_State* L) {
     SDL_Texture* texture{nullptr};
-    if (is_type<bi::opaque_texture>(L, 1)) {
-        texture = check<bi::opaque_texture>(L, 1).get();
+    if (is_type<bi::texture_ptr>(L, 1)) {
+        texture = check<bi::texture_ptr>(L, 1).get();
     }
     size_t len{};
     void* buffer = luaL_checkbuffer(L, 2, &len);
@@ -154,8 +155,8 @@ static int render_geometry(lua_State* L) {
     int vertex_count = lua_gettop(L);
     int arg_offset = 1;
     SDL_Texture* texture = nullptr;
-    if (is_type<bi::opaque_texture>(L, 1)) {
-        texture = check<bi::opaque_texture>(L, 1).get();
+    if (is_type<bi::texture_ptr>(L, 1)) {
+        texture = check<bi::texture_ptr>(L, 1).get();
         --vertex_count;
         ++arg_offset;
     }
@@ -172,8 +173,8 @@ static int render_quad(lua_State* L) {
     int vertex_count = lua_gettop(L);
     int arg_offset = 1;
     SDL_Texture* texture = nullptr;
-    if (is_type<bi::opaque_texture>(L, 1)) {
-        texture = check<bi::opaque_texture>(L, 1).get();
+    if (is_type<bi::texture_ptr>(L, 1)) {
+        texture = check<bi::texture_ptr>(L, 1).get();
         --vertex_count;
         ++arg_offset;
     }
@@ -214,11 +215,58 @@ static int set_draw_blendmode(lua_State* L) {
     SDL_SetRenderDrawBlendMode(renderer(), blend);
     return 0;
 }
+static int render_copy(lua_State* L) {
+    const texture& r = check<texture>(L, 1);
+    SDL_Rect src{0, 0, r.w, r.h};
+    SDL_Rect dst = src;
+    if (is_type<bi::matrix3>(L, 2)) {
+        auto& transform = check<bi::matrix3>(L, 2);
+        blaze::StaticVector<float, 3> top_left = transform * blaze::StaticVector{0, 0, 1};
+        blaze::StaticVector<float, 3> top_right = transform * blaze::StaticVector{r.w, 0, 1};
+        blaze::StaticVector<float, 3> bottom_right = transform * blaze::StaticVector{r.w, r.h, 1};
+        blaze::StaticVector<float, 3> bottom_left = transform * blaze::StaticVector{0, r.h, 1};
+        float vertices[] = {
+            top_left[0], top_left[1],
+            top_right[0], top_right[1],
+            bottom_right[0], bottom_right[1],
+            bottom_left[0], bottom_left[1],
+        };
+        float uv[] = {
+            0, 0,
+            1, 0,
+            1, 1,
+            0, 1
+        }; 
+        int indices[] = {
+            0, 1, 2,
+            2, 3, 0
+        };
+        SDL_Color c{0xff, 0xff, 0xff, 0xff};
+        const int stride = sizeof(float) * 2;
+        if (SDL_RenderGeometryRaw(renderer(), r.ptr.get(), vertices, stride, &c, 0, uv, stride, 4, indices, 6, 4)) {
+            return err_sdl(L);
+        }
+        return 0;
+    } else if (is_type<vector2>(L, 2)) {
+        const auto& pos = check<vector2>(L, 2);
+        dst.x = pos[0];
+        dst.y = pos[1];
+    } else if (is_type<rectangle>(L, 2)) {
+        const auto& dim = check<rectangle>(L, 2);
+        dst.x = dim.x;
+        dst.y = dim.y;
+        dst.w = dim.w;
+        dst.h = dim.h;
+    }
+    SDL_RenderCopy(renderer(), r.ptr.get(), &src, &dst);
+    return 0;
+}
 int builtin::lib_rendering(lua_State *L) {
     const luaL_Reg lib[] = {
         {"render_geometry_raw", render_geometry_raw},
         {"clear", clear},
         {"flush", flush},
+        {"render_texture", render_copy},
         {nullptr, nullptr}
     };
     lua_newtable(L);

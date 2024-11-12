@@ -87,6 +87,28 @@ static bool push_callback(lua_State* L, const char* name) {
     lua_remove(L, -2);
     return true;
 }
+static int lua_load_image(lua_State* L) {
+    std::string file{};
+    if (is_type<bi::path>(L, 1)) {
+        file = check<bi::path>(L, 1).string();
+    } else file = luaL_checkstring(L, 1);
+    SDL_Surface* loaded = IMG_Load(file.c_str());
+    if (not loaded) {
+        luaL_error(L, SDL_GetError());
+        return 0;
+    }
+    deferred d{[&loaded]{ SDL_FreeSurface(loaded); }};
+    SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer_ptr, loaded);
+    if (not texture) {
+        luaL_error(L, SDL_GetError());
+        return 0;
+    }
+    create<bi::texture>(L, bi::texture{
+        bi::texture_ptr(texture, SDL_DestroyTexture),
+        loaded->w,
+        loaded->h});
+    return 1;
+}
 namespace engine {
 static int load_builtin_module(lua_State* L) {
     std::string key = luaL_checkstring(L, 1);
@@ -108,7 +130,7 @@ static int load_builtin_module(lua_State* L) {
         lua_remove(L, -2);
         return 1;
     };
-    if (key == module::filesystem.name) return module::filesystem.load(L);
+    //if (key == module::filesystem.name) return module::filesystem.load(L);
     //if (key == module::window.name) return module::window.load(L);
     if (key == module::rendering.name) return module::rendering.load(L);
     if (key ==  module::drawing.name) return module::drawing.load(L);
@@ -133,6 +155,7 @@ static void init_luau_state(lua_State* L, const fs::path& main_entry_point) {
     lua_register_globals(L);
     const luaL_Reg engine_functions[] = {
         {"get_module", load_builtin_module},
+        {"load_image", lua_load_image},
         {nullptr, nullptr}
     };
     lua_newtable(L);
@@ -140,14 +163,16 @@ static void init_luau_state(lua_State* L, const fs::path& main_entry_point) {
     lua_setfield(L, -2, "window");
     luaL_register(L, nullptr, engine_functions);
     lua_setglobal(L, builtin_name);
+    builtin::lib_filesystem(L);
+    lua_setglobal(L, "fs");
     builtin::class_vector2(L);
-    lua_setglobal(L, "Vector2");
+    lua_setglobal(L, "Vec2");
     builtin::class_vector3(L);
-    lua_setglobal(L, "Vector3");
+    lua_setglobal(L, "Vec3");
     builtin::class_vector(L);
-    lua_setglobal(L, "Vector");
-    builtin::class_matrix33(L);
-    lua_setglobal(L, "Matrix33");
+    lua_setglobal(L, "Vec");
+    builtin::class_matrix3(L);
+    lua_setglobal(L, "Mat3");
     builtin::class_path(L);
     lua_setglobal(L, "Path");
     push_luau_module(L, res_path() / "task.luau");
@@ -192,7 +217,7 @@ static void init_luau_state(lua_State* L, const fs::path& main_entry_point) {
 static void start(engine_start_options opts) {
     SDL_Init(SDL_INIT_VIDEO);// should do proper error handling here
     TTF_Init();
-    IMG_Init(IMG_INIT_JPG);
+    IMG_Init(IMG_INIT_PNG | IMG_INIT_JPG | IMG_INIT_WEBP | IMG_INIT_TIF);
     constexpr int undefined = SDL_WINDOWPOS_UNDEFINED;
     const int width = opts.window_size.at(0);
     const int height = opts.window_size.at(1);
@@ -209,7 +234,6 @@ static void start(engine_start_options opts) {
 }
 static void run() {
     auto cached_last_tp = ch::steady_clock::now();
-    //SDL_SetRenderDrawBlendMode(renderer_ptr, SDL_BLENDMODE_BLEND);
     auto& e = sdl_event_dummy;
     while (not quitting) {
         {// event handling

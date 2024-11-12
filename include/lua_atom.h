@@ -56,5 +56,10 @@ enum class lua_atom {
     disconnect,
     once,
     fire,
+    get_resolution,
+    get_ptr,
+    get_size,
+    get_source_size,
+    get_dimensions,
     _last
 };

@@ -10,31 +10,31 @@ export type perms = 'unknown'|'others exec'|'all'|'mask'|
     'set gid'|'set uid'|'group all'|'group exec'|'group read'|
     'owner exec'|'owner read'|'others read'|'others all'|'sticky bit'|
     'others read'|'group write'|'owner write'|'others write'|'none'
-declare class Path
-    function stem(self): Path
+declare class path
+    function stem(self): path
     function empty(self): boolean
-    function filename(self): Path
+    function filename(self): path
     function has_stem(self): boolean
-    function root_path(self): Path
-    function parent_path(self): Path
+    function root_path(self): path
+    function parent_path(self): path
     function is_absolute(self): boolean
     function is_relative(self): boolean
-    function extension(self): Path
+    function extension(self): path
     function replace_extension(self, s: string)
-    function relative_path(self): Path
+    function relative_path(self): path
     function compare(self): number
-    function root_name(self): Path
-    function root_directory(self): Path
+    function root_name(self): path
+    function root_directory(self): path
     function has_root_path(self): boolean
     function has_root_name(self): boolean
     function has_root_directory(self): boolean
     function __tostring(self): string
-    function __div(self, other: string | Path): Path
+    function __div(self, other: string | path): path
 end
-declare class Directory_entry
+declare class directory_entry
     function is_directory(self): boolean
     function is_fifo(self): boolean
-    function path(self): Path
+    function path(self): path
     function is_socket(self): boolean
     function is_other(self): boolean
     function is_symlink(self): boolean
@@ -42,33 +42,33 @@ declare class Directory_entry
     function is_regular_file(self): boolean
     function is_character_file(self): boolean
 end
-declare class Vector2
+declare class vector2
     x: number
     y: number
-    function dot(self, a: Vector2): number
-    function unit(self): Vector2
+    function dot(self, a: vector2): number
+    function unit(self): vector2
     function magnitude(self): number
-    function abs(self): Vector2
-    function __add(self, a: Vector2): Vector2
-    function __mul(self, scalar: number): Vector2
-    function __div(self, scalar: number): Vector2
-    function __sub(self, a: Vector2): Vector2
-    function __unm(self): Vector2
+    function abs(self): vector2
+    function __add(self, a: vector2): vector2
+    function __mul(self, scalar: number): vector2
+    function __div(self, scalar: number): vector2
+    function __sub(self, a: vector2): vector2
+    function __unm(self): vector2
     function __call(self, index: number): number
 end
-declare class Color
+declare class color
     r: number
     g: number
     b: number
     a: number
 end
-declare class Rectangle
+declare class rectangle
     x: number
     y: number
     w: number
     h: number
 end
-declare class Texture_ptr end
+declare class texture_ptr end
 export type render_flip = 'none'|'vertical'|'horizontal'
 export type keycode = 'esc'|'f1'|'f2'|'f3'|'f4'|'f5'|'f6'|'f7'|'f8'|'f9'|'f10'|'f11'|'f12'|
     '1'|'2'|'3'|'4'|'5'|'6'|'7'|'8'|'9'|'0'|'minus'|'equals'|'backspace'|
@@ -77,34 +77,34 @@ export type keycode = 'esc'|'f1'|'f2'|'f3'|'f4'|'f5'|'f6'|'f7'|'f8'|'f9'|'f10'|'
     'z'|'x'|'c'|'v'|'b'|'n'|'n'|'m'|'comma'|'period'|'slash'|
     'lshift'|'lctrl'|'lalt'|'space'|'ralt'|'left'|'up'|'down'|'right'
 export type mouse_button_type = "left" | "right"| "middle"
-type matrix33_mul = ((Matrix33, Matrix33)->Matrix33) & ((Matrix33, Vector3)->Vector3) & ((Matrix33, Vector)->Vector)
-declare class Matrix33
-    function inverse(self): Matrix33
-    function transpose(self): Matrix33
+type matrix3_mul = ((matrix3, matrix3)->matrix3) & ((matrix3, vector3)->vector3) & ((matrix3, vector)->vector)
+declare class matrix3
+    function inverse(self): matrix3
+    function transpose(self): matrix3
     function __call(self, i: number, j: number): number
-    __mul: matrix33_mul
-    function __add(self, other: Matrix33): Matrix33
-    function __sub(self, other: Matrix33): Matrix33
+    __mul: matrix3_mul
+    function __add(self, other: matrix3): matrix3
+    function __sub(self, other: matrix3): matrix3
 end
-declare class Vector3
+declare class vector3
     x: number
     y: number
     z: number
-    function dot(self, a: Vector3): number
-    function unit(self): Vector3
+    function dot(self, a: vector3): number
+    function unit(self): vector3
     function magnitude(self): number
-    function abs(self): Vector3
-    function __add(self, a: Vector3): Vector3
-    function __mul(self, scalar: number): Vector3
-    function __div(self, scalar: number): Vector3
-    function __sub(self, a: Vector3): Vector3
-    function __unm(self): Vector3
+    function abs(self): vector3
+    function __add(self, a: vector3): vector3
+    function __mul(self, scalar: number): vector3
+    function __div(self, scalar: number): vector3
+    function __sub(self, a: vector3): vector3
+    function __unm(self): vector3
 end
-declare class Vector
-    function dot(self, a: Vector): number
-    function unit(self): Vector
+declare class vector
+    function dot(self, a: vector): number
+    function unit(self): vector
     function magnitude(self): number
-    function abs(self): Vector
+    function abs(self): vector
     function at(self, index: number): number
     function set(self, index: number, value: number)
     function reset(self)
@@ -113,25 +113,25 @@ declare class Vector
     function capacity(self): number
     function resize(self, size: number, preserve: boolean?)
     function reserve(self, amount: number)
-    function __add(self, a: Vector): Vector
-    function __mul(self, scalar: number): Vector
-    function __div(self, scalar: number): Vector
-    function __sub(self, a: Vector): Vector
-    function __unm(self): Vector
+    function __add(self, a: vector): vector
+    function __mul(self, scalar: number): vector
+    function __div(self, scalar: number): vector
+    function __sub(self, a: vector): vector
+    function __unm(self): vector
 end
 export type filesystem_module = {
-    create_directory: (Path | string) -> boolean,
-    exists: (path: Path | string) -> boolean,
-    is_character_file: (path: Path | string) -> boolean,
-    copy_file: (from: Path | string, to: Path | string, opt: copy_options?) -> boolean,
-    rename: (from: Path | string, to: Path | string) -> (),
-    remove: (path: Path | string) -> boolean,
-    remove_all: (path: Path | string) -> number,
-    copy: (from: Path | string, to: Path | string, opt: copy_options?) -> (),
-    absolute: (path: Path | string) -> Path,
-    children_of: (path: Path | string) -> {Directory_entry},
-    descendants_of: (path: Path | string) -> {Directory_entry},
-    Path: (file: string) -> Path,
+    create_directory: (path | string) -> boolean,
+    exists: (path: path | string) -> boolean,
+    is_character_file: (path: path | string) -> boolean,
+    copy_file: (from: path | string, to: path | string, opt: copy_options?) -> boolean,
+    rename: (from: path | string, to: path | string) -> (),
+    remove: (path: path | string) -> boolean,
+    remove_all: (path: path | string) -> number,
+    copy: (from: path | string, to: path | string, opt: copy_options?) -> (),
+    absolute: (path: path | string) -> path,
+    children_of: (path: path | string) -> {directory_entry},
+    descendants_of: (path: path | string) -> {directory_entry},
+    path: (file: string) -> path,
 }
 export type window_module = {
     size: ()->(number, number),
@@ -154,33 +154,36 @@ export type window_module = {
 }
 export type blend_mode = 'none'|'mul'|'add'|'mod'|'blend'|'invalid'
 export type rendering_module = {
-    render_geometry_raw: (txt: Texture_ptr?, buf: buffer,
+    render_geometry_raw: (txt: texture_ptr?, buf: buffer,
     xy_offset: number, xy_stride: number, color_offset: number,
         color_stride: number, uv_offset: number, uv_stride: number,
         num_vertices: number, indices_offset: number, num_indices: number,
         indices_size: number)->(),
-    clear: (bg: Color?)->(),
+    clear: (bg: color?)->(),
     flush: ()->(),
+    render_texture: ((txt: texture, pos: vector2?)->())
+        & ((txt: texture, dest: rectangle)->())
+        & ((txt: texture, trs: matrix3)->()),
 }
 export type drawing_module = {
-    set_color: (col: Color)->(),
+    set_color: (col: color)->(),
     set_blend_mode: (mode: blend_mode)->(),
-    draw_rectangle: ((rect: Rectangle)->())
-        & ((origin: Vector2, size: Vector2)->()),
-    draw_rectangles: ((...Rectangle)->())
+    draw_rectangle: ((rect: rectangle)->())
+        & ((origin: vector2, size: vector2)->()),
+    draw_rectangles: ((...rectangle)->())
         & ((buf: buffer_int32)->()),
-    draw_point: (point: Vector2)->(),
-    draw_points: ((...Vector2)->())
+    draw_point: (point: vector2)->(),
+    draw_points: ((...vector2)->())
         & ((buf: buffer_int32)->()),
-    fill_rectangle: ((rect: Rectangle)->())
-        & ((origin: Vector2, size: Vector2)->()),
-    fill_rectangles: ((...Rectangle)->()) & ((buf: buffer_int32)->()),
-    draw_line: (t0: Vector2, t1: Vector2)->(),
-    draw_lines: ((...Vector2)->()) & ((buf: buffer_int32)->()), 
-    draw_polygon: ({Vector2})->(),
-    fill_polygon: ({Vector2})->(),
-    fill_circle: (center: Vector2, radius: number, smooth_alpha_channel: boolean?)->(),
-    fill_ellipse: (center: Vector2, radius: Vector2, smooth_alpha_channel: boolean?)->(),
+    fill_rectangle: ((rect: rectangle)->())
+        & ((origin: vector2, size: vector2)->()),
+    fill_rectangles: ((...rectangle)->()) & ((buf: buffer_int32)->()),
+    draw_line: (t0: vector2, t1: vector2)->(),
+    draw_lines: ((...vector2)->()) & ((buf: buffer_int32)->()), 
+    draw_polygon: ({vector2})->(),
+    fill_polygon: ({vector2})->(),
+    fill_circle: (center: vector2, radius: number, smooth_alpha_channel: boolean?)->(),
+    fill_ellipse: (center: vector2, radius: vector2, smooth_alpha_channel: boolean?)->(),
 }
 export type luau_iterator_library = {
     ireverse: <T>(t:{T})->(()->T?),
@@ -198,24 +201,28 @@ export type luau_iterator_library = {
 declare class event_connection_id
     function __tostring(self): string
 end
-export type Event<params...> = {
-    connect: (self: Event<params...>, (params...)->())->event_connection_id,
-    disconnect: (self: Event<params...>, id: event_connection_id)->(),
-    fire: (self: Event<params...>, params...)->(),
+declare class texture
+    w: number
+    h: number
+end
+export type event<params...> = {
+    connect: (self: event<params...>, (params...)->())->event_connection_id,
+    disconnect: (self: event<params...>, id: event_connection_id)->(),
+    fire: (self: event<params...>, params...)->(),
 }
 export type engine_module = {
-    get_module: (('filesystem') -> filesystem_module)
-    & (('drawing')->drawing_module)
+    get_module: (('drawing')->drawing_module)
     & (('rendering')->rendering_module)
     & (('iterator')->luau_iterator_library),
-    updating: Event<number>,
-    rendering: Event<>,
-    key_pressed: Event<keycode>,
-    key_released: Event<keycode>,
-    mouse_pressed: Event<mouse_button_type, Vector2>,
-    mouse_released: Event<mouse_button_type, Vector2>,
-    shutting_down: Event<>,
+    updating: event<number>,
+    rendering: event<>,
+    key_pressed: event<keycode>,
+    key_released: event<keycode>,
+    mouse_pressed: event<mouse_button_type, vector2>,
+    mouse_released: event<mouse_button_type, vector2>,
+    shutting_down: event<>,
     window: window_module,
+    load_image: (file: path | string)->texture,
 }
 export type luau_task_library = {
     spawn: <Ts...>(fn: (Ts...)->(), Ts...)->(),
@@ -231,22 +238,23 @@ declare class buffer_uint16 end
 declare class buffer_uint32 end
 declare task: luau_task_library
 declare engine: engine_module
-declare Rectangle: (x: number?, y: number?, w: number?, h: number?)->Rectangle
+declare fs: filesystem_module
+declare Rect: (x: number?, y: number?, w: number?, h: number?)->rectangle
 type x_field = {x: number}
 type y_field = {y: number}
 type z_field = {z: number}
-declare Vector2: ((x: number?, y: number?)->Vector2)
-        & ((fields: x_field | y_field)->Vector2) 
-        & ((copy: Vector2)->Vector2)
-declare Vector3: ((x: number?, y: number?, z: number?)->Vector3)
-        & ((fields: x_field | y_field | z_field)->Vector3)
-        & ((copy: Vector3)->Vector3)
-declare Vector: ((...number)->Vector)
-        & (({number})->Vector)
-declare Matrix33: (...number)->Matrix33
-declare Color: (r: number?, g: number?, b: number?, a: number?)->Color
-declare Path: (path: string)->Path
-declare Event: <params...>()->Event<params...>
+declare Vec2: ((x: number?, y: number?)->vector2)
+        & ((fields: x_field | y_field)->vector2) 
+        & ((copy: vector2)->vector2)
+declare Vec3: ((x: number?, y: number?, z: number?)->vector3)
+        & ((fields: x_field | y_field | z_field)->vector3)
+        & ((copy: vector3)->vector3)
+declare Vec: ((...number)->vector)
+        & (({number})->vector)
+declare Mat3: (e11: number?, e12: number?, e13: number?, e21: number?, e22: number?, e23: number?, e31: number?, e32: number?, e33: number?)->matrix3
+declare Color: (r: number?, g: number?, b: number?, a: number?)->color
+declare Path: (path: string)->path
+declare Event: <params...>()->event<params...>
 
 type float = 'float'
 type double = 'double'

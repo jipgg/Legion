@@ -20,7 +20,7 @@ static const char* userdata_types[] = {
     tn::rectangle,
     tn::opaque_texture,
     tn::opaque_font,
-    tn::matrix33,
+    tn::matrix3,
     tn::vector3,
     tn::vector,
     tn::color,
@@ -28,6 +28,7 @@ static const char* userdata_types[] = {
     tn::vector2,
     tn::path,
     tn::directory_entry,
+    tn::texture,
     nullptr
 };
 Luau::CompileOptions compile_options() {

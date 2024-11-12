@@ -27,7 +27,7 @@ constexpr auto len = "__len";
 constexpr auto call = "__call";
 constexpr auto pow = "__pow";
 }
-int class_matrix33(lua_State* L);
+int class_matrix3(lua_State* L);
 int class_vector2(lua_State* L);
 int class_vector2i(lua_State* L);
 int class_vector3(lua_State* L);
@@ -52,23 +52,24 @@ constexpr auto color = "color";
 constexpr auto opaque_font = "font_ptr";
 constexpr auto rectangle = "rectangle";
 constexpr auto vertex = "vertex";
-constexpr auto matrix33 = "matrix33";
+constexpr auto matrix3 = "matrix3";
 constexpr auto vector = "vector";
 constexpr auto vector2 = "vector2";
 constexpr auto vector3 = "vector3";
 static constexpr auto path = "path";
 static constexpr auto directory_entry = "directory_entry";
 static constexpr auto event = "event";
+static constexpr auto texture = "texture";
 }
-using opaque_texture = std::unique_ptr<SDL_Texture, decltype(&SDL_DestroyTexture)>;
-using opaque_font = std::unique_ptr<TTF_Font, decltype(&TTF_CloseFont)>;
+using texture_ptr = std::unique_ptr<SDL_Texture, decltype(&SDL_DestroyTexture)>;
+using font_ptr = std::unique_ptr<TTF_Font, decltype(&TTF_CloseFont)>;
 struct rectangle {double x, y, w, h;};
 using color = SDL_Color;
 using vector2 = vec2d;
 using vector3 = blaze::StaticVector<double, 3, blaze::defaultTransposeFlag, blaze::aligned,
     blaze::unpadded /*not 100% sure why but this causes issues when turning ud back to blaze type if set padded*/>; 
 using vector = blaze::DynamicVector<double>;
-using matrix33 = mat3x3;
+using matrix3 = mat3x3;
 using path = std::filesystem::path;
 using directory_entry = std::filesystem::directory_entry;
 struct event {
@@ -85,8 +86,8 @@ struct event {
     void disconnect(connection id);
     void fire(int arg_count);
 };
-struct font {
-     opaque_font opaque;
-    font(std::string_view file);
+struct texture {
+    texture_ptr ptr;
+    int w, h;
 };
 }
