@@ -5,6 +5,7 @@
 #include <blaze/Blaze.h>
 #include <SDL_main.h>
 #include <filesystem>
+#include "util.h"
 #ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
@@ -18,18 +19,17 @@ int main(int argc, zstring* argv) {
     attach_console();
     enable_ansi_escape_sequences();
     #endif
-    engine::engine_start_options opts{
+    engine::start_options opts{
         .window_name{"Legion"},
         .window_size{800, 600},
         .window_resizable = true,
         .hardware_accelerated = true,
         .vsync_enabled = true,
         .main_entry_point = "../tests/dummy_game.luau",
-        .bin_path = fs::absolute(argv[0]).parent_path(),
+        .bin_path = util::get_executable_path(),
     };
     if (argc > 1) {
         opts.main_entry_point = argv[1];
     }
-    print(opts.bin_path.string());
     return engine::bootstrap(opts);
 }

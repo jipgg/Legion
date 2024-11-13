@@ -15,14 +15,14 @@
 #include "comptime_enum.h"
 #include "lua_base.h"
 #include "builtin_module.h"
-#include "systems.h"
+#include "util.h"
 namespace ch = std::chrono;
 namespace fs = std::filesystem;
 using czstring = const char*;
-
 namespace bi = builtin;
 static SDL_Window* window_ptr{nullptr};
 static SDL_Renderer* renderer_ptr{nullptr};
+static std::unique_ptr<builtin::font> default_font_ptr{nullptr};
 static bool quitting{false};
 static bool paused{false};
 static SDL_Event sdl_event_dummy{};
@@ -109,7 +109,6 @@ static int lua_load_image(lua_State* L) {
         loaded->h});
     return 1;
 }
-namespace engine {
 static int load_builtin_module(lua_State* L) {
     std::string key = luaL_checkstring(L, 1);
      auto cache_import_module = [&L, &key](builtin_module& module, int(*fn)(lua_State* L)) {
@@ -214,7 +213,7 @@ static void init_luau_state(lua_State* L, const fs::path& main_entry_point) {
     
     luaL_sandbox(main_state);
 }
-static void start(engine_start_options opts) {
+static void init(engine::start_options opts) {
     SDL_Init(SDL_INIT_VIDEO);// should do proper error handling here
     TTF_Init();
     IMG_Init(IMG_INIT_PNG | IMG_INIT_JPG | IMG_INIT_WEBP | IMG_INIT_TIF);
@@ -228,6 +227,19 @@ static void start(engine_start_options opts) {
     if (opts.hardware_accelerated) renderer_flags |= SDL_RENDERER_ACCELERATED;
     if (opts.vsync_enabled) renderer_flags |= SDL_RENDERER_PRESENTVSYNC;
     renderer_ptr = SDL_CreateRenderer(window_ptr, -1, renderer_flags);
+    const fs::path font_path = fs::absolute(bin_path) / "resources" / "main_font.ttf";
+    const int pt_size = 25;
+    TTF_Font* font_resource = TTF_OpenFont(font_path.string().c_str(), pt_size);
+    if (not font_resource) {
+        printerr(SDL_GetError());
+        std::abort();
+    }
+    default_font_ptr = std::make_unique<builtin::font>(builtin::font{
+        .ptr{font_resource, TTF_CloseFont},
+        .pt_size = pt_size,
+        .file_path = font_path
+    });
+    assert(default_font_ptr->ptr.get());
     main_state = luaL_newstate();
     bin_path = std::move(opts.bin_path);
     init_luau_state(main_state, opts.main_entry_point);
@@ -283,14 +295,17 @@ static void run() {
 static void shutdown() {
     events::shutting_down->fire(0);
     lua_close(main_state);
+    util::clear_all_caches();
+    default_font_ptr.reset();
     SDL_DestroyRenderer(renderer_ptr);
     SDL_DestroyWindow(window_ptr);
     IMG_Quit();
     TTF_Quit();
     SDL_Quit();
 }
-int bootstrap(engine_start_options opts) {
-    start(opts);
+namespace engine {
+int bootstrap(start_options opts) {
+    init(opts);
     run();
     shutdown();
     return 0;
@@ -298,4 +313,5 @@ int bootstrap(engine_start_options opts) {
 SDL_Window* window() {return window_ptr;}
 lua_State* lua_state() {return main_state;}
 void quit() {quitting = true;}
+builtin::font& default_font() {return *default_font_ptr;}
 }

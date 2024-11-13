@@ -7,6 +7,7 @@
 #include <SDL_image.h>
 #include <cstddef>
 #include "engine.h"
+#include "util.h"
 static std::vector<float> float_buffer;
 static std::vector<SDL_Point> point_buffer;
 static std::vector<SDL_Rect> rect_buffer;
@@ -299,7 +300,16 @@ static int fill_polygon(lua_State* L) {
     }
     return 0;
 }
-int builtin::lib_drawing(lua_State *L) {
+static int draw_text(lua_State* L) {
+    mat3f tr = util::default_transform;
+    if (is_type<bi::matrix3>(L, 2)) {
+        tr = check<bi::matrix3>(L, 2);
+    }
+    util::draw(engine::default_font(), luaL_checkstring(L, 1));
+    return 0;
+}
+namespace builtin {
+int lib_drawing(lua_State *L) {
     const luaL_Reg lib[] = {
         {"set_color", set_color},
         {"set_blend_mode", set_blend_mode},
@@ -315,9 +325,11 @@ int builtin::lib_drawing(lua_State *L) {
         {"fill_polygon", fill_polygon},
         {"fill_circle", fill_circle},
         {"fill_ellipse", fill_ellipse},
+        {"draw_text", draw_text},
         {nullptr, nullptr}
     };
     lua_newtable(L);
     luaL_register(L, nullptr, lib);
     return 1;
+}
 }

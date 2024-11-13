@@ -78,7 +78,8 @@ static int focus(lua_State* L) {
     return 0;
 }
 
-int builtin::lib_window(lua_State *L) {
+namespace builtin {
+int lib_window(lua_State *L) {
     const luaL_Reg lib[] = {
         {"size", size},
         {"set_size", set_size},
@@ -99,4 +100,5 @@ int builtin::lib_window(lua_State *L) {
     lua_newtable(L);
     luaL_register(L, nullptr, lib);
     return 1;
+}
 }

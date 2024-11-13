@@ -11,10 +11,10 @@
 #include "lua_base.h"
 namespace fs = std::filesystem;
 namespace tn = builtin::tname;
-struct GlobalOptions {
+struct global_options {
     int optimizationLevel = 2;
     int debugLevel = 1;
-} globalOptions;
+} global_opts;
 static bool codegen = true;
 static const char* userdata_types[] = {
     tn::rectangle,
@@ -33,8 +33,8 @@ static const char* userdata_types[] = {
 };
 Luau::CompileOptions compile_options() {
     Luau::CompileOptions result = {};
-    result.optimizationLevel = globalOptions.optimizationLevel;
-    result.debugLevel = globalOptions.debugLevel;
+    result.optimizationLevel = global_opts.optimizationLevel;
+    result.debugLevel = global_opts.debugLevel;
     result.typeInfoLevel = 1;
     result.userdataTypes = userdata_types;
     return result;
@@ -90,7 +90,6 @@ static int lua_require(lua_State* L) {
     lua_setfield(L, -4, resolvedRequire.absolutePath.c_str());
     return finishrequire(L);
 }
-
 static int lua_collectgarbage(lua_State* L) {
     const char* option = luaL_optstring(L, 1, "collect");
     if (strcmp(option, "collect") == 0) {
@@ -117,8 +116,10 @@ void push_luau_module(lua_State* L, const fs::path& path) {
 void set_luau_module_global(lua_State* L, const fs::path& path) {
     std::string filename = path.stem().string();
     push_luau_module(L, path);
+
     lua_setglobal(L, filename.c_str());
 }
+
 void lua_register_globals(lua_State *L) {
     static const luaL_Reg global_functions[] = {
         {"loadstring", lua_loadstring},

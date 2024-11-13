@@ -44,7 +44,7 @@ void color_init(lua_State *L) {
     lua_setglobal(L, "Color");
 }
 //font
-static void font_init(lua_State* L) {
+static void opaque_font_init(lua_State* L) {
     luaL_newmetatable(L, metatable_name<bi::font_ptr>());
     lua_pushstring(L, tn::opaque_font);
     lua_setfield(L, -2, mm::type);
@@ -136,10 +136,59 @@ static void opaque_texture_init(lua_State* L) {
     lua_setfield(L, -2, mm::type);
     lua_pop(L, 1);
 }
-void builtin::init_global_types(lua_State *L) {
+static int font_index(lua_State* L) {
+    auto& r = check<bi::font>(L, 1);
+    size_t len;
+    const char initial = *luaL_checklstring(L, 2, &len);
+    switch (initial) {
+        case 'f': {
+            constexpr size_t file_path_len = 9; 
+            create<bi::path>(L, r.file_path);
+            return 1;
+        }
+        case 'p': {
+            lua_pushinteger(L, r.pt_size);
+            return 1;
+        }
+    } 
+    return err_invalid_member(L, "font");
+}
+static int font_newindex(lua_State* L) {
+    luaL_error(L, "member access is read-only");
+    return 0;
+}
+static int font_ctor(lua_State* L) {
+    const auto& font_path = check<bi::path>(L, 1);
+    const int pt_size = luaL_checkinteger(L, 2);
+    create<builtin::font>(L, builtin::font{
+        .ptr{TTF_OpenFont(font_path.string().c_str(), pt_size), TTF_CloseFont},
+        .pt_size = pt_size,
+        .file_path = font_path
+    });
+    return 1;
+}
+static void font_init(lua_State* L) {
+    if (luaL_newmetatable(L, metatable_name<bi::font>())) {
+        const luaL_Reg meta[] = {
+            {mm::index, texture_index},
+            {mm::newindex, texture_newindex},
+            {nullptr, nullptr}
+        };
+        luaL_register(L, nullptr, meta);
+        lua_pushstring(L, "font");
+        lua_setfield(L, -2, mm::type);
+    }
+    lua_pop(L, 1);
+    lua_pushcfunction(L, font_ctor, "font_ctor");
+    lua_setglobal(L, "Font");
+}
+namespace builtin {
+void init_global_types(lua_State *L) {
     color_init(L);
+    opaque_font_init(L);
     font_init(L);
     rectangle_init(L);
     opaque_texture_init(L);
     texture_init(L);
+}
 }

@@ -119,6 +119,10 @@ declare class vector
     function __sub(self, a: vector): vector
     function __unm(self): vector
 end
+declare class font
+    file_path: path
+    pt_size: number
+end
 export type filesystem_module = {
     create_directory: (path | string) -> boolean,
     exists: (path: path | string) -> boolean,
@@ -184,6 +188,7 @@ export type drawing_module = {
     fill_polygon: ({vector2})->(),
     fill_circle: (center: vector2, radius: number, smooth_alpha_channel: boolean?)->(),
     fill_ellipse: (center: vector2, radius: vector2, smooth_alpha_channel: boolean?)->(),
+    draw_text: (text: string, transform: matrix3?)->(),
 }
 export type luau_iterator_library = {
     ireverse: <T>(t:{T})->(()->T?),
@@ -255,6 +260,7 @@ declare Mat3: (e11: number?, e12: number?, e13: number?, e21: number?, e22: numb
 declare Color: (r: number?, g: number?, b: number?, a: number?)->color
 declare Path: (path: string)->path
 declare Event: <params...>()->event<params...>
+declare Font: (file: path, pt_size: number)->font
 
 type float = 'float'
 type double = 'double'

@@ -90,4 +90,9 @@ struct texture {
     texture_ptr ptr;
     int w, h;
 };
+struct font {
+    font_ptr ptr;
+    int pt_size;
+    path file_path;
+};
 }

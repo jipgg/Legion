@@ -1,10 +1,7 @@
 #include "builtin.h"
 #include "lua_util.h"
 #include "lua_atom.h"
-namespace bi = builtin;
-namespace tn = bi::tname;
-using bi::event;
-
+namespace builtin {
 event::event(lua_State* L): L(L), refs() {
 }
 event::~event() {
@@ -75,7 +72,7 @@ static int namecall(lua_State* L) {
             return 0;
         }
         default:
-        return err_invalid_method(L, tn::event);
+        return err_invalid_method(L, tname::event);
     }
 }
 
@@ -85,12 +82,12 @@ int connection_id_tostring(lua_State* L) {
     return 1;
 }
 
-int builtin::class_event(lua_State* L) {
+int class_event(lua_State* L) {
     if (luaL_newmetatable(L, metatable_name<event::connection>())) {
         lua_pushcfunction(L, connection_id_tostring, "event_connection_id_tostring");
-        lua_setfield(L, -2, bi::metamethod::tostring);
+        lua_setfield(L, -2, metamethod::tostring);
         lua_pushstring(L, "event_connection");
-        lua_setfield(L, -2, bi::metamethod::type);
+        lua_setfield(L, -2, metamethod::type);
     }
     lua_pop(L, 1);
     if (luaL_newmetatable(L, metatable_name<event>())) {
@@ -99,10 +96,11 @@ int builtin::class_event(lua_State* L) {
             {nullptr, nullptr}
         };
         luaL_register(L, nullptr, lib);
-        lua_pushstring(L, tn::event);
-        lua_setfield(L, -2, bi::metamethod::type);
+        lua_pushstring(L, tname::event);
+        lua_setfield(L, -2, metamethod::type);
     }
     lua_pop(L, 1);
-    lua_pushcfunction(L, ctor, tn::event);
+    lua_pushcfunction(L, ctor, tname::event);
     return 1;
+}
 }

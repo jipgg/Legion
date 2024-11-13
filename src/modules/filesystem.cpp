@@ -317,16 +317,6 @@ const luaL_Reg directory_entry_metatable[] = {
     {builtin::metamethod::namecall, directory_entry_namecall},
     {nullptr, nullptr}
 };
-int builtin::class_path(lua_State *L) {
-    if (luaL_newmetatable(L, metatable_name<path>())) {
-        luaL_register(L, nullptr, path_metatable);
-        lua_pushstring(L, builtin::tname::path);
-        lua_setfield(L, -2, builtin::metamethod::type);
-        lua_pop(L, 1);
-    }
-    lua_pushcfunction(L, path_ctor, builtin::tname::path);
-    return 1;
-}
 static void init_types(lua_State* L) {
     if (luaL_newmetatable(L, metatable_name<path>())) {
         luaL_register(L, nullptr, path_metatable);
@@ -341,15 +331,27 @@ static void init_types(lua_State* L) {
         lua_pop(L, 1);
     }
 }
+namespace builtin {
+int class_path(lua_State *L) {
+    if (luaL_newmetatable(L, metatable_name<path>())) {
+        luaL_register(L, nullptr, path_metatable);
+        lua_pushstring(L, builtin::tname::path);
+        lua_setfield(L, -2, builtin::metamethod::type);
+        lua_pop(L, 1);
+    }
+    lua_pushcfunction(L, path_ctor, builtin::tname::path);
+    return 1;
+}
 
-void builtin::init_filesystem_lib(lua_State *L) {
+void init_filesystem_lib(lua_State *L) {
     init_types(L);
     //lua_pushcfunction(L, path_ctor, path_tname);
     //lua_setglobal(L, path_tname);
 }
-int builtin::lib_filesystem(lua_State *L) {
+int lib_filesystem(lua_State *L) {
     init_filesystem_lib(L);
     lua_newtable(L);
     luaL_register(L, nullptr, fs_lib);
     return 1;
+}
 }

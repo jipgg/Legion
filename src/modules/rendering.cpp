@@ -19,7 +19,7 @@ static int err_sdl(lua_State* L) {
     luaL_error(L, "SDL Error: %s", SDL_GetError());
 }
 
-static SDL_Renderer* renderer() {
+SDL_Renderer* renderer() {
     return SDL_GetRenderer(engine::window());
 }
 static int set_draw_color(lua_State* L) {
@@ -261,7 +261,8 @@ static int render_copy(lua_State* L) {
     SDL_RenderCopy(renderer(), r.ptr.get(), &src, &dst);
     return 0;
 }
-int builtin::lib_rendering(lua_State *L) {
+namespace builtin {
+int lib_rendering(lua_State *L) {
     const luaL_Reg lib[] = {
         {"render_geometry_raw", render_geometry_raw},
         {"clear", clear},
@@ -273,4 +274,4 @@ int builtin::lib_rendering(lua_State *L) {
     luaL_register(L, nullptr, lib);
     return 1;
 }
-
+}
