@@ -123,6 +123,7 @@ declare class font
     file_path: path
     pt_size: number
 end
+type constructor<ctor> = (ctor & unknown)
 export type filesystem_module = {
     create_directory: (path | string) -> boolean,
     exists: (path: path | string) -> boolean,
@@ -135,7 +136,7 @@ export type filesystem_module = {
     absolute: (path: path | string) -> path,
     children_of: (path: path | string) -> {directory_entry},
     descendants_of: (path: path | string) -> {directory_entry},
-    path: (file: string) -> path,
+    path: (path: string)->path,
 }
 export type window_module = {
     size: ()->(number, number),

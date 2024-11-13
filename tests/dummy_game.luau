@@ -2,38 +2,36 @@
 local render = engine.get_module("rendering")
 local draw = engine.get_module('drawing')
 local res_dir = Path("resources")
+local transform = require('@tests/transform')
+local PI = math.pi
+fs.path = function(path: string)
+    return Path("100")
+end
 
 local jw = engine.load_image(res_dir / "jw.png")
+local pa = fs.path('11')
+fs.path("1")
+Path("111")
 
 local b = fixed_buffer.create('double', 40)
 fixed_buffer.write('double', b, 1, 100)
 print(fixed_buffer.read('double', b, 1))
 print(fixed_buffer.len('double', b), buffer.len(b::any))
-
-local my_event: event<number> = Event()
+local my_event: event<number> = event()
 
 my_event:connect(function(num: number)
     engine.window.set_title("yoooooooooooooooooooooo")
 end)
 
+vec2(10, 10)
+vec2(100, 100)
+Vec2()
+
 engine.rendering:connect(function()
     render.clear(Color())
     draw.set_color(Color(255, 255, 255, 255))
-    draw.draw_text("Hello World")
+    draw.draw_text("Hello World", transform.all(Vec2(100, 100), PI / 4, 4))
 end)
-
--- engine.rendering:connect(function()
---     render.clear(Color())
---     draw.set_blend_mode('blend')
---     draw.set_color(Color(255, 0, 0, 100))
---     draw.fill_rectangle(Vec2(100, 100), Vec2(200, 100))
---     draw.fill_rectangle(Rect(200, 100, 100, 200))
---     draw.fill_circle(Vec2(500, 400), 50, false)
---     draw.set_color(Color(0, 0, 255, 20))
---     draw.fill_circle(Vec2(300, 400), 300, true)
---     draw.fill_ellipse(Vec2(500, 400), Vec2(100, 300), false)
---     --render.texture(jw, Rectangle(0, 0, jw.w / 3, jw.h / 3))
--- end)
 local jw_angle = 0
 engine.rendering:connect(function()
     local t = Mat3(

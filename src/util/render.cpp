@@ -25,7 +25,6 @@ std::array<float, 8> get_quad_transform_raw(const SDL_FRect& quad, const mat3f& 
         bottom_right[0], bottom_right[1],
         bottom_left[0], bottom_left[1],
     };
-
 }
 SDL_Renderer* renderer() {
     return SDL_GetRenderer(engine::window());

@@ -305,7 +305,7 @@ static int draw_text(lua_State* L) {
     if (is_type<bi::matrix3>(L, 2)) {
         tr = check<bi::matrix3>(L, 2);
     }
-    util::draw(engine::default_font(), luaL_checkstring(L, 1));
+    util::draw(engine::default_font(), luaL_checkstring(L, 1), tr);
     return 0;
 }
 namespace builtin {

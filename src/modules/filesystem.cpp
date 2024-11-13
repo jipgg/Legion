@@ -2,6 +2,7 @@
 #include "lua_util.h"
 #include "lua_atom.h"
 #include <filesystem>
+#include "util.h"
 namespace fs = std::filesystem;
 using path = fs::path;
 using directory_entry = fs::directory_entry;
@@ -288,7 +289,30 @@ static int path_ctor(lua_State* L) {
     create<path>(L, luaL_checkstring(L, 1));
     return 1;
 }
-
+static int executable_directory(lua_State* L) {
+    create<path>(L, util::get_executable_path());
+    return 1;
+}
+static int current_working_directory(lua_State* L) {
+    create<path>(L, fs::current_path());
+    return 1;
+}
+static int canonical(lua_State* L) {
+    create<path>(L, fs::canonical(*resolve_type(L, 1)));
+    return 1;
+}
+static int proximate(lua_State* L) {
+    create<path>(L, fs::proximate(*resolve_type(L, 1)));
+    return 1;
+}
+static int create_symlink(lua_State* L) {
+    fs::create_symlink(*resolve_type(L, 1), *resolve_type(L, 2));
+    return 0;
+}
+static int relative(lua_State* L) {
+    create<path>(L, fs::relative(*resolve_type(L, 1), *resolve_type(L, 2)));
+    return 1;
+}
 
 static const luaL_Reg fs_lib[] = {
     {"create_directory", create_directory},
@@ -305,6 +329,12 @@ static const luaL_Reg fs_lib[] = {
     {"children_of", children_of},
     {"descendants_of", descendants_of},
     {"path", path_ctor},
+    {"executable_directory", executable_directory},
+    {"current_working_directory", current_working_directory},
+    {"canonical", canonical},
+    {"proximate", proximate},
+    {"create_symlink", create_symlink},
+    {"relative", relative},
     {nullptr, nullptr}
 };
 static const luaL_Reg path_metatable[] = {
