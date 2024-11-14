@@ -1,6 +1,6 @@
 --!strict
 local render = engine.get_module("rendering")
-local draw = engine.get_module('drawing')
+local grph = engine.get_module('graphics')
 local res_dir = Path("resources")
 local transform = require('@tests/transform')
 local PI = math.pi
@@ -17,26 +17,30 @@ local b = fixed_buffer.create('double', 40)
 fixed_buffer.write('double', b, 1, 100)
 print(fixed_buffer.read('double', b, 1))
 print(fixed_buffer.len('double', b), buffer.len(b::any))
-local my_event: event<number> = event()
+local my_event: event<number> = Event()
 
 my_event:connect(function(num: number)
     engine.window.set_title("yoooooooooooooooooooooo")
 end)
 
-vec2(10, 10)
-vec2(100, 100)
-Vec2()
+
+local jw_angle = 0
+local abs = math.abs
+local sin = math.sin
+local cos = math.cos
 
 engine.rendering:connect(function()
-    render.clear(Color())
-    draw.set_color(Color(255, 255, 255, 255))
-    draw.draw_text("Hello World", transform.all(Vec2(100, 100), PI / 4, 4))
+    grph.clear_canvas(Color(0, 0, 0, 255))
+    grph.set_color(Color(
+        abs(cos(jw_angle * 5)) * 255,
+        abs(sin(jw_angle * 2 - 45)) * 255,
+        abs(sin(jw_angle * 5)) * 255, 255))
+    grph.draw_text("Hello World", transform.all(Vec2(50, 400), 0, 4))
 end)
-local jw_angle = 0
 engine.rendering:connect(function()
     local t = Mat3(
-        1, 0, 200,
-        0, 1, 300,
+        1, 0, 600,
+        0, 1, 200,
         0, 0, 1)
     local angle = jw_angle
     local r = Mat3(
@@ -44,8 +48,8 @@ engine.rendering:connect(function()
         math.sin(angle), math.cos(angle), 0,
         0, 0, 1)
     local s = Mat3(
-        math.sin(angle) * .5, 0, 0,
-        0, .5, 0,
+        math.sin(angle) * .3, 0, 0,
+        0, .3, 0,
         0, 0, 1)
     local off = Mat3(
         1, 0, -jw.w / 2,

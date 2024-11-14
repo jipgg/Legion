@@ -54,7 +54,7 @@ static czstring mouse_button_to_string(Uint8 button) {
 namespace module {
 static builtin_module filesystem{"filesystem", builtin::lib_filesystem};
 static builtin_module window{"window", builtin::lib_window};
-static builtin_module drawing{"drawing", builtin::lib_drawing};
+static builtin_module graphics{"graphics", builtin::lib_graphics};
 static builtin_module rendering{"rendering", builtin::lib_rendering};
 }
 namespace callback {
@@ -132,7 +132,7 @@ static int load_builtin_module(lua_State* L) {
     //if (key == module::filesystem.name) return module::filesystem.load(L);
     //if (key == module::window.name) return module::window.load(L);
     if (key == module::rendering.name) return module::rendering.load(L);
-    if (key ==  module::drawing.name) return module::drawing.load(L);
+    if (key ==  module::graphics.name) return module::graphics.load(L);
     if (key == "iterator") {
         push_luau_module(L, res_path() / "iterator.luau");
         return 1;

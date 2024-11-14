@@ -44,7 +44,7 @@ int lib_sdl(lua_State* L);
 int lib_filesystem(lua_State* L);
 int lib_window(lua_State* L);
 int lib_rendering(lua_State* L);
-int lib_drawing(lua_State* L);
+int lib_graphics(lua_State* L);
 
 namespace tname {
 constexpr auto opaque_texture = "texture_ptr";

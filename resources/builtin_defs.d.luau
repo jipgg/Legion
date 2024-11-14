@@ -170,7 +170,7 @@ export type rendering_module = {
         & ((txt: texture, dest: rectangle)->())
         & ((txt: texture, trs: matrix3)->()),
 }
-export type drawing_module = {
+export type graphics_module = {
     set_color: (col: color)->(),
     set_blend_mode: (mode: blend_mode)->(),
     draw_rectangle: ((rect: rectangle)->())
@@ -190,6 +190,10 @@ export type drawing_module = {
     fill_circle: (center: vector2, radius: number, smooth_alpha_channel: boolean?)->(),
     fill_ellipse: (center: vector2, radius: vector2, smooth_alpha_channel: boolean?)->(),
     draw_text: (text: string, transform: matrix3?)->(),
+    clear_canvas: (bg: color?)->(),
+    draw_image: ((txt: texture, pos: vector2?)->())
+        & ((txt: texture, dest: rectangle)->())
+        & ((txt: texture, trs: matrix3)->()),
 }
 export type luau_iterator_library = {
     ireverse: <T>(t:{T})->(()->T?),
@@ -217,7 +221,7 @@ export type event<params...> = {
     fire: (self: event<params...>, params...)->(),
 }
 export type engine_module = {
-    get_module: (('drawing')->drawing_module)
+    get_module: (('graphics')->graphics_module)
     & (('rendering')->rendering_module)
     & (('iterator')->luau_iterator_library),
     updating: event<number>,

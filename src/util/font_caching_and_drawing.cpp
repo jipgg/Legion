@@ -35,7 +35,10 @@ static font_cache& get_cache(const bi::font& font) {
 }
 
 namespace util {
-void clear_font_cache() {
+void clear_cache(const bi::font& font) {
+    font_registry.erase(font_id{font});
+}
+void clear_font_cache_registry() {
     font_registry.clear();
 }
 bool cache(const bi::font& font, std::string_view to_cache) {
@@ -58,14 +61,20 @@ void cache(const bi::font& font, char to_cache) {
     dummy.c_str(), plain_white);
     deferred d([&surface]{ SDL_FreeSurface(surface); });
     bi::texture_ptr txt{SDL_CreateTextureFromSurface(util::renderer(), surface), SDL_DestroyTexture};
-    SDL_SetTextureBlendMode(txt.get(), SDL_BLENDMODE_BLEND);
+    //SDL_SetTextureBlendMode(txt.get(), SDL_BLENDMODE_BLEND);
+    //SDL_SetTextureAlphaMod(loaded.ptr.get(), 255);
+    //SDL_SetTextureColorMod(loaded.ptr.get(), 0, 255, 0);
     bi::texture loaded{.ptr = std::move(txt), .w = surface->w, .h = surface->h};
     get_cache(font).insert({to_cache, std::move(loaded)});
 }
 
 void draw(const bi::font& font, std::string_view text, const mat3f& transform) {
     float x_off{};
-    constexpr SDL_Color white{0xff, 0xff, 0xff, 0xff};
+    SDL_Color curr_draw_color{};
+    SDL_GetRenderDrawColor(renderer(),
+        &curr_draw_color.r, &curr_draw_color.g,
+        &curr_draw_color.b, &curr_draw_color.a
+    );
     const font_id id{font};
     font_cache& fc = get_cache(font);
     for (char c : text) {
@@ -80,7 +89,7 @@ void draw(const bi::font& font, std::string_view text, const mat3f& transform) {
             util::renderer(),
             txt.ptr.get(),
             xy.data(), util::vertex_stride,
-            &white, 0,
+            &curr_draw_color, 0,
             util::quad_uv.data(), util::vertex_stride,
             4,
             util::quad_indices.data(), util::quad_indices.size(), sizeof(int));

@@ -15,6 +15,7 @@ namespace bi = builtin;
 using bi::color;
 using bi::rectangle;
 using bi::vector2;
+using bi::texture;
 static int err_sdl(lua_State* L) {
     luaL_error(L, "SDL Error: %s", SDL_GetError());
 }
@@ -308,8 +309,66 @@ static int draw_text(lua_State* L) {
     util::draw(engine::default_font(), luaL_checkstring(L, 1), tr);
     return 0;
 }
+static int clear(lua_State* L) {
+    if (is_type<color>(L, 1)) {
+        auto& c = check<color>(L, 1);
+        SDL_SetRenderDrawColor(renderer(), c.r, c.g, c.b, c.a);
+    }
+    SDL_RenderClear(renderer());
+    return 0;
+}
+static int flush(lua_State* L) {
+    SDL_RenderFlush(renderer());
+    return 0;
+}
+static int draw_texture(lua_State* L) {
+    const texture& r = check<texture>(L, 1);
+    SDL_Rect src{0, 0, r.w, r.h};
+    SDL_Rect dst = src;
+    if (is_type<bi::matrix3>(L, 2)) {
+        auto& transform = check<bi::matrix3>(L, 2);
+        blaze::StaticVector<float, 3> top_left = transform * blaze::StaticVector{0, 0, 1};
+        blaze::StaticVector<float, 3> top_right = transform * blaze::StaticVector{r.w, 0, 1};
+        blaze::StaticVector<float, 3> bottom_right = transform * blaze::StaticVector{r.w, r.h, 1};
+        blaze::StaticVector<float, 3> bottom_left = transform * blaze::StaticVector{0, r.h, 1};
+        float vertices[] = {
+            top_left[0], top_left[1],
+            top_right[0], top_right[1],
+            bottom_right[0], bottom_right[1],
+            bottom_left[0], bottom_left[1],
+        };
+        float uv[] = {
+            0, 0,
+            1, 0,
+            1, 1,
+            0, 1
+        }; 
+        int indices[] = {
+            0, 1, 2,
+            2, 3, 0
+        };
+        SDL_Color c{0xff, 0xff, 0xff, 0xff};
+        const int stride = sizeof(float) * 2;
+        if (SDL_RenderGeometryRaw(renderer(), r.ptr.get(), vertices, stride, &c, 0, uv, stride, 4, indices, 6, 4)) {
+            return err_sdl(L);
+        }
+        return 0;
+    } else if (is_type<vector2>(L, 2)) {
+        const auto& pos = check<vector2>(L, 2);
+        dst.x = pos[0];
+        dst.y = pos[1];
+    } else if (is_type<rectangle>(L, 2)) {
+        const auto& dim = check<rectangle>(L, 2);
+        dst.x = dim.x;
+        dst.y = dim.y;
+        dst.w = dim.w;
+        dst.h = dim.h;
+    }
+    SDL_RenderCopy(renderer(), r.ptr.get(), &src, &dst);
+    return 0;
+}
 namespace builtin {
-int lib_drawing(lua_State *L) {
+int lib_graphics(lua_State *L) {
     const luaL_Reg lib[] = {
         {"set_color", set_color},
         {"set_blend_mode", set_blend_mode},
@@ -326,6 +385,8 @@ int lib_drawing(lua_State *L) {
         {"fill_circle", fill_circle},
         {"fill_ellipse", fill_ellipse},
         {"draw_text", draw_text},
+        {"draw_image", draw_texture},
+        {"clear_canvas", clear},
         {nullptr, nullptr}
     };
     lua_newtable(L);
