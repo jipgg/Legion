@@ -52,7 +52,7 @@ my_type& create(lua_State* L) {
 }
 template <class my_type>
 my_type& check(lua_State* L, int objindex) {
-    assert(is_type<my_type>(L, objindex));
+    engine::expect(is_type<my_type>(L, objindex), std::string("builtin type ") + typeid(my_type).name() + " expected.");
     void* ud = lua_touserdatatagged(L, objindex, type_tag<my_type>());
     return *static_cast<my_type*>(ud);
 }

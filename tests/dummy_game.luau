@@ -1,15 +1,16 @@
 --!strict
-local render = engine.get_module("rendering")
-local grph = engine.get_module('graphics')
+local gr = engine.get_module('graphics')
 local res_dir = fs.path("resources")
 
 local a = matrix3.from_position(vector2(100, 100))
-matrix3{}
+matrix3()
 local g = matrix3(
     {1, 0, 0},
     {0, 1, 0},
     {0, 0, 1}
 )
+local a_rect = rectangle(100, 100, 100, 100)
+print(a_rect, a_rect.width, a_rect.height, a_rect.x)
 print(g, g * a)
 print(matrix3.from_scale(vector2(10, 20)))
 
@@ -30,13 +31,12 @@ local abs = math.abs
 local sin = math.sin
 local cos = math.cos
 local my_font = font(res_dir / "main_font.ttf", 100)
-local hello_text = {
-    'h','e','l','l','o', ' ', 'w', 'o', 'r', 'l','d'
-}
+local hello_text = {'h','e','l','l','o', ' ', 'w', 'o', 'r', 'l','d'}
+gr.set_blend_mode('blend')
 local text_change_accumulated = 0
 engine.updating:connect(function(dt: number)
     text_change_accumulated += dt
-    if text_change_accumulated < 1 then
+    if text_change_accumulated < .02 then
         return
     end
     local c1 = math.random(1, #hello_text)
@@ -47,46 +47,49 @@ engine.updating:connect(function(dt: number)
     text_change_accumulated = 0
 end)
 
+local col
 engine.rendering:connect(function()
-    grph.clear_canvas(color(0, 0, 0, 255))
-    local c = color(
+    gr.clear_canvas(color(0, 0, 0, 255))
+    col = color(
         abs(cos(jw_angle)) * 255,
         abs(sin(jw_angle - 45)) * 255,
         abs(sin(jw_angle)) * 255, 255)
-    local c_inverted = color(0xff - c.r, 0xff - c.g, 0xff - c.b, 0xff)
-    grph.set_color(c)
+    --local c_inverted = color(0xff - c.red, 0xff - c.green, 0xff - c.blue, 0xff)
+    gr.set_color(color(200, 200, 200):additive_blend(col))
     local transformation = matrix3.from_position(vector2(50, 400))
     transformation *= matrix3.from_scale(vector2(1, cos(jw_angle * 4) * .1 + 1))
-    grph.draw_text(my_font, table.concat(hello_text), transformation)
-    grph.fill_circle(vector2(100, 100), 40)
-    grph.set_color(c_inverted)
-    grph.fill_rectangle(rectangle(200-40, 100-40, 80, 80))
-    grph.set_color(c)
-    grph.fill_rectangle(rectangle(200-40, 200-40, 80, 80))
-    grph.set_color(c_inverted)
-    grph.fill_circle(vector2(100, 200), 40)
+    gr.draw_text(my_font, table.concat(hello_text), transformation)
+    gr.set_color(col:alpha_blend(col))
+    gr.fill_circle(vector2(100, 100), 40)
+    gr.set_color(col:multiply(col:modulate(col)))
+    gr.fill_rectangle(rectangle(200-40, 100-40, 80, 80))
+    gr.set_color(col:multiply(col:invert()))
+    gr.fill_rectangle(rectangle(200-40, 200-40, 80, 80))
+    gr.set_color(col:modulate(col))
+    gr.fill_circle(vector2(100, 200), 40)
 end)
 engine.rendering:connect(function()
-    local t = matrix3(
-        1, 0, 600,
-        0, 1, 200,
-        0, 0, 1)
     local angle = jw_angle
+    local t = matrix3(
+        1, 0, 600 + math.cos(angle /2) * 100,
+        0, 1, 200 + math.cos(angle / 3) * 50,
+        0, 0, 1)
     local r = matrix3(
-        math.cos(angle), -math.sin(angle), 0,
-        math.sin(angle), math.cos(angle), 0,
+        math.cos(angle / 3), -math.sin(angle / 3), 0,
+        math.sin(angle * 2), math.cos(angle * 5), 0,
         0, 0, 1)
     local s = matrix3(
         math.sin(angle) * .3, 0, 0,
         0, .3, 0,
         0, 0, 1)
     local off = matrix3(
-        1, 0, -jw.w / 2,
-        0, 1, -jw.h / 2,
+        1, 0, -jw.width / 2,
+        0, 1, -jw.height / 2,
         0, 0, 1
     )
     local transform = t * r * s * off
-    render.render_texture(jw, transform)
+    gr.set_color(color(200, 200, 200):additive_blend(col))
+    gr.draw_image(jw, transform, true)
 end)
 engine.updating:connect(function(dt: number)
     jw_angle += math.rad(30) * dt

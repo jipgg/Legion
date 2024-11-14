@@ -295,7 +295,7 @@ static void run() {
 static void shutdown() {
     events::shutting_down->fire(0);
     lua_close(main_state);
-    util::clear_all_caches();
+    util::clear_all_cache_registries();
     default_font_ptr.reset();
     SDL_DestroyRenderer(renderer_ptr);
     SDL_DestroyWindow(window_ptr);
@@ -314,4 +314,9 @@ SDL_Window* window() {return window_ptr;}
 lua_State* lua_state() {return main_state;}
 void quit() {quitting = true;}
 builtin::font& default_font() {return *default_font_ptr;}
+void expect(bool expression, std::string_view reason, const std::source_location& location) {
+    if (expression) return;
+    luaL_error(main_state, "Failed expected precondition. Luau state terminated.\n-> Reason: %s\n-> In file: %s\n-> At line: %d (column: %d) \n-> In function: %s",
+        std::string(reason).c_str(), location.file_name(), location.line(), location.column(), location.function_name());
+}
 }

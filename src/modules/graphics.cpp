@@ -5,7 +5,6 @@
 #include <luaconf.h>
 #include <SDL.h>
 #include <SDL_image.h>
-#include <cstddef>
 #include "engine.h"
 #include "util.h"
 static std::vector<float> float_buffer;
@@ -304,14 +303,14 @@ static int fill_polygon(lua_State* L) {
 static int draw_text(lua_State* L) {
     if (is_type<bi::font>(L, 1)) {
         const mat3f& tr = is_type<bi::matrix3>(L, 3) ? mat3f(check<bi::matrix3>(L, 3)) : util::default_transform;
-        util::draw(check<bi::font>(L, 1), luaL_checkstring(L, 2), tr);
+        util::draw_text(check<bi::font>(L, 1), luaL_checkstring(L, 2), tr);
         return 0;
 
     }
     std::string_view text = luaL_checkstring(L, 1);
     if (is_type<bi::matrix3>(L, 2)) {
         mat3f tr = check<bi::matrix3>(L, 2);
-        util::draw(engine::default_font(), text, tr);
+        util::draw_text(engine::default_font(), text, tr);
         return 0;
     }
     return err_invalid_type(L);
@@ -332,31 +331,23 @@ static int draw_texture(lua_State* L) {
     const texture& r = check<texture>(L, 1);
     SDL_Rect src{0, 0, r.w, r.h};
     SDL_Rect dst = src;
+    const bool use_draw_color = luaL_optboolean(L, 3, false);
     if (is_type<bi::matrix3>(L, 2)) {
         auto& transform = check<bi::matrix3>(L, 2);
-        blaze::StaticVector<float, 3> top_left = transform * blaze::StaticVector{0, 0, 1};
-        blaze::StaticVector<float, 3> top_right = transform * blaze::StaticVector{r.w, 0, 1};
-        blaze::StaticVector<float, 3> bottom_right = transform * blaze::StaticVector{r.w, r.h, 1};
-        blaze::StaticVector<float, 3> bottom_left = transform * blaze::StaticVector{0, r.h, 1};
-        float vertices[] = {
-            top_left[0], top_left[1],
-            top_right[0], top_right[1],
-            bottom_right[0], bottom_right[1],
-            bottom_left[0], bottom_left[1],
-        };
-        float uv[] = {
-            0, 0,
-            1, 0,
-            1, 1,
-            0, 1
-        }; 
-        int indices[] = {
-            0, 1, 2,
-            2, 3, 0
-        };
+        auto xy = util::get_quad_transform_raw(vec2i{r.w, r.h}, transform);
         SDL_Color c{0xff, 0xff, 0xff, 0xff};
-        const int stride = sizeof(float) * 2;
-        if (SDL_RenderGeometryRaw(renderer(), r.ptr.get(), vertices, stride, &c, 0, uv, stride, 4, indices, 6, 4)) {
+        if (use_draw_color) {
+            SDL_GetRenderDrawColor(util::renderer(), &c.r, &c.g, &c.b, &c.a);
+        }
+        if (SDL_RenderGeometryRaw(
+            util::renderer(),
+            r.ptr.get(),
+            xy.data(), util::vertex_stride,
+            &c, 0,
+            util::quad_uv.data(),
+            util::vertex_stride, 4,
+            util::quad_indices.data(),
+            util::quad_indices.size(), sizeof(int))) {
             return err_sdl(L);
         }
         return 0;
@@ -370,6 +361,11 @@ static int draw_texture(lua_State* L) {
         dst.y = dim.y;
         dst.w = dim.w;
         dst.h = dim.h;
+    }
+    deferred to_defer;
+    if (use_draw_color) {
+        SDL_SetTextureBlendMode(r.ptr.get(), SDL_BLENDMODE_BLEND);
+        to_defer = deferred([&r] {SDL_SetTextureBlendMode(r.ptr.get(), SDL_BLENDMODE_NONE);});
     }
     SDL_RenderCopy(renderer(), r.ptr.get(), &src, &dst);
     return 0;

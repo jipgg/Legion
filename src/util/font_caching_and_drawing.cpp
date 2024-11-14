@@ -35,7 +35,7 @@ static font_cache& get_cache(const bi::font& font) {
 }
 
 namespace util {
-void clear_cache(const bi::font& font) {
+void clear_font_cache(const bi::font& font) {
     font_registry.erase(font_id{font});
 }
 void clear_font_cache_registry() {
@@ -68,7 +68,7 @@ void cache(const bi::font& font, char to_cache) {
     get_cache(font).insert({to_cache, std::move(loaded)});
 }
 
-void draw(const bi::font& font, std::string_view text, const mat3f& transform) {
+void draw_text(const bi::font& font, std::string_view text, const mat3f& transform) {
     float x_off{};
     SDL_Color curr_draw_color{};
     SDL_GetRenderDrawColor(renderer(),

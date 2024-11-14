@@ -2,10 +2,25 @@
 #include <lualib.h>
 #include "builtin.h"
 #include "lua_util.h"
+#include "engine.h"
 #include "lua_atom.h"
+using namespace std::string_literals;
+
 namespace bi = builtin;
 namespace mm = bi::metamethod;
 namespace tn = bi::tname;
+static constexpr size_t x_length{std::string("x").length()};
+static constexpr size_t y_length{std::string("x").length()};
+static constexpr size_t width_length{std::string("width").length()};
+static constexpr size_t height_length{std::string("height").length()};
+static constexpr size_t file_path_length{std::string("file_path").length()};
+static constexpr size_t pt_size_length(std::string("pt_size").length());
+static constexpr size_t red_length{std::string("red").length()};
+static constexpr size_t green_length{std::string("green").length()};
+static constexpr size_t blue_length{std::string("blue").length()};
+static constexpr size_t alpha_length{std::string("alpha").length()};
+static const std::string invalid_member_key = "invalid member key "; 
+
 static int color_ctor(lua_State *L) {
     uint8_t r{}, g{}, b{}, a{};
     create<bi::color>(L,
@@ -17,23 +32,125 @@ static int color_ctor(lua_State *L) {
 }
 static int color_index(lua_State *L) {
     const auto& self = check<bi::color>(L, 1);
-    const char key = *luaL_checkstring(L, 2);
+    size_t length;
+    const char key = *luaL_checklstring(L, 2, &length);
     switch(key) {
-        case 'r': lua_pushinteger(L, self.r); return 1;
-        case 'g': lua_pushinteger(L, self.g); return 1;
-        case 'b': lua_pushinteger(L, self.b); return 1;
-        case 'a': lua_pushinteger(L, self.a); return 1;
+        case 'r':
+            engine::expect(length == red_length);
+            lua_pushinteger(L, self.r);
+            return 1;
+        case 'g':
+            engine::expect(length == green_length);
+            lua_pushinteger(L, self.g);
+            return 1;
+        case 'b':
+            engine::expect(length == blue_length);
+            lua_pushinteger(L, self.b);
+            return 1;
+        case 'a':
+            engine::expect(length == alpha_length);
+            lua_pushinteger(L, self.a);
+            return 1;
         }
     return 0;
 }
 static int color_newindex(lua_State *L) {
-    luaL_error(L, "members are read-only");
+    auto& self = check<bi::color>(L, 1);
+    size_t length;
+    const char key = *luaL_checklstring(L, 2, &length);
+    const int to_assign = luaL_checkinteger(L, 3);
+    engine::expect(to_assign >= 0 and to_assign <= 0xff, "color value exceeded range of [0, 255]");
+    switch(key) {
+        case 'r':
+            engine::expect(length == red_length);
+            self.r = to_assign;
+            return 0;
+        case 'g':
+            engine::expect(length == green_length);
+            self.g = to_assign;
+            return 0;
+        case 'b':
+            engine::expect(length == blue_length);
+            self.b = to_assign;
+            return 0;
+        case 'a':
+            engine::expect(length == alpha_length);
+            self.a = to_assign;
+            return 0;
+        }
+    return 0;
+}
+static int color_namecall(lua_State* L) {
+    int atom;
+    lua_namecallatom(L, &atom);
+    const auto& self = check<bi::color>(L, 1);
+    auto to_percent = [](uint8_t v) {return v / 255.f;};
+    auto to_color = [](float r, float g, float b, float a) {
+        constexpr int max = 0xff;
+        return bi::color{
+            static_cast<uint8_t>(std::min<int>(r * max, max)),
+            static_cast<uint8_t>(std::min<int>(g * max, max)),
+            static_cast<uint8_t>(std::min<int>(b * max, max)),
+            static_cast<uint8_t>(std::min<int>(a * max, max)),
+        };
+    };
+    using la  = lua_atom;
+    switch (static_cast<lua_atom>(atom)) {
+        case la::modulate: {
+            const vec3f dst_rgb{to_percent(self.r), to_percent(self.g), to_percent(self.b)};
+            const float dst_a{to_percent(self.a)};
+            const auto& other = check<bi::color>(L, 2);
+            const vec3f src_rgb{to_percent(other.r), to_percent(other.g), to_percent(other.b)};
+            const vec3f result =  src_rgb * dst_rgb;
+            create<bi::color>(L, to_color(result[0], result[1], result[2], dst_a));
+            return 1;
+        }
+        case la::invert: {
+            auto invert = [](uint8_t v) {return static_cast<uint8_t>(0xff - v);};
+            create<bi::color>(L, invert(self.r), invert(self.g), invert(self.b), self.a);
+            return 1;
+        }
+        case la::multiply: {
+            const vec3f dst_rgb{to_percent(self.r), to_percent(self.g), to_percent(self.b)};
+            const float dst_a{to_percent(self.a)};
+            const auto& other = check<bi::color>(L, 2);
+            const vec3f src_rgb{to_percent(other.r), to_percent(other.g), to_percent(other.b)};
+            const float src_a{to_percent(other.a)};
+            const vec3f result = (src_rgb * dst_rgb) + dst_rgb * (1 - src_a);
+            create<bi::color>(L, to_color(result[0], result[1], result[2], dst_a));
+            return 1;
+        }
+        case la::additive_blend: {
+            const vec3f dst_rgb{to_percent(self.r), to_percent(self.g), to_percent(self.b)};
+            const float dst_a{to_percent(self.a)};
+            const auto& other = check<bi::color>(L, 2);
+            const vec3f src_rgb{to_percent(other.r), to_percent(other.g), to_percent(other.b)};
+            const float src_a{to_percent(other.a)};
+            const vec3f result = src_rgb * src_a + dst_rgb;
+            create<bi::color>(L, to_color(result[0], result[1], result[2], dst_a));
+            return 1;
+        }
+        case la::alpha_blend: {
+            const vec3f dst_rgb{to_percent(self.r), to_percent(self.g), to_percent(self.b)};
+            const float dst_a{to_percent(self.a)};
+            const auto& other = check<bi::color>(L, 2);
+            const vec3f src_rgb{to_percent(other.r), to_percent(other.g), to_percent(other.b)};
+            const float src_a{to_percent(other.a)};
+            const vec3f result = src_rgb * src_a + dst_rgb * (1 - src_a);
+            const float result_a = src_a + (dst_a * (1 - src_a));
+            create<bi::color>(L, to_color(result[0], result[1], result[2], result_a));
+            return 1;
+        }
+        default:
+            return err_invalid_method(L, tn::color);
+    }
 }
 void color_init(lua_State *L) {
     luaL_newmetatable(L, metatable_name<bi::color>());
     const luaL_Reg metadata[] = {
         {mm::index, color_index},
         {mm::newindex, color_newindex},
+        {mm::namecall, color_namecall},
         {nullptr, nullptr}
     };
     lua_pushstring(L, tn::color);
@@ -53,25 +170,52 @@ static void opaque_font_init(lua_State* L) {
 //rect
 static int rectangle_index(lua_State* L) {
     auto& r = check<bi::rectangle>(L, 1);
-    char key = *luaL_checkstring(L, 2);
-    switch (key) {
-        case 'x': lua_pushnumber(L, r.x); return 1;
-        case 'y': lua_pushnumber(L, r.y); return 1;
-        case 'w': lua_pushnumber(L, r.w); return 1;
-        case 'h': lua_pushnumber(L, r.h); return 1;
+    size_t length;
+    std::string_view key = luaL_checklstring(L, 2, &length);
+    switch (key[0]) {
+        case 'x':
+            engine::expect(length == x_length, invalid_member_key);
+            lua_pushnumber(L, r.x);
+            return 1;
+        case 'y':
+            engine::expect(length == y_length, invalid_member_key);
+            lua_pushnumber(L, r.y);
+            return 1;
+        case 'w':
+            engine::expect(length == width_length, invalid_member_key);
+            lua_pushnumber(L, r.w);
+            return 1;
+        case 'h':
+            engine::expect(length == height_length, invalid_member_key);
+            lua_pushnumber(L, r.h);
+            return 1;
     }
     luaL_error(L, "invalid index %s", luaL_checkstring(L, 2));
     return 0;
 };
 static int rectangle_newindex(lua_State* L) {
     auto& r = check<bi::rectangle>(L, 1);
-    char key = *luaL_checkstring(L, 2);
+    using sv = std::string_view;
+    size_t length;
+    char initial = *luaL_checklstring(L, 2, &length);
     int v = luaL_checknumber(L, 3);
-    switch (key) {
-        case 'x': r.x = v; return 0;
-        case 'y': r.y = v; return 0;
-        case 'w': r.w = v; return 0;
-        case 'h': r.h = v; return 0;
+    switch (initial) {
+        case 'x':
+            engine::expect(length == x_length, invalid_member_key);
+            r.x = v;
+            return 0;
+        case 'y':
+            engine::expect(length == y_length, invalid_member_key);
+            r.y = v;
+            return 0;
+        case 'w':
+            engine::expect(length == width_length, invalid_member_key);
+            r.w = v;
+            return 0;
+        case 'h': 
+            engine::expect(length == height_length, invalid_member_key);
+            r.h = v;
+            return 0;
     }
     luaL_error(L, "invalid index %s", luaL_checkstring(L, 2));
     return 0;
@@ -100,10 +244,17 @@ static void rectangle_init(lua_State* L) {
 }
 static int texture_index(lua_State* L) {
     auto& r = check<bi::texture>(L, 1);
-    const char key = *luaL_checkstring(L, 2);
+    size_t length;
+    const char key = *luaL_checklstring(L, 2, &length);
     switch (key) {
-        case 'w': lua_pushinteger(L, r.w); return 1;
-        case 'h': lua_pushinteger(L, r.h); return 1;
+        case 'w':
+            engine::expect(length == width_length, invalid_member_key + luaL_checkstring(L, 2));
+            lua_pushinteger(L, r.w);
+            return 1;
+        case 'h':
+            engine::expect(length == height_length, invalid_member_key + luaL_checkstring(L, 2));
+            lua_pushinteger(L, r.h);
+            return 1;
         default: return err_invalid_member(L, tn::texture);
     }
 }
@@ -141,12 +292,12 @@ static int font_index(lua_State* L) {
     size_t len;
     const char initial = *luaL_checklstring(L, 2, &len);
     switch (initial) {
-        case 'f': {
-            constexpr size_t file_path_len = 9; 
+        case 'f':
+            engine::expect(len == file_path_length);
             create<bi::path>(L, r.file_path);
             return 1;
-        }
         case 'p': {
+            engine::expect(len == file_path_length);
             lua_pushinteger(L, r.pt_size);
             return 1;
         }
@@ -161,10 +312,8 @@ static int font_ctor(lua_State* L) {
     const auto& font_path = check<bi::path>(L, 1);
     const int pt_size = luaL_checkinteger(L, 2);
     TTF_Font* font_resource = TTF_OpenFont(font_path.string().c_str(), pt_size);
-    if (font_resource == nullptr) {
-        luaL_error(L, "Error: %s", SDL_GetError());
-        return 0;
-    }
+    engine::expect(font_resource != nullptr, SDL_GetError());
+
     create<builtin::font>(L, builtin::font{
         .ptr{font_resource, TTF_CloseFont},
         .pt_size = pt_size,

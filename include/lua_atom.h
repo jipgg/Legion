@@ -61,5 +61,14 @@ enum class lua_atom {
     get_size,
     get_source_size,
     get_dimensions,
+    modulate,
+    multiply,
+    invert,
+    additive_blend,
+    alpha_blend,
+    color_mod,
+    blend_mode,
+    color,
+    copy,
     _last
 };

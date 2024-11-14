@@ -57,16 +57,21 @@ declare class vector2
     function __call(self, index: number): number
 end
 declare class color
-    r: number
-    g: number
-    b: number
-    a: number
+    red: number
+    green: number
+    blue: number
+    alpha: number
+    function invert(self): color
+    function multiply(self, src: color): color
+    function modulate(self, src: color): color
+    function additive_blend(self, src: color): color
+    function alpha_blend(self, src: color): color
 end
 declare class rectangle
     x: number
     y: number
-    w: number
-    h: number
+    width: number
+    height: number
 end
 declare class texture_ptr end
 export type render_flip = 'none'|'vertical'|'horizontal'
@@ -200,7 +205,7 @@ export type graphics_module = {
     clear_canvas: (bg: color?)->(),
     draw_image: ((txt: texture, pos: vector2?)->())
         & ((txt: texture, dest: rectangle)->())
-        & ((txt: texture, trs: matrix3)->()),
+        & ((txt: texture, trs: matrix3, use_draw_color: boolean?)->()),
 }
 export type luau_iterator_library = {
     ireverse: <T>(t:{T})->(()->T?),
@@ -219,8 +224,10 @@ declare class event_connection_id
     function __tostring(self): string
 end
 declare class texture
-    w: number
-    h: number
+    width: number
+    height: number
+    blend_mode: blend_mode
+    color: color
 end
 export type event<params...> = {
     connect: (self: event<params...>, (params...)->())->event_connection_id,
@@ -275,7 +282,9 @@ type matrix3_constructor = typeof(setmetatable({
     from_scale = function(scale_factor: vector2 | number): matrix3 return {} :: any end,
     from_rotation = function(radians: number): matrix3 return {} :: any end,
     from_position = function(translation: vector2): matrix3 return {} :: any end,
-        }, {__call = function(...): matrix3 return {} :: any end}))
+}, {
+    __call = function(...): matrix3 return {} :: any end
+}))
 declare matrix3: 
         & ((row1: {number}, row2: {number}, row3: {number})->matrix3)
         & ((e11: number?, e12: number?, e13: number?, e21: number?, e22: number?, e23: number?, e31: number?, e32: number?, e33: number?)->matrix3)
@@ -288,6 +297,13 @@ declare event: (<params...>()->event<params...>)
         & constructor<event<...unknown>>
 declare font: ((file: path, pt_size: number)->font)
         & constructor<font>
+type texture_constructor = typeof(setmetatable({
+    from_string = function(text: string, font: font?, color: color?): texture return {} :: any end,
+}, {
+    __call = function(...): texture return {} :: any end
+}))
+declare texture: ((file: path | string)->texture)
+        & texture_constructor
 
 type float = 'float'
 type double = 'double'
