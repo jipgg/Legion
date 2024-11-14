@@ -123,7 +123,7 @@ declare class font
     file_path: path
     pt_size: number
 end
-type constructor<ctor> = (ctor & unknown)
+type constructor<obj> = typeof(setmetatable({}, {__call = function(...): obj return ({} :: unknown) :: obj end}))
 export type filesystem_module = {
     create_directory: (path | string) -> boolean,
     exists: (path: path | string) -> boolean,
@@ -136,7 +136,7 @@ export type filesystem_module = {
     absolute: (path: path | string) -> path,
     children_of: (path: path | string) -> {directory_entry},
     descendants_of: (path: path | string) -> {directory_entry},
-    path: (path: string)->path,
+    path: ((path: string)->path) & constructor<path>,
     executable_directory: ()->path,
     current_working_directory: ()->path,
     canonical: (path: path)->path,
@@ -256,23 +256,37 @@ declare class buffer_uint32 end
 declare task: luau_task_library
 declare engine: engine_module
 declare fs: filesystem_module
-declare Rect: (x: number?, y: number?, w: number?, h: number?)->rectangle
+declare rectangle: ((x: number?, y: number?, w: number?, h: number?)->rectangle) & constructor<rectangle>
 type x_field = {x: number}
 type y_field = {y: number}
 type z_field = {z: number}
-declare Vec2: ((x: number?, y: number?)->vector2)
+declare vector2: ((x: number?, y: number?)->vector2)
         & ((fields: x_field | y_field)->vector2) 
         & ((copy: vector2)->vector2)
-declare Vec3: ((x: number?, y: number?, z: number?)->vector3)
+        & constructor<vector2>
+declare vector3: ((x: number?, y: number?, z: number?)->vector3)
         & ((fields: x_field | y_field | z_field)->vector3)
         & ((copy: vector3)->vector3)
-declare Vec: ((...number)->vector)
+        & constructor<vector3>
+declare vector: ((...number)->vector)
         & (({number})->vector)
-declare Mat3: (e11: number?, e12: number?, e13: number?, e21: number?, e22: number?, e23: number?, e31: number?, e32: number?, e33: number?)->matrix3
-declare Color: (r: number?, g: number?, b: number?, a: number?)->color
-declare Path: (path: string)->path
-declare Event: <params...>()->event<params...>
-declare Font: (file: path, pt_size: number)->font
+        & constructor<vector>
+type matrix3_constructor = typeof(setmetatable({
+    from_scale = function(scale_factor: vector2 | number): matrix3 return {} :: any end,
+    from_rotation = function(radians: number): matrix3 return {} :: any end,
+    from_position = function(translation: vector2): matrix3 return {} :: any end,
+        }, {__call = function(...): matrix3 return {} :: any end}))
+declare matrix3: ((e11: number?, e12: number?, e13: number?, e21: number?, e22: number?, e23: number?, e31: number?, e32: number?, e33: number?)->matrix3)
+        & ((row1: {number}, row2: {number}, row3: {number}))
+        & matrix3_constructor
+declare color: ((r: number?, g: number?, b: number?, a: number?)->color)
+        & constructor<color>
+declare path: ((path: string)->path)
+        & constructor<path>
+declare event: (<params...>()->event<params...>)
+        & constructor<event<...unknown>>
+declare font: ((file: path, pt_size: number)->font)
+        & constructor<font>
 
 type float = 'float'
 type double = 'double'

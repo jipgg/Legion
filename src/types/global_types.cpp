@@ -41,7 +41,7 @@ void color_init(lua_State *L) {
     luaL_register(L, nullptr, metadata);
     lua_pop(L, 1);
     lua_pushcfunction(L, color_ctor, "color_ctor");
-    lua_setglobal(L, "Color");
+    lua_setglobal(L, "color");
 }
 //font
 static void opaque_font_init(lua_State* L) {
@@ -96,7 +96,7 @@ static void rectangle_init(lua_State* L) {
     lua_setfield(L, -2, mm::type);
     lua_pop(L, 1);
     lua_pushcfunction(L, rectangle_ctor, "rectangle_ctor");
-    lua_setglobal(L, "Rect");
+    lua_setglobal(L, "rectangle");
 }
 static int texture_index(lua_State* L) {
     auto& r = check<bi::texture>(L, 1);
@@ -185,7 +185,7 @@ static void font_init(lua_State* L) {
     }
     lua_pop(L, 1);
     lua_pushcfunction(L, font_ctor, "font_ctor");
-    lua_setglobal(L, "Font");
+    lua_setglobal(L, "font");
 }
 namespace builtin {
 void init_global_types(lua_State *L) {

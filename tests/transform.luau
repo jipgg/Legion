@@ -4,7 +4,7 @@ local sin = math.sin
 type scalar = number | vector2
 
 function transform.translate(t: vector2)
-    return Mat3(
+    return matrix3(
         1, 0, t.x,
         0, 1, t.y,
         0, 0, 1
@@ -12,7 +12,7 @@ function transform.translate(t: vector2)
 end
 
 function transform.rotate(a: number)
-    return Mat3(
+    return matrix3(
         cos(a), -sin(a), 0,
         sin(a), cos(a), 0,
         0, 0, 1
@@ -21,13 +21,13 @@ end
 
 function transform.scale(s: scalar)
     if typeof(s) == 'vector2' then
-        return Mat3(
+        return matrix3(
             s.x, 0, 0,
             0, s.y, 0,
             0, 0, 1
         )
     elseif typeof(s) == 'number' then
-        return Mat3(
+        return matrix3(
             s, 0, 0,
             0, s, 0,
             0, 0, 1
