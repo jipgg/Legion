@@ -28,6 +28,7 @@ local jw_angle = 0
 local abs = math.abs
 local sin = math.sin
 local cos = math.cos
+local my_font = Font(res_dir / "main_font.ttf", 100)
 
 engine.rendering:connect(function()
     grph.clear_canvas(Color(0, 0, 0, 255))
@@ -35,7 +36,7 @@ engine.rendering:connect(function()
         abs(cos(jw_angle * 5)) * 255,
         abs(sin(jw_angle * 2 - 45)) * 255,
         abs(sin(jw_angle * 5)) * 255, 255))
-    grph.draw_text("Hello World", transform.all(Vec2(50, 400), 0, 4))
+    grph.draw_text(my_font, "Hello World", transform.translate(Vec2(50, 400)))
 end)
 engine.rendering:connect(function()
     local t = Mat3(

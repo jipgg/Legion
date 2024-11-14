@@ -302,7 +302,10 @@ static int canonical(lua_State* L) {
     return 1;
 }
 static int proximate(lua_State* L) {
-    create<path>(L, fs::proximate(*resolve_type(L, 1)));
+    auto base_opt = resolve_type(L, 2);
+    create<path>(L, fs::proximate(*resolve_type(L, 1),
+        base_opt ? *base_opt : fs::current_path()));
+
     return 1;
 }
 static int create_symlink(lua_State* L) {
@@ -310,7 +313,10 @@ static int create_symlink(lua_State* L) {
     return 0;
 }
 static int relative(lua_State* L) {
-    create<path>(L, fs::relative(*resolve_type(L, 1), *resolve_type(L, 2)));
+    auto base_opt = resolve_type(L, 2);
+    create<path>(L, fs::relative(
+                 *resolve_type(L, 1),
+                 base_opt? *base_opt : fs::current_path()));
     return 1;
 }
 

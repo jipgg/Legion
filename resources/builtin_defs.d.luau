@@ -137,6 +137,12 @@ export type filesystem_module = {
     children_of: (path: path | string) -> {directory_entry},
     descendants_of: (path: path | string) -> {directory_entry},
     path: (path: string)->path,
+    executable_directory: ()->path,
+    current_working_directory: ()->path,
+    canonical: (path: path)->path,
+    proximate: (path: path, base: path?)->path,
+    create_symlink: (to: path, new_symlink: path)->(),
+    relative: (path: path, base: path?)->path,
 }
 export type window_module = {
     size: ()->(number, number),
@@ -189,7 +195,8 @@ export type graphics_module = {
     fill_polygon: ({vector2})->(),
     fill_circle: (center: vector2, radius: number, smooth_alpha_channel: boolean?)->(),
     fill_ellipse: (center: vector2, radius: vector2, smooth_alpha_channel: boolean?)->(),
-    draw_text: (text: string, transform: matrix3?)->(),
+    draw_text: ((font: font, text: string, transform: matrix3?)->())
+        & ((text: string, transform: matrix3?)->()),
     clear_canvas: (bg: color?)->(),
     draw_image: ((txt: texture, pos: vector2?)->())
         & ((txt: texture, dest: rectangle)->())

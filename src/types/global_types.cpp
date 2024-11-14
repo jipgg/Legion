@@ -160,8 +160,13 @@ static int font_newindex(lua_State* L) {
 static int font_ctor(lua_State* L) {
     const auto& font_path = check<bi::path>(L, 1);
     const int pt_size = luaL_checkinteger(L, 2);
+    TTF_Font* font_resource = TTF_OpenFont(font_path.string().c_str(), pt_size);
+    if (font_resource == nullptr) {
+        luaL_error(L, "Error: %s", SDL_GetError());
+        return 0;
+    }
     create<builtin::font>(L, builtin::font{
-        .ptr{TTF_OpenFont(font_path.string().c_str(), pt_size), TTF_CloseFont},
+        .ptr{font_resource, TTF_CloseFont},
         .pt_size = pt_size,
         .file_path = font_path
     });

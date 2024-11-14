@@ -302,12 +302,19 @@ static int fill_polygon(lua_State* L) {
     return 0;
 }
 static int draw_text(lua_State* L) {
-    mat3f tr = util::default_transform;
-    if (is_type<bi::matrix3>(L, 2)) {
-        tr = check<bi::matrix3>(L, 2);
+    if (is_type<bi::font>(L, 1)) {
+        const mat3f& tr = is_type<bi::matrix3>(L, 3) ? mat3f(check<bi::matrix3>(L, 3)) : util::default_transform;
+        util::draw(check<bi::font>(L, 1), luaL_checkstring(L, 2), tr);
+        return 0;
+
     }
-    util::draw(engine::default_font(), luaL_checkstring(L, 1), tr);
-    return 0;
+    std::string_view text = luaL_checkstring(L, 1);
+    if (is_type<bi::matrix3>(L, 2)) {
+        mat3f tr = check<bi::matrix3>(L, 2);
+        util::draw(engine::default_font(), text, tr);
+        return 0;
+    }
+    return err_invalid_type(L);
 }
 static int clear(lua_State* L) {
     if (is_type<color>(L, 1)) {
