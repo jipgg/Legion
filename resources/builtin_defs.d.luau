@@ -276,8 +276,9 @@ type matrix3_constructor = typeof(setmetatable({
     from_rotation = function(radians: number): matrix3 return {} :: any end,
     from_position = function(translation: vector2): matrix3 return {} :: any end,
         }, {__call = function(...): matrix3 return {} :: any end}))
-declare matrix3: ((e11: number?, e12: number?, e13: number?, e21: number?, e22: number?, e23: number?, e31: number?, e32: number?, e33: number?)->matrix3)
-        & ((row1: {number}, row2: {number}, row3: {number}))
+declare matrix3: 
+        & ((row1: {number}, row2: {number}, row3: {number})->matrix3)
+        & ((e11: number?, e12: number?, e13: number?, e21: number?, e22: number?, e23: number?, e31: number?, e32: number?, e33: number?)->matrix3)
         & matrix3_constructor
 declare color: ((r: number?, g: number?, b: number?, a: number?)->color)
         & constructor<color>

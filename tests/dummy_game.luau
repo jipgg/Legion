@@ -2,9 +2,9 @@
 local render = engine.get_module("rendering")
 local grph = engine.get_module('graphics')
 local res_dir = fs.path("resources")
-local transform = require('@tests/transform')
 
 local a = matrix3.from_position(vector2(100, 100))
+matrix3{}
 local g = matrix3(
     {1, 0, 0},
     {0, 1, 0},
@@ -55,8 +55,8 @@ engine.rendering:connect(function()
         abs(sin(jw_angle)) * 255, 255)
     local c_inverted = color(0xff - c.r, 0xff - c.g, 0xff - c.b, 0xff)
     grph.set_color(c)
-    local transformation = transform.translate(vector2(50, 400))
-    transformation *= transform.scale(vector2(1, cos(jw_angle * 4) * .1 + 1))
+    local transformation = matrix3.from_position(vector2(50, 400))
+    transformation *= matrix3.from_scale(vector2(1, cos(jw_angle * 4) * .1 + 1))
     grph.draw_text(my_font, table.concat(hello_text), transformation)
     grph.fill_circle(vector2(100, 100), 40)
     grph.set_color(c_inverted)

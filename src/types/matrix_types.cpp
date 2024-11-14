@@ -26,7 +26,12 @@ static int ctor(lua_State* L) {
 }
 static int ctor_call(lua_State* L) {
     auto element = [](lua_State* L, int objidx, int tblidx) {
+        if (not lua_istable(L, objidx)) return 0.0;
         lua_rawgeti(L, objidx, tblidx);
+        if (lua_isnil(L, -1)) {
+            lua_pop(L, 1);
+            return 0.0;
+        }
         const double e = luaL_checknumber(L, -1);
         lua_pop(L, 1);
         return e;

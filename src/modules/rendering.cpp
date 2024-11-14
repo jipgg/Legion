@@ -7,6 +7,7 @@
 #include <SDL_image.h>
 #include <cstddef>
 #include "engine.h"
+#include "util.h"
 static std::vector<SDL_Point> point_buffer;
 static std::vector<SDL_Rect> rect_buffer;
 static std::vector<SDL_Vertex> vertex_buffer;
@@ -15,13 +16,11 @@ using bi::color;
 using bi::rectangle;
 using bi::vector2;
 using bi::texture;
+using util::renderer;
 static int err_sdl(lua_State* L) {
     luaL_error(L, "SDL Error: %s", SDL_GetError());
 }
 
-SDL_Renderer* renderer() {
-    return SDL_GetRenderer(engine::window());
-}
 static int set_draw_color(lua_State* L) {
     auto& c = check<color>(L, 1);
     SDL_SetRenderDrawColor(renderer(), c.r, c.g, c.b, c.a);
