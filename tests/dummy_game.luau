@@ -1,6 +1,21 @@
 --!strict
 local gr = engine.get_module('graphics')
 local res_dir = fs.path("resources")
+local fps_label = {
+    accumulated = 0,
+    frame_count = 0,
+    label = "fps",
+}
+fps_label.update_connection = engine.updating:connect(function(dt: number)
+    local self = fps_label
+    self.frame_count += 1
+    self.accumulated += dt
+    if (self.accumulated >= 1) then
+        self.label = `{self.frame_count} fps`
+        self.frame_count = 0
+        self.accumulated = 0
+    end
+end)
 
 local a = matrix3.from_position(vector2(100, 100))
 matrix3()
@@ -70,7 +85,9 @@ engine.rendering:connect(function()
     gr.fill_rectangle(rectangle(200-40, 200-40, 80, 80))
     gr.set_color(col:modulate(col))
     gr.fill_circle(vector2(100, 200), 40)
-    gr.draw_string('yoooooooooo\nwooorld\tfrfr', matrix3.from_position(vector2(100, 0)))
+    gr.set_color(color(255, 255, 0, 50))
+    gr.set_blend_mode('blend')
+    gr.fill_circle(vector2(500, 500), 500, true)
 end)
 engine.rendering:connect(function()
     local angle = jw_angle
@@ -118,6 +135,11 @@ connection = engine.updating:connect(function(deltasec: number)
         engine.updating:disconnect(connection);
         my_event:fire(11000)
     end
+end)
+fps_label.render_connection = engine.rendering:connect(function()
+    local self = fps_label
+    gr.set_color(color(255, 255, 255, 255))
+    gr.draw_string(self.label, matrix3.from_position(vector2(0, 0)))
 end)
 
 engine.key_released:connect(function(key: keycode)

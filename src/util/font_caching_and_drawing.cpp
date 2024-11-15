@@ -59,7 +59,7 @@ void cache(const bi::font& font, char to_cache) {
     dummy[0] = to_cache;
     SDL_Surface* surface = TTF_RenderText_Blended(font.ptr.get(),
     dummy.c_str(), plain_white);
-    deferred d([&surface]{ SDL_FreeSurface(surface); });
+    scope_guard d([&surface]{ SDL_FreeSurface(surface); });
     bi::texture_ptr txt{SDL_CreateTextureFromSurface(util::renderer(), surface), SDL_DestroyTexture};
     bi::texture loaded{.ptr = std::move(txt), .w = surface->w, .h = surface->h};
     get_cache(font).insert({to_cache, std::move(loaded)});

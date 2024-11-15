@@ -21,10 +21,10 @@ using vec3f = blaze::StaticVector<float, 3>;
 using vec2i = blaze::StaticVector<int, 2, false, blaze::aligned, blaze::unpadded>;
 using mat3x3 = blaze::StaticMatrix<double, 3, 3>;
 using mat3f = blaze::StaticMatrix<float, 3, 3>;
-struct deferred {
+struct scope_guard {
     using defer_function = std::function<void()>;
     defer_function block;
-    ~deferred() {block();};
+    ~scope_guard() {block();};
 };
 //concepts
 template <class Ty>

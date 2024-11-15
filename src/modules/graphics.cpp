@@ -7,6 +7,7 @@
 #include <SDL_image.h>
 #include "engine.h"
 #include "util.h"
+#include "common.h"
 static std::vector<float> float_buffer;
 static std::vector<SDL_Point> point_buffer;
 static std::vector<SDL_Rect> rect_buffer;
@@ -34,18 +35,48 @@ __forceinline static void fill_ellipse_with_alpha_channel_impl(
     }
     SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
 }
-__forceinline static void fill_circle_with_alpha_channel_impl(SDL_Renderer* renderer, int center_x, int center_y, int radius) {
-    int inner = radius - 1;
-    int inner_squared = inner * inner;
-    int radius_squared = radius * radius;
-    for (int y = -radius; y <= radius; y++) {
-        for (int x = -radius; x <= radius; x++) {
-            int distance_squared = x * x + y * y;
-            if (distance_squared <= radius_squared) {
-                SDL_RenderDrawPoint(renderer, center_x + x, center_y + y);
+static void fill_circle_with_alpha_channel_impl(SDL_Renderer* renderer, int center_x, int center_y, int radius) {
+    SDL_Color curr_draw_color;
+    SDL_GetRenderDrawColor(renderer, &curr_draw_color.r, &curr_draw_color.g, &curr_draw_color.b, &curr_draw_color.a);
+    static std::unordered_map<int, std::unique_ptr<SDL_Texture, decltype(&SDL_DestroyTexture)>> circle_cache;
+    const int diameter = radius * 2;
+    if (auto it = circle_cache.find(radius);it == circle_cache.end()) {
+        SDL_Texture* cache = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, diameter, diameter);
+        SDL_SetTextureBlendMode(cache, SDL_BLENDMODE_BLEND);
+        SDL_SetRenderTarget(renderer, cache);
+        scope_guard a([&renderer] {
+            SDL_SetRenderTarget(renderer, nullptr);
+        });
+        SDL_SetRenderDrawColor(renderer, 0xff, 0xff, 0xff, 0xff);
+        scope_guard b([&renderer, &curr_draw_color]{
+            SDL_SetRenderDrawColor(renderer, curr_draw_color.r, curr_draw_color.g, curr_draw_color.b, curr_draw_color.a);
+        });
+        const int total = static_cast<int>(std::ceil(M_PI * static_cast<double>(radius * radius)));
+        point_buffer.resize(0);
+        point_buffer.reserve(total);
+        const int radius_squared = radius * radius;
+        for (int y = -radius; y <= radius; y++) {
+            for (int x = -radius; x <= radius; x++) {
+                const int distance_squared = x * x + y * y;
+                if (distance_squared <= radius * radius) {
+                    point_buffer.emplace_back(SDL_Point{.x = radius + x, .y = radius + y});
+                }
             }
         }
+        SDL_RenderDrawPoints(renderer, point_buffer.data(), point_buffer.size());
+        circle_cache.insert({radius, std::unique_ptr<SDL_Texture, decltype(&SDL_DestroyTexture)>{cache, SDL_DestroyTexture}});
+        SDL_SetRenderTarget(renderer, nullptr);
     }
+    SDL_Texture* circle = circle_cache.at(radius).get();
+    const SDL_Rect dst{
+        .x = center_x - radius,
+        .y = center_y - radius,
+        .w = diameter,
+        .h = diameter,
+    };
+    SDL_SetTextureColorMod(circle, curr_draw_color.r, curr_draw_color.g, curr_draw_color.b);
+    SDL_SetTextureAlphaMod(circle, curr_draw_color.a);
+    SDL_RenderCopy(renderer, circle, nullptr, &dst);
 }
 __forceinline static void fill_circle_impl(SDL_Renderer* renderer, int x, int y, int radius) {
     int dx = 0;

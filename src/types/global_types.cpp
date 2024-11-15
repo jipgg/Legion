@@ -320,7 +320,7 @@ static int texture_ctor_call(lua_State* L) {
         luaL_error(L, SDL_GetError());
         return 0;
     }
-    deferred d([&surface] {SDL_FreeSurface(surface);});
+    scope_guard d([&surface] {SDL_FreeSurface(surface);});
     SDL_Texture* texture = SDL_CreateTextureFromSurface(util::renderer(), surface);
     if (not texture) {
         luaL_error(L, SDL_GetError());
@@ -345,7 +345,7 @@ static int texture_ctor_from_string(lua_State* L) {
         luaL_error(L, SDL_GetError());
         return 0;
     }
-    deferred d([&surface]{SDL_FreeSurface(surface);});
+    scope_guard d([&surface]{SDL_FreeSurface(surface);});
     SDL_Texture* texture = SDL_CreateTextureFromSurface(util::renderer(), surface);
     if (not texture) {
         luaL_error(L, SDL_GetError());

@@ -97,7 +97,7 @@ static int lua_load_image(lua_State* L) {
         luaL_error(L, SDL_GetError());
         return 0;
     }
-    deferred d{[&loaded]{ SDL_FreeSurface(loaded); }};
+    scope_guard d{[&loaded]{ SDL_FreeSurface(loaded); }};
     SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer_ptr, loaded);
     if (not texture) {
         luaL_error(L, SDL_GetError());
