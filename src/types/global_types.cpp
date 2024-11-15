@@ -98,7 +98,7 @@ static int color_namecall(lua_State* L) {
     };
     using la  = lua_atom;
     switch (static_cast<lua_atom>(atom)) {
-        case la::modulate: {
+        case la::modulate: {//should refactor these for using it in draw_texture
             const vec3f dst_rgb{to_percent(self.r), to_percent(self.g), to_percent(self.b)};
             const float dst_a{to_percent(self.a)};
             const auto& other = check<bi::color>(L, 2);
@@ -245,7 +245,7 @@ static void rectangle_init(lua_State* L) {
     lua_setglobal(L, "rectangle");
 }
 //texture
-static constexpr size_t color_mod_length{std::string("color_mod").length()};
+static constexpr size_t color_length{std::string("color").length()};
 static constexpr size_t blend_mode_length{std::string("blend_mode").length()};
 static int texture_index(lua_State* L) {
     auto& r = check<bi::texture>(L, 1);
@@ -261,7 +261,7 @@ static int texture_index(lua_State* L) {
             lua_pushinteger(L, r.h);
             return 1;
         case 'c':
-            engine::expect(length == color_mod_length, invalid_member_key + luaL_checkstring(L, 2));
+            engine::expect(length == color_length, invalid_member_key + luaL_checkstring(L, 2));
             bi::color color;
             SDL_GetTextureColorMod(r.ptr.get(), &color.r, &color.g, &color.b);
             SDL_GetTextureAlphaMod(r.ptr.get(), &color.a);
@@ -280,16 +280,32 @@ static int texture_newindex(lua_State* L) {
     auto& r = check<bi::texture>(L, 1);
     size_t length;
     const char key = *luaL_checklstring(L, 2, &length);
-    int v = luaL_checkinteger(L, 3);
     switch (key) {
-        case 'w':
+        case 'w': {
             engine::expect(length == width_length);
+            const int v = luaL_checkinteger(L, 3);
             r.w = v;
             return 0;
-        case 'h':
+        }
+        case 'h': {
             engine::expect(length == height_length);
+            const int v = luaL_checkinteger(L, 3);
             r.h = v;
             return 0;
+        }
+        case 'c': {
+            engine::expect(length == color_length, invalid_member_key + luaL_checkstring(L, 2));
+            const auto& new_color = check<bi::color>(L, 3);
+            SDL_SetTextureColorMod(r.ptr.get(), new_color.r, new_color.g, new_color.b);
+            SDL_SetTextureAlphaMod(r.ptr.get(), new_color.a);
+            return 0;
+        }
+        case 'b': {
+            engine::expect(length == blend_mode_length, invalid_member_key + luaL_checkstring(L, 2));
+            SDL_BlendMode bm = string_to_blendmode(luaL_checkstring(L, 3));
+            SDL_SetTextureBlendMode(r.ptr.get(), bm);
+            return 0;
+        }
         default:
             return lua_err::invalid_member(L, tn::texture);
     }

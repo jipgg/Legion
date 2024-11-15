@@ -61,15 +61,13 @@ void cache(const bi::font& font, char to_cache) {
     dummy.c_str(), plain_white);
     deferred d([&surface]{ SDL_FreeSurface(surface); });
     bi::texture_ptr txt{SDL_CreateTextureFromSurface(util::renderer(), surface), SDL_DestroyTexture};
-    //SDL_SetTextureBlendMode(txt.get(), SDL_BLENDMODE_BLEND);
-    //SDL_SetTextureAlphaMod(loaded.ptr.get(), 255);
-    //SDL_SetTextureColorMod(loaded.ptr.get(), 0, 255, 0);
     bi::texture loaded{.ptr = std::move(txt), .w = surface->w, .h = surface->h};
     get_cache(font).insert({to_cache, std::move(loaded)});
 }
 
-void draw_text(const bi::font& font, std::string_view text, const mat3f& transform) {
+void draw_string(const bi::font& font, std::string_view string, const mat3f& transform, const font_traits& traits) {
     float x_off{};
+    float y_off{};
     SDL_Color curr_draw_color{};
     SDL_GetRenderDrawColor(renderer(),
         &curr_draw_color.r, &curr_draw_color.g,
@@ -77,12 +75,24 @@ void draw_text(const bi::font& font, std::string_view text, const mat3f& transfo
     );
     const font_id id{font};
     font_cache& fc = get_cache(font);
-    for (char c : text) {
+    for (char c : string) {
         if (auto it = fc.find(c); it == fc.end()) {
             util::cache(font, c);
         }
         const auto& txt = fc.at(c);
-        const SDL_FRect rect{x_off, 0, static_cast<float>(txt.w), static_cast<float>(txt.h)};
+        switch (c) {
+            case '\n':
+                x_off = 0;
+                y_off += txt.h + traits.newline_margin;
+                continue;
+            case '\t':
+                if (auto space = fc.find(' '); space == fc.end()) {
+                    util::cache(font, ' ');
+                }
+                x_off += fc.at(' ').w * traits.tab_width;
+                continue;
+        }
+        const SDL_FRect rect{x_off, y_off, static_cast<float>(txt.w), static_cast<float>(txt.h)};
         x_off += txt.w;
         const std::array<float, 8> xy = util::get_quad_transform_raw(rect, transform);
         SDL_RenderGeometryRaw(

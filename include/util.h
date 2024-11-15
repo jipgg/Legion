@@ -14,7 +14,11 @@ bool cache(const builtin::font& font, std::string_view to_cache);
 void cache(const builtin::font& font, char to_cache);
 void clear_font_cache_registry();
 void clear_font_cache(const builtin::font& font);
-void draw_text(const builtin::font& font, std::string_view text, const mat3f& transform = default_transform);
+struct font_traits {
+    int newline_margin{0};
+    int tab_width{4};
+};
+void draw_string(const builtin::font& font, std::string_view string, const mat3f& transform = default_transform, const font_traits& traits = {});
 void fill_circle();
 void fill_ellipse();
 

@@ -200,12 +200,12 @@ export type graphics_module = {
     fill_polygon: ({vector2})->(),
     fill_circle: (center: vector2, radius: number, smooth_alpha_channel: boolean?)->(),
     fill_ellipse: (center: vector2, radius: vector2, smooth_alpha_channel: boolean?)->(),
-    draw_text: ((font: font, text: string, transform: matrix3?)->())
+    draw_string: ((ft: font, str: string, transform: matrix3?)->())
         & ((text: string, transform: matrix3?)->()),
     clear_canvas: (bg: color?)->(),
-    draw_image: ((txt: texture, pos: vector2?)->())
-        & ((txt: texture, dest: rectangle)->())
-        & ((txt: texture, trs: matrix3, use_draw_color: boolean?)->()),
+    draw_texture: ((texture: texture, pos: vector2?)->())
+        & ((texture: texture, dest: rectangle)->())
+        & ((texture: texture, trs: matrix3)->()),
 }
 export type luau_iterator_library = {
     ireverse: <T>(t:{T})->(()->T?),

@@ -291,17 +291,17 @@ static int fill_polygon(lua_State* L) {
     }
     return 0;
 }
-static int draw_text(lua_State* L) {
+static int draw_string(lua_State* L) {
     if (is_type<bi::font>(L, 1)) {
         const mat3f& tr = is_type<bi::matrix3>(L, 3) ? mat3f(check<bi::matrix3>(L, 3)) : util::default_transform;
-        util::draw_text(check<bi::font>(L, 1), luaL_checkstring(L, 2), tr);
+        util::draw_string(check<bi::font>(L, 1), luaL_checkstring(L, 2), tr);
         return 0;
 
     }
     std::string_view text = luaL_checkstring(L, 1);
     if (is_type<bi::matrix3>(L, 2)) {
         mat3f tr = check<bi::matrix3>(L, 2);
-        util::draw_text(engine::default_font(), text, tr);
+        util::draw_string(engine::default_font(), text, tr);
         return 0;
     }
     return lua_err::invalid_type(L);
@@ -326,11 +326,15 @@ static int draw_texture(lua_State* L) {
         auto& transform = check<bi::matrix3>(L, 2);
         auto xy = util::get_quad_transform_raw(vec2i{r.w, r.h}, transform);
         SDL_Color c{0xff, 0xff, 0xff, 0xff};
+        SDL_GetTextureColorMod(r.ptr.get(), &c.r, &c.g, &c.b);
+        SDL_GetTextureAlphaMod(r.ptr.get(), &c.a);
+        /*
         SDL_BlendMode mode;
         SDL_GetTextureBlendMode(r.ptr.get(), &mode);
         if (mode == SDL_BLENDMODE_BLEND) {
             SDL_GetRenderDrawColor(util::renderer(), &c.r, &c.g, &c.b, &c.a);
         }
+        */
         if (SDL_RenderGeometryRaw(
             util::renderer(),
             r.ptr.get(),
@@ -374,8 +378,8 @@ int lib_graphics(lua_State *L) {
         {"fill_polygon", fill_polygon},
         {"fill_circle", fill_circle},
         {"fill_ellipse", fill_ellipse},
-        {"draw_text", draw_text},
-        {"draw_image", draw_texture},
+        {"draw_string", draw_string},
+        {"draw_texture", draw_texture},
         {"clear_canvas", clear},
         {nullptr, nullptr}
     };
