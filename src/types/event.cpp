@@ -56,7 +56,7 @@ static int namecall(lua_State* L) {
     using la = lua_atom;
     switch (static_cast<la>(atom)) {
         case la::connect: {
-            if (not lua_isfunction(L, 2)) return err_invalid_type(L);
+            if (not lua_isfunction(L, 2)) return lua_err::invalid_type(L);
             event::connection connection = r.connect(2);
             create<event::connection>(L, std::move(connection));
             return 1;
@@ -72,10 +72,9 @@ static int namecall(lua_State* L) {
             return 0;
         }
         default:
-        return err_invalid_method(L, tname::event);
+        return lua_err::invalid_method(L, tname::event);
     }
 }
-
 int connection_id_tostring(lua_State* L) {
     auto& connection = check<event::connection>(L, 1);
     lua_pushstring(L, std::to_string(connection.id).c_str());

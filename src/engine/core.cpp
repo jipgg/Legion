@@ -232,14 +232,14 @@ static void init(engine::start_options opts) {
     TTF_Font* font_resource = TTF_OpenFont(font_path.string().c_str(), pt_size);
     if (not font_resource) {
         printerr(SDL_GetError());
-        std::abort();
+        assert(false);
     }
     default_font_ptr = std::make_unique<builtin::font>(builtin::font{
         .ptr{font_resource, TTF_CloseFont},
         .pt_size = pt_size,
         .file_path = font_path
     });
-    assert(default_font_ptr->ptr.get());
+    engine::expect(default_font_ptr->ptr.get());
     main_state = luaL_newstate();
     bin_path = std::move(opts.bin_path);
     init_luau_state(main_state, opts.main_entry_point);

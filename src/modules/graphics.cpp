@@ -101,24 +101,15 @@ __forceinline static void fill_ellipse_impl(SDL_Renderer* renderer, int center_x
         }
     }
 }
-__forceinline static SDL_Renderer* renderer() {
-    return SDL_GetRenderer(engine::window());
-}
 static int set_color(lua_State* L) {
     auto& c = check<color>(L, 1);
-    SDL_SetRenderDrawColor(renderer(), c.r, c.g, c.b, c.a);
+    SDL_SetRenderDrawColor(util::renderer(), c.r, c.g, c.b, c.a);
     return 0;
 }
 static int set_blend_mode(lua_State* L) {
     std::string_view mode = luaL_checkstring(L, 1);
-    SDL_BlendMode blend;
-    if (mode == "none") blend = SDL_BLENDMODE_NONE;
-    else if (mode == "mul") blend = SDL_BLENDMODE_MUL;
-    else if (mode == "add") blend = SDL_BLENDMODE_ADD;
-    else if (mode == "mod") blend = SDL_BLENDMODE_MOD;
-    else if (mode == "blend") blend  = SDL_BLENDMODE_BLEND;
-    else blend = SDL_BLENDMODE_INVALID;
-    SDL_SetRenderDrawBlendMode(renderer(), blend);
+    SDL_BlendMode blend = string_to_blendmode(mode);
+    SDL_SetRenderDrawBlendMode(util::renderer(), blend);
     return 0;
 }
 static int draw_rectangle(lua_State* L) {
@@ -141,8 +132,8 @@ static int draw_rectangle(lua_State* L) {
             static_cast<int>(size[1])
         };
     
-    } else return err_invalid_type(L);
-    SDL_RenderDrawRect(renderer(), &dummy);
+    } else return lua_err::invalid_type(L);
+    SDL_RenderDrawRect(util::renderer(), &dummy);
     return 0;
 }
 static int draw_rectangles(lua_State* L) {
@@ -160,7 +151,7 @@ static int draw_rectangles(lua_State* L) {
         };
         rect_buffer.emplace_back(dummy);
     }
-    SDL_RenderDrawRects(renderer(), rect_buffer.data(), rect_buffer.size());
+    SDL_RenderDrawRects(util::renderer(), rect_buffer.data(), rect_buffer.size());
     return 0;
 }
 static int draw_points(lua_State* L) {
@@ -171,7 +162,7 @@ static int draw_points(lua_State* L) {
         auto& p = check<vector2>(L, i);
         point_buffer.emplace_back(SDL_Point{static_cast<int>(p.at(0)), static_cast<int>(p.at(1))});
     }
-    SDL_RenderDrawPoints(renderer(), point_buffer.data(), point_buffer.size());
+    SDL_RenderDrawPoints(util::renderer(), point_buffer.data(), point_buffer.size());
     return 0;
 }
 static int fill_rectangle(lua_State* L) {
@@ -194,8 +185,8 @@ static int fill_rectangle(lua_State* L) {
             static_cast<int>(size[1])
         };
     
-    } else return err_invalid_type(L);
-    SDL_RenderFillRect(renderer(), &dummy);
+    } else return lua_err::invalid_argument(L, 1, (std::string(bi::tname::rectangle) + " | " + bi::tname::vector2).c_str());
+    SDL_RenderFillRect(util::renderer(), &dummy);
     return 0;
 }
 static int fill_rectangles(lua_State* L) {
@@ -210,18 +201,18 @@ static int fill_rectangles(lua_State* L) {
             static_cast<int>(r.h),
         };
     }
-    SDL_RenderFillRects(renderer(), rect_buffer.data(), rect_buffer.size());
+    SDL_RenderFillRects(util::renderer(), rect_buffer.data(), rect_buffer.size());
     return 0;
 }
 static int draw_line(lua_State* L) {
     auto& t0 = check<vector2>(L, 1);
     auto& t1 = check<vector2>(L, 2);
-    SDL_RenderDrawLine(renderer(), t0.at(0), t0.at(1), t1.at(0), t1.at(1));
+    SDL_RenderDrawLine(util::renderer(), t0.at(0), t0.at(1), t1.at(0), t1.at(1));
     return 0;
 }
 static int draw_point(lua_State* L) {
     auto& p = check<bi::vector2>(L, 1);
-    SDL_RenderDrawPoint(renderer(), p.at(0), p.at(1));
+    SDL_RenderDrawPoint(util::renderer(), p.at(0), p.at(1));
     return 0;
 }
 static int draw_lines(lua_State* L) {
@@ -232,7 +223,7 @@ static int draw_lines(lua_State* L) {
         auto& p = check<bi::vector2>(L, i);
         point_buffer.emplace_back(SDL_Point{int(p.at(0)), int(p.at(1))});
     }
-    SDL_RenderDrawLines(renderer(), point_buffer.data(), point_buffer.size());
+    SDL_RenderDrawLines(util::renderer(), point_buffer.data(), point_buffer.size());
     return 0;
 }
 
@@ -248,7 +239,7 @@ static int draw_polygon(lua_State* L) {
         lua_pop(L, 1);
     }
     point_buffer.emplace_back(point_buffer.front());
-    SDL_RenderDrawLines(renderer(), point_buffer.data(), point_buffer.size());
+    SDL_RenderDrawLines(util::renderer(), point_buffer.data(), point_buffer.size());
     return 0;
 }
 
@@ -257,10 +248,10 @@ static int fill_circle(lua_State* L) {
     double radius = luaL_checknumber(L, 2);
     const bool has_alpha_channel = luaL_optboolean(L, 3, false);
     if (has_alpha_channel) {
-        fill_circle_with_alpha_channel_impl(renderer(), int(center[0]), int(center[1]), int(radius));
+        fill_circle_with_alpha_channel_impl(util::renderer(), int(center[0]), int(center[1]), int(radius));
         return 0;
     }
-    fill_circle_impl(renderer(), int(center[0]), int(center[1]), int(radius));
+    fill_circle_impl(util::renderer(), int(center[0]), int(center[1]), int(radius));
     return 0;
 }
 static int fill_ellipse(lua_State* L) {
@@ -273,10 +264,10 @@ static int fill_ellipse(lua_State* L) {
     const int ry = int(radius[1]);
     const bool has_alpha_channel = luaL_optboolean(L, 3, false);
     if (has_alpha_channel) {
-        fill_ellipse_with_alpha_channel_impl(renderer(), x, y, rx, ry);
+        fill_ellipse_with_alpha_channel_impl(util::renderer(), x, y, rx, ry);
         return 0;
     }
-    fill_ellipse_impl(renderer(), int(center[0]), int(center[1]), int(radius[0]), int(radius[1]));
+    fill_ellipse_impl(util::renderer(), int(center[0]), int(center[1]), int(radius[0]), int(radius[1]));
     return 0;
 }
 static int fill_polygon(lua_State* L) {
@@ -292,9 +283,9 @@ static int fill_polygon(lua_State* L) {
     float_buffer.emplace_back(float_buffer.front());
     float_buffer.emplace_back(float_buffer.front() + 1);
     SDL_Color c{};
-    SDL_GetRenderDrawColor(renderer(), &c.r, &c.g, &c.b, &c.a);
+    SDL_GetRenderDrawColor(util::renderer(), &c.r, &c.g, &c.b, &c.a);
     if (SDL_RenderGeometryRaw(
-        renderer(), nullptr,
+        util::renderer(), nullptr,
         float_buffer.data(), 8, &c, 0, nullptr, 0, float_buffer.size() / 2, nullptr, 0, 0)) {
         printerr(SDL_GetError());
     }
@@ -313,30 +304,31 @@ static int draw_text(lua_State* L) {
         util::draw_text(engine::default_font(), text, tr);
         return 0;
     }
-    return err_invalid_type(L);
+    return lua_err::invalid_type(L);
 }
 static int clear(lua_State* L) {
     if (is_type<color>(L, 1)) {
         auto& c = check<color>(L, 1);
-        SDL_SetRenderDrawColor(renderer(), c.r, c.g, c.b, c.a);
+        SDL_SetRenderDrawColor(util::renderer(), c.r, c.g, c.b, c.a);
     }
-    SDL_RenderClear(renderer());
+    SDL_RenderClear(util::renderer());
     return 0;
 }
 static int flush(lua_State* L) {
-    SDL_RenderFlush(renderer());
+    SDL_RenderFlush(util::renderer());
     return 0;
 }
 static int draw_texture(lua_State* L) {
     const texture& r = check<texture>(L, 1);
     SDL_Rect src{0, 0, r.w, r.h};
     SDL_Rect dst = src;
-    const bool use_draw_color = luaL_optboolean(L, 3, false);
     if (is_type<bi::matrix3>(L, 2)) {
         auto& transform = check<bi::matrix3>(L, 2);
         auto xy = util::get_quad_transform_raw(vec2i{r.w, r.h}, transform);
         SDL_Color c{0xff, 0xff, 0xff, 0xff};
-        if (use_draw_color) {
+        SDL_BlendMode mode;
+        SDL_GetTextureBlendMode(r.ptr.get(), &mode);
+        if (mode == SDL_BLENDMODE_BLEND) {
             SDL_GetRenderDrawColor(util::renderer(), &c.r, &c.g, &c.b, &c.a);
         }
         if (SDL_RenderGeometryRaw(
@@ -362,12 +354,7 @@ static int draw_texture(lua_State* L) {
         dst.w = dim.w;
         dst.h = dim.h;
     }
-    deferred to_defer;
-    if (use_draw_color) {
-        SDL_SetTextureBlendMode(r.ptr.get(), SDL_BLENDMODE_BLEND);
-        to_defer = deferred([&r] {SDL_SetTextureBlendMode(r.ptr.get(), SDL_BLENDMODE_NONE);});
-    }
-    SDL_RenderCopy(renderer(), r.ptr.get(), &src, &dst);
+    SDL_RenderCopy(util::renderer(), r.ptr.get(), &src, &dst);
     return 0;
 }
 namespace builtin {

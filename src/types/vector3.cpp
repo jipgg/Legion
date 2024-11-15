@@ -29,9 +29,8 @@ static int index(lua_State *L) {
         case 'x': lua_pushnumber(L, self.at(0)); return 1;
         case 'y': lua_pushnumber(L, self.at(1)); return 1;
         case 'z': lua_pushnumber(L, self.at(2)); return 1;
-        default: return err_invalid_member(L, tn);
+        default: return lua_err::invalid_member(L, tn);
     }
-    return err_invalid_member(L, tn);
 }
 static int newindex(lua_State *L) {
     const double n = luaL_checknumber(L, 3);
@@ -41,15 +40,15 @@ static int newindex(lua_State *L) {
             case 'x': self.at(0) = n; return 0;
             case 'y': self.at(1) = n; return 0;
             case 'z': self.at(2) = n; return 0;
-            default: return err_invalid_member(L, tn);
+            default: return lua_err::invalid_member(L, tn);
         }
     } else if (lua_isnumber(L, 2)) {
         const int index = luaL_checkinteger(L, 2);
-        if (index >= self.size() or index < 0) return err_out_of_range(L, tn);
+        if (index >= self.size() or index < 0) return lua_err::out_of_range(L, tn);
         self[index] = n;
         return 0;
     }
-    return err_invalid_type(L);
+    return lua_err::invalid_type(L);
 }
 static int mul(lua_State *L) {
     assert(lua_isnumber(L, 2));

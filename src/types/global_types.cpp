@@ -4,6 +4,8 @@
 #include "lua_util.h"
 #include "engine.h"
 #include "lua_atom.h"
+#include <SDL_image.h>
+#include "util.h"
 using namespace std::string_literals;
 
 namespace bi = builtin;
@@ -20,7 +22,7 @@ static constexpr size_t green_length{std::string("green").length()};
 static constexpr size_t blue_length{std::string("blue").length()};
 static constexpr size_t alpha_length{std::string("alpha").length()};
 static const std::string invalid_member_key = "invalid member key "; 
-
+//color
 static int color_ctor(lua_State *L) {
     uint8_t r{}, g{}, b{}, a{};
     create<bi::color>(L,
@@ -142,7 +144,7 @@ static int color_namecall(lua_State* L) {
             return 1;
         }
         default:
-            return err_invalid_method(L, tn::color);
+            return lua_err::invalid_method(L, tn::color);
     }
 }
 void color_init(lua_State *L) {
@@ -242,6 +244,9 @@ static void rectangle_init(lua_State* L) {
     lua_pushcfunction(L, rectangle_ctor, "rectangle_ctor");
     lua_setglobal(L, "rectangle");
 }
+//texture
+static constexpr size_t color_mod_length{std::string("color_mod").length()};
+static constexpr size_t blend_mode_length{std::string("blend_mode").length()};
 static int texture_index(lua_State* L) {
     auto& r = check<bi::texture>(L, 1);
     size_t length;
@@ -255,18 +260,87 @@ static int texture_index(lua_State* L) {
             engine::expect(length == height_length, invalid_member_key + luaL_checkstring(L, 2));
             lua_pushinteger(L, r.h);
             return 1;
-        default: return err_invalid_member(L, tn::texture);
+        case 'c':
+            engine::expect(length == color_mod_length, invalid_member_key + luaL_checkstring(L, 2));
+            bi::color color;
+            SDL_GetTextureColorMod(r.ptr.get(), &color.r, &color.g, &color.b);
+            SDL_GetTextureAlphaMod(r.ptr.get(), &color.a);
+            create<bi::color>(L, std::move(color));
+            return 1;
+        case 'b':
+            engine::expect(length == blend_mode_length, invalid_member_key + luaL_checkstring(L, 2));
+            SDL_BlendMode bm;
+            SDL_GetTextureBlendMode(r.ptr.get(), &bm);
+            lua_pushstring(L, blendmode_to_string(bm));
+            return 1;
+        default: return lua_err::invalid_member(L, tn::texture);
     }
 }
 static int texture_newindex(lua_State* L) {
     auto& r = check<bi::texture>(L, 1);
-    const char key = *luaL_checkstring(L, 2);
+    size_t length;
+    const char key = *luaL_checklstring(L, 2, &length);
     int v = luaL_checkinteger(L, 3);
     switch (key) {
-        case 'w': r.w = v; return 0;
-        case 'h': r.h = v; return 0;
-        default: return err_invalid_member(L, tn::texture);
+        case 'w':
+            engine::expect(length == width_length);
+            r.w = v;
+            return 0;
+        case 'h':
+            engine::expect(length == height_length);
+            r.h = v;
+            return 0;
+        default:
+            return lua_err::invalid_member(L, tn::texture);
     }
+}
+static int texture_ctor_call(lua_State* L) {
+    auto path = resolve_path_type(L, 2);
+    if (not path) {
+        return lua_err::invalid_argument(L, 2, "path | string");
+    }
+    SDL_Surface* surface = IMG_Load(path->c_str());
+    if (not surface) {
+        luaL_error(L, SDL_GetError());
+        return 0;
+    }
+    deferred d([&surface] {SDL_FreeSurface(surface);});
+    SDL_Texture* texture = SDL_CreateTextureFromSurface(util::renderer(), surface);
+    if (not texture) {
+        luaL_error(L, SDL_GetError());
+        return 0;
+    }
+    create<bi::texture>(L, bi::texture{
+        bi::texture_ptr(texture, SDL_DestroyTexture),
+        surface->w,
+        surface->h
+    });
+    return 1;
+}
+static int texture_ctor_from_string(lua_State* L) {
+    const char* string = luaL_checkstring(L, 1);
+    bi::font& font = is_type<bi::font>(L, 2) ?
+        check<bi::font>(L, 2) : engine::default_font();
+    const bi::color& color = is_type<bi::color>(L, 3) ?
+        check<bi::color>(L, 3) : bi::color{0xff, 0xff, 0xff, 0xff};
+    SDL_Surface* surface = TTF_RenderText_Blended(
+        font.ptr.get(), string, color);
+    if (not surface) {
+        luaL_error(L, SDL_GetError());
+        return 0;
+    }
+    deferred d([&surface]{SDL_FreeSurface(surface);});
+    SDL_Texture* texture = SDL_CreateTextureFromSurface(util::renderer(), surface);
+    if (not texture) {
+        luaL_error(L, SDL_GetError());
+        return 0;
+    }
+    create<bi::texture>(L, bi::texture{
+        bi::texture_ptr(texture, SDL_DestroyTexture),
+        surface->w,
+        surface->h
+    });
+    return 1;
 }
 static void texture_init(lua_State* L) {
     if (luaL_newmetatable(L, metatable_name<bi::texture>())) {
@@ -280,6 +354,24 @@ static void texture_init(lua_State* L) {
         lua_setfield(L, -2, mm::type);
     }
     lua_pop(L, 1);
+    const std::string texture_ctor_tname{tn::texture + "_ctor"s};
+    if (luaL_newmetatable(L, texture_ctor_tname.c_str())) {
+        const luaL_Reg meta[] = {
+            {mm::call, texture_ctor_call},
+            {nullptr, nullptr}
+        };
+        luaL_register(L, nullptr, meta);
+    }
+    lua_pop(L, 1);
+    const luaL_Reg ctors[] = {
+        {"from_string", texture_ctor_from_string},
+        {nullptr, nullptr}
+    };
+    lua_newtable(L);
+    luaL_register(L, nullptr, ctors);
+    luaL_getmetatable(L, texture_ctor_tname.c_str());
+    lua_setmetatable(L, -2);
+    lua_setglobal(L, "texture");
 }
 static void opaque_texture_init(lua_State* L) {
     luaL_newmetatable(L, metatable_name<bi::texture_ptr>());
@@ -302,7 +394,7 @@ static int font_index(lua_State* L) {
             return 1;
         }
     } 
-    return err_invalid_member(L, "font");
+    return lua_err::invalid_member(L, "font");
 }
 static int font_newindex(lua_State* L) {
     luaL_error(L, "member access is read-only");

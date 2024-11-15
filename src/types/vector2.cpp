@@ -68,7 +68,7 @@ static int newindex(lua_State *L) {
     switch (*luaL_checkstring(L, 2)) {
         case 'x': r[0] = n; return 0;
         case 'y': r[1] = n; return 0;
-        default: return err_invalid_member(L, tn::vector2);
+        default: return lua_err::invalid_member(L, tn::vector2);
     }
     return 0;
 }

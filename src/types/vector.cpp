@@ -81,13 +81,13 @@ static int namecall(lua_State *L) {
         case la::set: {
             const int index = luaL_checkinteger(L, 2);
             const double value = luaL_checknumber(L, 3);
-            if (not_in_range(index, r.size())) return err_out_of_range(L, tn);
+            if (not_in_range(index, r.size())) return lua_err::out_of_range(L, tn);
             r[index] = value;
             return 0;
         }
         case la::at: {
             const int index = luaL_checkinteger(L, 2);
-            if (not_in_range(index, r.size())) return err_out_of_range(L, tn);
+            if (not_in_range(index, r.size())) return lua_err::out_of_range(L, tn);
             lua_pushnumber(L, r[index]);
             return 1;
         }
@@ -116,13 +116,13 @@ static int namecall(lua_State *L) {
             r.reserve(luaL_checkinteger(L, 2));
             return 0;
         }
-        default: return err_invalid_method(L, tn);
+        default: return lua_err::invalid_method(L, tn);
     }
 }
 static int call(lua_State* L) {
     ty& r = check<ty>(L, 1);
     const int index = luaL_checkinteger(L, 2);
-    if (not_in_range(index, r.size())) return err_out_of_range(L, tn);
+    if (not_in_range(index, r.size())) return lua_err::out_of_range(L, tn);
     lua_pushnumber(L, r[index]);
     return 1;
 }

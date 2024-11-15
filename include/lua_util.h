@@ -7,9 +7,35 @@
 #include "engine.h"
 #include "common.h"
 #include <SDL_scancode.h>
-const char* scancode_to_string(SDL_Scancode scancode);
-SDL_Scancode string_to_scancode(std::string_view string);
+[[nodiscard]] const char* scancode_to_string(SDL_Scancode scancode);
+[[nodiscard]] SDL_Scancode string_to_scancode(std::string_view string);
 std::optional<std::string> resolve_path_type(lua_State* L, int i);
+namespace {
+constexpr const char* bm_add = "add";
+constexpr const char* bm_mod = "mod";
+constexpr const char* bm_mul = "mul";
+constexpr const char* bm_blend = "blend";
+constexpr const char* bm_none = "none";
+constexpr const char* bm_invalid = "invalid";
+}
+[[nodiscard]] __forceinline constexpr const char* blendmode_to_string(SDL_BlendMode bm) {
+    switch (bm) {
+        case SDL_BLENDMODE_ADD: return "add";
+        case SDL_BLENDMODE_MOD: return "mod";
+        case SDL_BLENDMODE_MUL: return "mul";
+        case SDL_BLENDMODE_BLEND: return "blend";
+        case SDL_BLENDMODE_NONE: return "none";
+        default: return "invalid";
+    }
+}
+[[nodiscard]] __forceinline constexpr SDL_BlendMode string_to_blendmode(std::string_view string) {
+    if (string == bm_none) return SDL_BLENDMODE_NONE;
+    else if (string == bm_mul) return SDL_BLENDMODE_MUL;
+    else if (string == bm_add) return SDL_BLENDMODE_ADD;
+    else if (string == bm_mod) return SDL_BLENDMODE_MOD;
+    else if (string == bm_blend) return SDL_BLENDMODE_BLEND;
+    else return SDL_BLENDMODE_INVALID;
+}
 namespace intern {
 inline int unique_tag_incr{0};
 }
@@ -56,23 +82,33 @@ my_type& check(lua_State* L, int objindex) {
     void* ud = lua_touserdatatagged(L, objindex, type_tag<my_type>());
     return *static_cast<my_type*>(ud);
 }
-[[nodiscard]] inline int err_invalid_member(lua_State* L, const char* tname) {
+namespace lua_err {
+__forceinline int invalid_member(lua_State* L, const char* tname) {
     constexpr auto err_index_msg = "invalid %s member '%s'.";
     luaL_error(L, err_index_msg, tname, luaL_checkstring(L, 2));
     return 0;
 }
-[[nodiscard]] inline int err_invalid_method(lua_State* L, const char* tname) {
-    luaL_error(L, "invalid %s method '%s'.");
+__forceinline int invalid_method(lua_State* L, const char* tname) {
+    luaL_error(L, "invalid %s method call '%s'.");
     return 0;
 }
-[[nodiscard]] inline int err_out_of_range(lua_State* L, const char* tname) {
+__forceinline int out_of_range(lua_State* L, const char* tname) {
     luaL_error(L, "index '%d' is out of range in %s", luaL_checkinteger(L, 2), tname);
     return 0;
 }
-[[nodiscard]] inline int err_invalid_type(lua_State* L) {
+__forceinline int invalid_type(lua_State* L) {
     luaL_error(L, "invalid type '%s'.", luaL_typename(L, 2));
     return 0;
 }
-[[nodiscard]] inline bool not_in_range(int index, int size, int min = 0) {
+__forceinline int invalid_argument(lua_State* L, int idx, std::optional<const char*> tname = std::nullopt) {
+    if (tname) {
+        luaL_error(L, "invalid argument %d with type %s, %s expected.", idx, luaL_typename(L, idx), *tname);
+    } else {
+        luaL_error(L, "invalid argument %d with type %s", idx, luaL_typename(L, idx));
+    }
+    return 0;
+}
+}
+ __forceinline bool not_in_range(int index, int size, int min = 0) {
     return index >= size or index < 0;
 }
