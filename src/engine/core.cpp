@@ -228,7 +228,7 @@ static void init(engine::start_options opts) {
     if (opts.vsync_enabled) renderer_flags |= SDL_RENDERER_PRESENTVSYNC;
     renderer_ptr = SDL_CreateRenderer(window_ptr, -1, renderer_flags);
     const fs::path font_path = fs::absolute(bin_path) / "resources" / "main_font.ttf";
-    const int pt_size = 25;
+    const int pt_size = 16;
     TTF_Font* font_resource = TTF_OpenFont(font_path.string().c_str(), pt_size);
     if (not font_resource) {
         printerr(SDL_GetError());

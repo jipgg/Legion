@@ -29,4 +29,20 @@ std::array<float, 8> get_quad_transform_raw(const SDL_FRect& quad, const mat3f& 
 SDL_Renderer* renderer() {
     return SDL_GetRenderer(engine::window());
 }
+SDL_Color current_draw_color() {
+    SDL_Color color;
+    SDL_GetRenderDrawColor(renderer(), &color.r, &color.g, &color.b, &color.a);
+    return color;
+}
+bool render_quad(const SDL_FRect& quad_dim, SDL_Texture* texture,
+    const mat3f& transform, SDL_Color color) {
+    const auto vertices = get_quad_transform_raw(quad_dim, transform);
+    if (SDL_RenderGeometryRaw(renderer(), texture,
+        vertices.data(), vertex_stride, &color, 0,
+        quad_uv.data(), vertex_stride, 4,
+        quad_indices.data(), quad_indices.size(), indices_width)) {
+        return false;
+    }
+    return true;
+}
 }

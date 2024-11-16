@@ -198,7 +198,8 @@ export type graphics_module = {
     draw_lines: ((...vector2)->()) & ((buf: buffer_int32)->()), 
     draw_polygon: ({vector2})->(),
     fill_polygon: ({vector2})->(),
-    fill_circle: (center: vector2, radius: number, smooth_alpha_channel: boolean?)->(),
+    fill_circle: ((center: vector2, radius: number)->())
+        & ((transform: matrix3, radius: number)->()),
     fill_ellipse: (center: vector2, radius: vector2, smooth_alpha_channel: boolean?)->(),
     draw_string: ((ft: font, str: string, transform: matrix3?)->())
         & ((text: string, transform: matrix3?)->()),

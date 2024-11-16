@@ -1,5 +1,6 @@
 #include "util.h"
 #include <unordered_map>
+#include "engine.h"
 namespace bi = builtin;
 //using font_id = std::pair<bi::path, uint16_t>;
 struct font_id {
@@ -94,15 +95,11 @@ void draw_string(const bi::font& font, std::string_view string, const mat3f& tra
         }
         const SDL_FRect rect{x_off, y_off, static_cast<float>(txt.w), static_cast<float>(txt.h)};
         x_off += txt.w;
-        const std::array<float, 8> xy = util::get_quad_transform_raw(rect, transform);
-        SDL_RenderGeometryRaw(
-            util::renderer(),
-            txt.ptr.get(),
-            xy.data(), util::vertex_stride,
-            &curr_draw_color, 0,
-            util::quad_uv.data(), util::vertex_stride,
-            4,
-            util::quad_indices.data(), util::quad_indices.size(), sizeof(int));
+        engine::expect(util::render_quad(
+            rect, 
+            txt.ptr.get(), 
+            transform, 
+            curr_draw_color), SDL_GetError());
     }
 }
 }

@@ -8,9 +8,23 @@
 #include "engine.h"
 #include "util.h"
 #include "common.h"
+namespace std {//vec2i hash
+template<>
+struct hash<vec2i> {
+    size_t operator()(const vec2i& id) const noexcept {
+        size_t x = std::hash<int>{}(id[0]);
+        size_t y = std::hash<int>{}(id[1]);
+        return x ^ (y << 1);
+    }
+};
+}
 static std::vector<float> float_buffer;
 static std::vector<SDL_Point> point_buffer;
 static std::vector<SDL_Rect> rect_buffer;
+using circle_id = int;
+using radius_id = vec2i;
+static std::unordered_map<circle_id, std::unique_ptr<SDL_Texture, decltype(&SDL_DestroyTexture)>> circle_cache;
+static std::unordered_map<radius_id, std::unique_ptr<SDL_Texture, decltype(&SDL_DestroyTexture)>> ellipse_cache;
 namespace bi = builtin;
 using bi::color;
 using bi::rectangle;
@@ -19,74 +33,25 @@ using bi::texture;
 static int err_sdl(lua_State* L) {
     luaL_error(L, "SDL Error: %s", SDL_GetError());
 }
-__forceinline static void fill_ellipse_with_alpha_channel_impl(
-    SDL_Renderer* renderer, int center_x, int center_y, int radius_x, int radius_y) {
-    SDL_Color color;
-    SDL_GetRenderDrawColor(renderer, &color.r, &color.g, &color.b, &color.a);
-    int rx_squared = radius_x * radius_x;
-    int ry_squared = radius_y * radius_y;
-    for (int y = -radius_y; y <= radius_y; y++) {
-        for (int x = -radius_x; x <= radius_x; x++) {
-            float distance_squared = (x * x) / (float)rx_squared + (y * y) / (float)ry_squared;
-            if (distance_squared <= 1.0f) {
-                SDL_RenderDrawPoint(renderer, center_x + x, center_y + y);
-            }
-        }
-    }
-    SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
-}
-static void fill_circle_with_alpha_channel_impl(SDL_Renderer* renderer, int center_x, int center_y, int radius) {
-    SDL_Color curr_draw_color;
-    SDL_GetRenderDrawColor(renderer, &curr_draw_color.r, &curr_draw_color.g, &curr_draw_color.b, &curr_draw_color.a);
-    static std::unordered_map<int, std::unique_ptr<SDL_Texture, decltype(&SDL_DestroyTexture)>> circle_cache;
-    const int diameter = radius * 2;
-    if (auto it = circle_cache.find(radius);it == circle_cache.end()) {
-        SDL_Texture* cache = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, diameter, diameter);
-        SDL_SetTextureBlendMode(cache, SDL_BLENDMODE_BLEND);
-        SDL_SetRenderTarget(renderer, cache);
-        scope_guard a([&renderer] {
-            SDL_SetRenderTarget(renderer, nullptr);
-        });
-        SDL_SetRenderDrawColor(renderer, 0xff, 0xff, 0xff, 0xff);
-        scope_guard b([&renderer, &curr_draw_color]{
-            SDL_SetRenderDrawColor(renderer, curr_draw_color.r, curr_draw_color.g, curr_draw_color.b, curr_draw_color.a);
-        });
-        const int total = static_cast<int>(std::ceil(M_PI * static_cast<double>(radius * radius)));
-        point_buffer.resize(0);
-        point_buffer.reserve(total);
-        const int radius_squared = radius * radius;
-        for (int y = -radius; y <= radius; y++) {
-            for (int x = -radius; x <= radius; x++) {
-                const int distance_squared = x * x + y * y;
-                if (distance_squared <= radius * radius) {
-                    point_buffer.emplace_back(SDL_Point{.x = radius + x, .y = radius + y});
-                }
-            }
-        }
-        SDL_RenderDrawPoints(renderer, point_buffer.data(), point_buffer.size());
-        circle_cache.insert({radius, std::unique_ptr<SDL_Texture, decltype(&SDL_DestroyTexture)>{cache, SDL_DestroyTexture}});
-        SDL_SetRenderTarget(renderer, nullptr);
-    }
-    SDL_Texture* circle = circle_cache.at(radius).get();
-    const SDL_Rect dst{
-        .x = center_x - radius,
-        .y = center_y - radius,
-        .w = diameter,
-        .h = diameter,
-    };
-    SDL_SetTextureColorMod(circle, curr_draw_color.r, curr_draw_color.g, curr_draw_color.b);
-    SDL_SetTextureAlphaMod(circle, curr_draw_color.a);
-    SDL_RenderCopy(renderer, circle, nullptr, &dst);
-}
 __forceinline static void fill_circle_impl(SDL_Renderer* renderer, int x, int y, int radius) {
     int dx = 0;
     int dy = radius;
     int d = 1 - radius;
+    point_buffer.resize(0);
+    const int area = static_cast<int>(std::ceil(M_PI * static_cast<double>(radius * radius)));
+    point_buffer.reserve(area);
     while (dy >= dx) {
-        SDL_RenderDrawLine(renderer, x - dx, y + dy, x + dx, y + dy);
-        SDL_RenderDrawLine(renderer, x - dx, y - dy, x + dx, y - dy);
-        SDL_RenderDrawLine(renderer, x - dy, y + dx, x + dy, y + dx);
-        SDL_RenderDrawLine(renderer, x - dy, y - dx, x + dy, y - dx);
+        point_buffer.emplace_back(SDL_Point{x-dx, y + dy});
+        point_buffer.emplace_back(SDL_Point{x + dx, y + dy});
+
+        point_buffer.emplace_back(SDL_Point{x - dx, y - dy});
+        point_buffer.emplace_back(SDL_Point{x + dx, y - dy});
+
+        point_buffer.emplace_back(SDL_Point{x - dy, y + dx});
+        point_buffer.emplace_back(SDL_Point{x + dy, y + dx});
+
+        point_buffer.emplace_back(SDL_Point{x - dy, y - dx});
+        point_buffer.emplace_back(SDL_Point{x + dy, y - dx});
         if (d < 0) d += 2 * dx + 3;
         else {
             d += 2 * (dx - dy) + 5;
@@ -94,6 +59,7 @@ __forceinline static void fill_circle_impl(SDL_Renderer* renderer, int x, int y,
         }
         dx++;
     }
+    SDL_RenderDrawLines(renderer, point_buffer.data(), point_buffer.size());
 }
 __forceinline static void fill_ellipse_impl(SDL_Renderer* renderer, int center_x, int center_y, int radius_x, int radius_y) {
     int x = 0;
@@ -105,6 +71,9 @@ __forceinline static void fill_ellipse_impl(SDL_Renderer* renderer, int center_x
     int px = 0;
     int py = rx_squared_x2 * y;
     int p1 = ry_squared - (rx_squared * radius_y) + (0.25 * rx_squared);
+    point_buffer.resize(0);
+    const int area = static_cast<int>(std::ceil(M_PI * static_cast<double>(radius_x * radius_y)));
+    point_buffer.reserve(area);
     while (px < py) {
         SDL_RenderDrawLine(renderer, center_x - x, center_y + y, center_x + x, center_y + y);
         SDL_RenderDrawLine(renderer, center_x - x, center_y - y, center_x + x, center_y - y);
@@ -131,6 +100,95 @@ __forceinline static void fill_ellipse_impl(SDL_Renderer* renderer, int center_x
             p2 += rx_squared - py + px;
         }
     }
+    //SDL_RenderDrawLines(renderer, point_buffer.data(), point_buffer.size());
+}
+__forceinline static bool is_cached(int radius) {
+    return circle_cache.find(radius) != circle_cache.end();
+}
+enum class cache_status {
+    not_cached,
+    cached,
+    cached_flipped_r,
+};
+__forceinline static cache_status is_cached(const vec2i& radii) {
+    if (ellipse_cache.find(radii) != ellipse_cache.end()) return cache_status::cached;
+    if (ellipse_cache.find(vec2i{radii[1], radii[0]}) != ellipse_cache.end()) return cache_status::cached_flipped_r;
+    return cache_status::not_cached;
+}
+__forceinline static void cache_circle(SDL_Renderer* renderer, int radius, SDL_Color curr_draw_color = util::current_draw_color()) {
+    const int diameter = radius * 2;
+    SDL_Texture* cache = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, diameter, diameter);
+    SDL_SetTextureBlendMode(cache, SDL_BLENDMODE_BLEND);
+        SDL_SetRenderTarget(renderer, cache);
+        scope_guard a([&renderer] {
+            SDL_SetRenderTarget(renderer, nullptr);
+        });
+        SDL_SetRenderDrawColor(renderer, 0xff, 0xff, 0xff, 0xff);
+        scope_guard b([&renderer, &curr_draw_color]{
+            SDL_SetRenderDrawColor(renderer, curr_draw_color.r, curr_draw_color.g, curr_draw_color.b, curr_draw_color.a);
+        });
+        fill_circle_impl(renderer, radius, radius, radius);
+        circle_cache.insert({radius, std::unique_ptr<SDL_Texture, decltype(&SDL_DestroyTexture)>{cache, SDL_DestroyTexture}});
+}
+__forceinline static void cache_ellipse(SDL_Renderer* renderer, const vec2i& radii, SDL_Color cdc = util::current_draw_color()) {
+    const int diameter_x = radii[0] * 2;
+    const int diameter_y = radii[1] * 2;
+    SDL_Texture* to_cache = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_TARGET, diameter_x, diameter_y);
+    SDL_SetTextureBlendMode(to_cache, SDL_BLENDMODE_BLEND);
+    SDL_SetRenderTarget(renderer, to_cache);
+    scope_guard a([&renderer] {SDL_SetRenderTarget(renderer, nullptr);});
+    SDL_SetRenderDrawColor(renderer, 0xff, 0xff, 0xff, 0xff);
+    scope_guard b([&renderer, &cdc] {SDL_SetRenderDrawColor(renderer, cdc.r, cdc.g, cdc.b, cdc.a);});
+    fill_ellipse_impl(renderer, radii[0], radii[1], radii[0], radii[1]);
+    ellipse_cache.insert({radii, std::unique_ptr<SDL_Texture, decltype(&SDL_DestroyTexture)>(to_cache, SDL_DestroyTexture)});
+    print("cached ellipse", radii[0], radii[1]);
+}
+__forceinline static void fill_cached_ellipse(
+    SDL_Renderer* renderer, const vec2i& radii, mat3f transform = util::default_transform) {
+    SDL_Color color = util::current_draw_color();
+    SDL_Texture* ellipse = nullptr;
+    SDL_FRect dst{
+        .x = static_cast<float>(-radii[0]),
+        .y = static_cast<float>(-radii[1]),
+        .w = static_cast<float>(radii[0] * 2),
+        .h = static_cast<float>(radii[1] * 2),
+    };
+    switch (is_cached(radii)) {
+        case cache_status::not_cached:
+            cache_ellipse(renderer, radii, color);
+            ellipse = ellipse_cache.at(radii).get();
+            break;
+        case cache_status::cached:
+            ellipse = ellipse_cache.at(radii).get();
+            break;
+        case cache_status::cached_flipped_r:
+            transform *= util::rotation_matrix(M_PI / 2.f);
+            dst = {.x = float(-radii[1]), .y = float(-radii[0]), .w = float(radii[1] * 2), .h = float(radii[0] * 2)};
+            ellipse = ellipse_cache.at(vec2i{radii[1], radii[0]}).get();
+            break;
+    }
+    engine::expect(
+        util::render_quad(dst, ellipse, transform, color),
+        SDL_GetError()
+    );
+}
+__forceinline static void fill_cached_circle(SDL_Renderer* renderer, int radius, const mat3f& transform = util::default_transform) {
+    SDL_Color curr_draw_color = util::current_draw_color();
+    const int diameter = radius * 2;
+    if (not is_cached(radius)) {
+        cache_circle(renderer, radius, curr_draw_color);
+    }
+    SDL_Texture* circle = circle_cache.at(radius).get();
+    const SDL_FRect dst{
+        .x = static_cast<float>(-radius),
+        .y = static_cast<float>(-radius),
+        .w = static_cast<float>(diameter),
+        .h = static_cast<float>(diameter),
+    };
+    engine::expect(
+        util::render_quad(dst, circle, transform, curr_draw_color),
+        SDL_GetError()
+    );
 }
 static int set_color(lua_State* L) {
     auto& c = check<color>(L, 1);
@@ -275,30 +333,28 @@ static int draw_polygon(lua_State* L) {
 }
 
 static int fill_circle(lua_State* L) {
-    auto& center = check<vector2>(L, 1);
+    mat3f transform{};
+    if (is_type<vector2>(L, 1)) {
+        auto& center = check<vector2>(L, 1);
+        transform = util::translation_matrix(center);
+    } else if (is_type<bi::matrix3>(L, 1)) {
+        transform = check<bi::matrix3>(L, 1);
+    } else return lua_err::invalid_argument(L, 1);
     double radius = luaL_checknumber(L, 2);
-    const bool has_alpha_channel = luaL_optboolean(L, 3, false);
-    if (has_alpha_channel) {
-        fill_circle_with_alpha_channel_impl(util::renderer(), int(center[0]), int(center[1]), int(radius));
-        return 0;
-    }
-    fill_circle_impl(util::renderer(), int(center[0]), int(center[1]), int(radius));
+    fill_cached_circle(util::renderer(),int(radius), transform);
     return 0;
 }
 static int fill_ellipse(lua_State* L) {
-    auto& center = check<vector2>(L, 1);
+    //auto& center = check<vector2>(L, 1);
+    mat3f transform{};
+    if (is_type<vector2>(L, 1)) {
+        auto& center = check<vector2>(L, 1);
+        transform = util::translation_matrix(center);
+    } else if (is_type<bi::matrix3>(L, 1)) {
+        transform = check<bi::matrix3>(L, 1);
+    } else return lua_err::invalid_argument(L, 1);
     auto& radius = check<vector2>(L, 2);
-
-    const int x = int(center[0]);
-    const int y = int(center[1]);
-    const int rx = int(radius[0]);
-    const int ry = int(radius[1]);
-    const bool has_alpha_channel = luaL_optboolean(L, 3, false);
-    if (has_alpha_channel) {
-        fill_ellipse_with_alpha_channel_impl(util::renderer(), x, y, rx, ry);
-        return 0;
-    }
-    fill_ellipse_impl(util::renderer(), int(center[0]), int(center[1]), int(radius[0]), int(radius[1]));
+    fill_cached_ellipse(util::renderer(), radius, transform);
     return 0;
 }
 static int fill_polygon(lua_State* L) {
@@ -359,13 +415,6 @@ static int draw_texture(lua_State* L) {
         SDL_Color c{0xff, 0xff, 0xff, 0xff};
         SDL_GetTextureColorMod(r.ptr.get(), &c.r, &c.g, &c.b);
         SDL_GetTextureAlphaMod(r.ptr.get(), &c.a);
-        /*
-        SDL_BlendMode mode;
-        SDL_GetTextureBlendMode(r.ptr.get(), &mode);
-        if (mode == SDL_BLENDMODE_BLEND) {
-            SDL_GetRenderDrawColor(util::renderer(), &c.r, &c.g, &c.b, &c.a);
-        }
-        */
         if (SDL_RenderGeometryRaw(
             util::renderer(),
             r.ptr.get(),
@@ -378,7 +427,8 @@ static int draw_texture(lua_State* L) {
             return err_sdl(L);
         }
         return 0;
-    } else if (is_type<vector2>(L, 2)) {
+    }
+    if (is_type<vector2>(L, 2)) {
         const auto& pos = check<vector2>(L, 2);
         dst.x = pos[0];
         dst.y = pos[1];
