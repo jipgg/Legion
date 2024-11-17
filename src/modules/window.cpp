@@ -81,20 +81,20 @@ static int focus(lua_State* L) {
 namespace builtin {
 int lib_window(lua_State *L) {
     const luaL_Reg lib[] = {
-        {"size", size},
-        {"set_size", set_size},
-        {"maximize", maximize},
-        {"minimize", minimize},
-        {"title", title},
-        {"set_title", set_title},
-        {"set_always_on_top", set_always_on_top},
-        {"set_borderless", set_borderless},
-        {"position", position},
-        {"set_position", set_position},
-        {"set_opacity", set_opacity},
-        {"opacity", opacity},
-        {"set_icon", set_icon},
-        {"focus", focus},
+        {"GetSize", size},
+        {"SetSize", set_size},
+        {"Maximize", maximize},
+        {"Minimize", minimize},
+        {"GetTitle", title},
+        {"SetTitle", set_title},
+        {"SetAlwaysOnTop", set_always_on_top},
+        {"SetBorderless", set_borderless},
+        {"GetPosition", position},
+        {"SetPosition", set_position},
+        {"SetOpacity", set_opacity},
+        {"GetOpacity", opacity},
+        {"SetIcon", set_icon},
+        {"Focus", focus},
         {nullptr, nullptr}
     };
     lua_newtable(L);

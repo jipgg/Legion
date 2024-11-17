@@ -55,17 +55,17 @@ static int namecall(lua_State* L) {
     lua_namecallatom(L, &atom);
     using la = lua_atom;
     switch (static_cast<la>(atom)) {
-        case la::connect: {
+        case la::Connect: {
             if (not lua_isfunction(L, 2)) return lua_err::invalid_type(L);
             event::connection connection = r.connect(2);
             create<event::connection>(L, std::move(connection));
             return 1;
         }
-        case la::disconnect: {
+        case la::Disconnect: {
             r.disconnect(check<event::connection>(L, 2));
             return 0;
         }
-        case la::fire: {
+        case la::Fire: {
             lua_remove(L, -lua_gettop(L));//removes event from stack
             //print("top is", lua_gettop(L));
             r.fire(lua_gettop(L));

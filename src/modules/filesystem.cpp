@@ -157,31 +157,31 @@ static int directory_entry_namecall(lua_State* L) {
     lua_namecallatom(L, &atom);
     using la = lua_atom;
     switch (static_cast<la>(atom)) {
-        case la::is_directory:
+        case la::IsDirectory:
             lua_pushboolean(L, r.is_directory());
             return 1;
-        case la::is_fifo:
+        case la::IsFifo:
             lua_pushboolean(L, r.is_fifo());
             return 1;
-        case la::path:
+        case la::Path:
             create<fs::path>(L, r.path());
             return 1;
-        case la::is_socket:
+        case la::IsSocket:
             lua_pushboolean(L, r.is_socket());
             return 1;
-        case la::is_other:
+        case la::IsOther:
             lua_pushboolean(L, r.is_other());
             return 1;
-        case la::is_symlink:
+        case la::IsSymlink:
             lua_pushboolean(L, r.is_symlink());
             return 1;
-        case la::is_block_file:
+        case la::IsBlockFile:
             lua_pushboolean(L, r.is_block_file());
             return 1;
-        case la::is_regular_file:
+        case la::IsRegularFile:
             lua_pushboolean(L, r.is_regular_file());
             return 1;
-        case la::is_character_file:
+        case la::IsCharacterFile:
             lua_pushboolean(L, r.is_character_file());
             return 1;
         default: return 0;
@@ -219,61 +219,61 @@ static int path_namecall(lua_State* L) {
     auto& r = check<path>(L, 1);
     using la = lua_atom;
     switch (static_cast<la>(atom)) {
-        case la::stem:
+        case la::Stem:
             create<path>(L, r.stem());
             return 1;
-        case la::empty:
+        case la::IsEmpty:
             lua_pushboolean(L, r.empty());
             return 1;
-        case la::filename:
+        case la::FileName:
             create<path>(L, r.filename());
             return 1;
-        case la::has_stem:
+        case la::HasStem:
             lua_pushboolean(L, r.has_stem());
             return 1;
-        case la::root_path:
+        case la::RootPath:
             create<path>(L, r.root_path());
             return 1;
-        case la::parent_path:
+        case la::ParentPath:
             create<path>(L, r.parent_path());
             return 1;
-        case la::is_absolute:
+        case la::IsAbsolute:
             lua_pushboolean(L, r.is_absolute());
             return 1;
-        case la::is_relative:
+        case la::IsRelative:
             lua_pushboolean(L, r.is_relative());
             return 1;
-        case la::extension:
+        case la::Extension:
             create<path>(L, r.extension());
             return 1;
-        case la::has_extension:
+        case la::HasExtension:
             lua_pushboolean(L, r.has_extension());
             return 1;
-        case la::replace_extension:
+        case la::ReplaceExtension:
             r.replace_extension(luaL_checkstring(L, 2));
             return 0;
-        case la::relative_path:
+        case la::RelativePath:
             create<path>(L, r.relative_path());
             return 1;
-        case la::has_relative_path:
+        case la::HasRelativePath:
             lua_pushboolean(L, r.has_relative_path());
             return 1;
-        case la::compare:
+        case la::Compare:
             lua_pushinteger(L, r.compare(check<path>(L, 2)));
             return 1;
-        case la::root_name:
+        case la::rootName:
             create<path>(L, r.root_name());
             return 1;
-        case la::root_directory:
+        case la::RootDirectory:
             create<path>(L, r.root_directory());
             return 1;
-        case la::has_root_path:
+        case la::HasRootPath:
             lua_pushboolean(L, r.has_root_path());
             return 1;
-        case la::has_root_name:
+        case la::HasRootName:
             lua_pushboolean(L, r.has_root_name());
             return 1;
-        case la::has_root_directory:
+        case la::HasRootDirectory:
             lua_pushboolean(L, r.has_root_directory());
             return 1;
         default:
@@ -321,26 +321,25 @@ static int relative(lua_State* L) {
 }
 
 static const luaL_Reg fs_lib[] = {
-    {"create_directory", create_directory},
-    {"exists", exists},
-    {"is_character_file", is_character_file},
-    {"copy_file", copy_file},
-    {"rename", rename},
-    {"remove", remove},
-    {"remove_all", remove_all},
-    {"copy", copy},
-    {"is_directory", is_directory},
-    {"absolute", absolute},
-    {"is_empty", is_empty},
-    {"children_of", children_of},
-    {"descendants_of", descendants_of},
-    {"path", path_ctor},
-    {"executable_directory", executable_directory},
-    {"current_working_directory", current_working_directory},
-    {"canonical", canonical},
-    {"proximate", proximate},
-    {"create_symlink", create_symlink},
-    {"relative", relative},
+    {"CreateDirectory", create_directory},
+    {"Exists", exists},
+    {"IsCharacterFile", is_character_file},
+    {"CopyFile", copy_file},
+    {"Rename", rename},
+    {"Remove", remove},
+    {"RemoveAll", remove_all},
+    {"Copy", copy},
+    {"IsDirectory", is_directory},
+    {"Absolute", absolute},
+    {"IsEmpty", is_empty},
+    {"GetChildrenOf", children_of},
+    {"GetDescendantsOf", descendants_of},
+    {"ExecutablePath", executable_directory},
+    {"CurrentPath", current_working_directory},
+    {"Canonical", canonical},
+    {"Proximate", proximate},
+    {"CreateSymlink", create_symlink},
+    {"Relative", relative},
     {nullptr, nullptr}
 };
 static const luaL_Reg path_metatable[] = {

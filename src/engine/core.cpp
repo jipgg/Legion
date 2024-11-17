@@ -29,7 +29,7 @@ static SDL_Event sdl_event_dummy{};
 static SDL_Rect sdl_rect_dummy{};
 static lua_State* main_state;
 static fs::path bin_path;
-static constexpr auto builtin_name = "engine";
+static constexpr auto builtin_name = "luWaw";
 namespace events {
 static bi::event* updating;
 static bi::event* rendering;
@@ -52,24 +52,10 @@ static czstring mouse_button_to_string(Uint8 button) {
 }
 
 namespace module {
-static builtin_module filesystem{"filesystem", builtin::lib_filesystem};
-static builtin_module window{"window", builtin::lib_window};
-static builtin_module graphics{"graphics", builtin::lib_graphics};
+static builtin_module filesystem{"FileSystem", builtin::lib_filesystem};
+static builtin_module window{"Window", builtin::lib_window};
+static builtin_module graphics{"Graphics", builtin::lib_graphics};
 static builtin_module rendering{"rendering", builtin::lib_rendering};
-}
-namespace callback {
-static constexpr auto keyup = "on_keyup";
-static constexpr auto keydown = "on_keydown";
-static constexpr auto mouseup = "on_mouseup";
-static constexpr auto mousedown = "on_mousedown";
-static constexpr auto mousescroll = "on_mousescroll";
-static constexpr auto mousemotion = "on_mousemotion";
-static constexpr auto update = "on_update";
-static constexpr auto render = "on_render";
-static constexpr auto shutdown = "at_shutdown";
-static constexpr auto resize = "at_resize";
-static constexpr auto move = "at_move";
-static constexpr auto sizechange = "at_sizechange";
 }
 
 static bool push_callback(lua_State* L, const char* name) {
@@ -129,14 +115,10 @@ static int load_builtin_module(lua_State* L) {
         lua_remove(L, -2);
         return 1;
     };
-    //if (key == module::filesystem.name) return module::filesystem.load(L);
-    //if (key == module::window.name) return module::window.load(L);
+    if (key == module::filesystem.name) return module::filesystem.load(L);
+    if (key == module::window.name) return module::window.load(L);
     if (key == module::rendering.name) return module::rendering.load(L);
     if (key ==  module::graphics.name) return module::graphics.load(L);
-    if (key == "iterator") {
-        push_luau_module(L, res_path() / "iterator.luau");
-        return 1;
-    }
     luaL_error(L, "invalid module name '%s'.", key.c_str());
     return 0;
 }
@@ -148,53 +130,42 @@ static void init_luau_state(lua_State* L, const fs::path& main_entry_point) {
         auto e = comptime_enum::item<lua_atom, count>(name);
         return static_cast<int16_t>(e.index);
     };
-    //lua_newtable(L);
-    //lua_setglobal(L, callbacks_name);
     bi::init_global_types(L);
     lua_register_globals(L);
     const luaL_Reg engine_functions[] = {
-        {"get_module", load_builtin_module},
-        {"load_image", lua_load_image},
+        {"GetModule", load_builtin_module},
         {nullptr, nullptr}
     };
     lua_newtable(L);
-    builtin::lib_window(L);
-    lua_setfield(L, -2, "window");
     luaL_register(L, nullptr, engine_functions);
     lua_setglobal(L, builtin_name);
-    builtin::lib_filesystem(L);
-    lua_setglobal(L, "fs");
     builtin::class_vector2(L);
-    lua_setglobal(L, "vector2");
+    lua_setglobal(L, "Vector2");
     builtin::class_vector3(L);
-    lua_setglobal(L, "vector3");
+    lua_setglobal(L, "Vector3");
     builtin::class_vector(L);
-    lua_setglobal(L, "vector");
+    lua_setglobal(L, "Vector");
     builtin::class_matrix3(L);
-    lua_setglobal(L, "matrix3");
+    lua_setglobal(L, "Matrix3");
     builtin::class_path(L);
-    lua_setglobal(L, "path");
-    push_luau_module(L, res_path() / "task.luau");
-    lua_setglobal(L, "task");
-    push_luau_module(L, res_path() / "fixed_width_buffer.luau");
-    lua_setglobal(L, "fixed_buffer");
+    lua_setglobal(L, "Path");
     builtin::class_event(L);
-    lua_setglobal(L, "event");
+    lua_setglobal(L, "Event");
     lua_getglobal(L, builtin_name);
     events::updating = &create<bi::event>(L, L);
-    lua_setfield(L, -2, "updating");
+    lua_setfield(L, -2, "OnUpdate");
     events::rendering = &create<bi::event>(L, L);
-    lua_setfield(L, -2, "rendering");
+    lua_setfield(L, -2, "OnRender");
     events::key_pressed = &create<bi::event>(L, L);
-    lua_setfield(L, -2, "key_pressed");
+    lua_setfield(L, -2, "OnKeyDown");
     events::key_released = &create<bi::event>(L, L);
-    lua_setfield(L, -2, "key_released");
+    lua_setfield(L, -2, "OnKeyUp");
     events::mouse_pressed = &create<bi::event>(L, L);
-    lua_setfield(L, -2, "mouse_pressed");
+    lua_setfield(L, -2, "OnMouseButtonDown");
     events::mouse_released = &create<bi::event>(L, L);
-    lua_setfield(L, -2, "mouse_released");
+    lua_setfield(L, -2, "OnMouseButtonUp");
     events::shutting_down = &create<bi::event>(L, L);
-    lua_setfield(L, -2, "shutting_down");
+    lua_setfield(L, -2, "OnShutdown");
     lua_pop(L, 1);
     std::optional<std::string> source = read_file(main_entry_point);
     if (not source) {

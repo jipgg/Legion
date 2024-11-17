@@ -105,16 +105,16 @@ static int namecall(lua_State *L) {
     auto& self = check<vector2>(L, 1);
     using la = lua_atom;
     switch(static_cast<la>(atom)) {
-        case la::dot:
+        case la::DotProduct:
             lua_pushnumber(L, blaze::dot(self, check<vector2>(L, 2)));
             return 1;
-        case la::normalize:
+        case la::ToUnitVector:
             create<vector2>(L) = self / blaze::length(self);
             return 1;
-        case la::abs:
+        case la::Abs:
             create<vector2>(L) = blaze::abs(self);
             return 1;
-        case la::magnitude:
+        case la::Length:
             lua_pushnumber(L, blaze::length(self));
             return 1;
         default:

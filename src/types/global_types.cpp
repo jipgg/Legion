@@ -11,16 +11,16 @@ using namespace std::string_literals;
 namespace bi = builtin;
 namespace mm = bi::metamethod;
 namespace tn = bi::tname;
-static constexpr size_t x_length{std::string("x").length()};
-static constexpr size_t y_length{std::string("x").length()};
-static constexpr size_t width_length{std::string("width").length()};
-static constexpr size_t height_length{std::string("height").length()};
-static constexpr size_t file_path_length{std::string("file_path").length()};
-static constexpr size_t pt_size_length(std::string("pt_size").length());
-static constexpr size_t red_length{std::string("red").length()};
-static constexpr size_t green_length{std::string("green").length()};
-static constexpr size_t blue_length{std::string("blue").length()};
-static constexpr size_t alpha_length{std::string("alpha").length()};
+static constexpr size_t x_length{std::string("X").length()};
+static constexpr size_t y_length{std::string("Y").length()};
+static constexpr size_t width_length{std::string("Width").length()};
+static constexpr size_t height_length{std::string("Height").length()};
+static constexpr size_t file_path_length{std::string("FilePath").length()};
+static constexpr size_t pt_size_length(std::string("PointSize").length());
+static constexpr size_t red_length{std::string("Red").length()};
+static constexpr size_t green_length{std::string("Green").length()};
+static constexpr size_t blue_length{std::string("Blue").length()};
+static constexpr size_t alpha_length{std::string("Alpha").length()};
 static const std::string invalid_member_key = "invalid member key "; 
 //color
 static int color_ctor(lua_State *L) {
@@ -37,19 +37,19 @@ static int color_index(lua_State *L) {
     size_t length;
     const char key = *luaL_checklstring(L, 2, &length);
     switch(key) {
-        case 'r':
+        case 'R':
             engine::expect(length == red_length);
             lua_pushinteger(L, self.r);
             return 1;
-        case 'g':
+        case 'G':
             engine::expect(length == green_length);
             lua_pushinteger(L, self.g);
             return 1;
-        case 'b':
+        case 'B':
             engine::expect(length == blue_length);
             lua_pushinteger(L, self.b);
             return 1;
-        case 'a':
+        case 'A':
             engine::expect(length == alpha_length);
             lua_pushinteger(L, self.a);
             return 1;
@@ -63,19 +63,19 @@ static int color_newindex(lua_State *L) {
     const int to_assign = luaL_checkinteger(L, 3);
     engine::expect(to_assign >= 0 and to_assign <= 0xff, "color value exceeded range of [0, 255]");
     switch(key) {
-        case 'r':
+        case 'R':
             engine::expect(length == red_length);
             self.r = to_assign;
             return 0;
-        case 'g':
+        case 'G':
             engine::expect(length == green_length);
             self.g = to_assign;
             return 0;
-        case 'b':
+        case 'B':
             engine::expect(length == blue_length);
             self.b = to_assign;
             return 0;
-        case 'a':
+        case 'A':
             engine::expect(length == alpha_length);
             self.a = to_assign;
             return 0;
@@ -98,7 +98,7 @@ static int color_namecall(lua_State* L) {
     };
     using la  = lua_atom;
     switch (static_cast<lua_atom>(atom)) {
-        case la::modulate: {//should refactor these for using it in draw_texture
+        case la::Modulate: {//should refactor these for using it in draw_texture
             const vec3f dst_rgb{to_percent(self.r), to_percent(self.g), to_percent(self.b)};
             const float dst_a{to_percent(self.a)};
             const auto& other = check<bi::color>(L, 2);
@@ -107,12 +107,12 @@ static int color_namecall(lua_State* L) {
             create<bi::color>(L, to_color(result[0], result[1], result[2], dst_a));
             return 1;
         }
-        case la::invert: {
+        case la::Invert: {
             auto invert = [](uint8_t v) {return static_cast<uint8_t>(0xff - v);};
             create<bi::color>(L, invert(self.r), invert(self.g), invert(self.b), self.a);
             return 1;
         }
-        case la::multiply: {
+        case la::Multiply: {
             const vec3f dst_rgb{to_percent(self.r), to_percent(self.g), to_percent(self.b)};
             const float dst_a{to_percent(self.a)};
             const auto& other = check<bi::color>(L, 2);
@@ -122,7 +122,7 @@ static int color_namecall(lua_State* L) {
             create<bi::color>(L, to_color(result[0], result[1], result[2], dst_a));
             return 1;
         }
-        case la::additive_blend: {
+        case la::AdditiveBlend: {
             const vec3f dst_rgb{to_percent(self.r), to_percent(self.g), to_percent(self.b)};
             const float dst_a{to_percent(self.a)};
             const auto& other = check<bi::color>(L, 2);
@@ -132,7 +132,7 @@ static int color_namecall(lua_State* L) {
             create<bi::color>(L, to_color(result[0], result[1], result[2], dst_a));
             return 1;
         }
-        case la::alpha_blend: {
+        case la::AlphaBlend: {
             const vec3f dst_rgb{to_percent(self.r), to_percent(self.g), to_percent(self.b)};
             const float dst_a{to_percent(self.a)};
             const auto& other = check<bi::color>(L, 2);
@@ -160,7 +160,7 @@ void color_init(lua_State *L) {
     luaL_register(L, nullptr, metadata);
     lua_pop(L, 1);
     lua_pushcfunction(L, color_ctor, "color_ctor");
-    lua_setglobal(L, "color");
+    lua_setglobal(L, "Color");
 }
 //font
 static void opaque_font_init(lua_State* L) {
@@ -175,19 +175,19 @@ static int rectangle_index(lua_State* L) {
     size_t length;
     std::string_view key = luaL_checklstring(L, 2, &length);
     switch (key[0]) {
-        case 'x':
+        case 'X':
             engine::expect(length == x_length, invalid_member_key);
             lua_pushnumber(L, r.x);
             return 1;
-        case 'y':
+        case 'Y':
             engine::expect(length == y_length, invalid_member_key);
             lua_pushnumber(L, r.y);
             return 1;
-        case 'w':
+        case 'W':
             engine::expect(length == width_length, invalid_member_key);
             lua_pushnumber(L, r.w);
             return 1;
-        case 'h':
+        case 'H':
             engine::expect(length == height_length, invalid_member_key);
             lua_pushnumber(L, r.h);
             return 1;
@@ -202,19 +202,19 @@ static int rectangle_newindex(lua_State* L) {
     char initial = *luaL_checklstring(L, 2, &length);
     int v = luaL_checknumber(L, 3);
     switch (initial) {
-        case 'x':
+        case 'X':
             engine::expect(length == x_length, invalid_member_key);
             r.x = v;
             return 0;
-        case 'y':
+        case 'Y':
             engine::expect(length == y_length, invalid_member_key);
             r.y = v;
             return 0;
-        case 'w':
+        case 'W':
             engine::expect(length == width_length, invalid_member_key);
             r.w = v;
             return 0;
-        case 'h': 
+        case 'H': 
             engine::expect(length == height_length, invalid_member_key);
             r.h = v;
             return 0;
@@ -242,32 +242,32 @@ static void rectangle_init(lua_State* L) {
     lua_setfield(L, -2, mm::type);
     lua_pop(L, 1);
     lua_pushcfunction(L, rectangle_ctor, "rectangle_ctor");
-    lua_setglobal(L, "rectangle");
+    lua_setglobal(L, "Rectangle");
 }
 //texture
-static constexpr size_t color_length{std::string("color").length()};
-static constexpr size_t blend_mode_length{std::string("blend_mode").length()};
+static constexpr size_t color_length{std::string("Color").length()};
+static constexpr size_t blend_mode_length{std::string("BlendMode").length()};
 static int texture_index(lua_State* L) {
     auto& r = check<bi::texture>(L, 1);
     size_t length;
     const char key = *luaL_checklstring(L, 2, &length);
     switch (key) {
-        case 'w':
+        case 'W':
             engine::expect(length == width_length, invalid_member_key + luaL_checkstring(L, 2));
             lua_pushinteger(L, r.w);
             return 1;
-        case 'h':
+        case 'H':
             engine::expect(length == height_length, invalid_member_key + luaL_checkstring(L, 2));
             lua_pushinteger(L, r.h);
             return 1;
-        case 'c':
+        case 'C':
             engine::expect(length == color_length, invalid_member_key + luaL_checkstring(L, 2));
             bi::color color;
             SDL_GetTextureColorMod(r.ptr.get(), &color.r, &color.g, &color.b);
             SDL_GetTextureAlphaMod(r.ptr.get(), &color.a);
             create<bi::color>(L, std::move(color));
             return 1;
-        case 'b':
+        case 'B':
             engine::expect(length == blend_mode_length, invalid_member_key + luaL_checkstring(L, 2));
             SDL_BlendMode bm;
             SDL_GetTextureBlendMode(r.ptr.get(), &bm);
@@ -281,26 +281,26 @@ static int texture_newindex(lua_State* L) {
     size_t length;
     const char key = *luaL_checklstring(L, 2, &length);
     switch (key) {
-        case 'w': {
+        case 'W': {
             engine::expect(length == width_length);
             const int v = luaL_checkinteger(L, 3);
             r.w = v;
             return 0;
         }
-        case 'h': {
+        case 'H': {
             engine::expect(length == height_length);
             const int v = luaL_checkinteger(L, 3);
             r.h = v;
             return 0;
         }
-        case 'c': {
+        case 'C': {
             engine::expect(length == color_length, invalid_member_key + luaL_checkstring(L, 2));
             const auto& new_color = check<bi::color>(L, 3);
             SDL_SetTextureColorMod(r.ptr.get(), new_color.r, new_color.g, new_color.b);
             SDL_SetTextureAlphaMod(r.ptr.get(), new_color.a);
             return 0;
         }
-        case 'b': {
+        case 'B': {
             engine::expect(length == blend_mode_length, invalid_member_key + luaL_checkstring(L, 2));
             SDL_BlendMode bm = string_to_blendmode(luaL_checkstring(L, 3));
             SDL_SetTextureBlendMode(r.ptr.get(), bm);
@@ -313,7 +313,7 @@ static int texture_newindex(lua_State* L) {
 static int texture_ctor_call(lua_State* L) {
     auto path = resolve_path_type(L, 2);
     if (not path) {
-        return lua_err::invalid_argument(L, 2, "path | string");
+        return lua_err::invalid_argument(L, 2, "Path | string");
     }
     SDL_Surface* surface = IMG_Load(path->c_str());
     if (not surface) {
@@ -380,14 +380,14 @@ static void texture_init(lua_State* L) {
     }
     lua_pop(L, 1);
     const luaL_Reg ctors[] = {
-        {"from_string", texture_ctor_from_string},
+        {"fromString", texture_ctor_from_string},
         {nullptr, nullptr}
     };
     lua_newtable(L);
     luaL_register(L, nullptr, ctors);
     luaL_getmetatable(L, texture_ctor_tname.c_str());
     lua_setmetatable(L, -2);
-    lua_setglobal(L, "texture");
+    lua_setglobal(L, "Texture");
 }
 static void opaque_texture_init(lua_State* L) {
     luaL_newmetatable(L, metatable_name<bi::texture_ptr>());
@@ -400,12 +400,12 @@ static int font_index(lua_State* L) {
     size_t len;
     const char initial = *luaL_checklstring(L, 2, &len);
     switch (initial) {
-        case 'f':
+        case 'F':
             engine::expect(len == file_path_length);
             create<bi::path>(L, r.file_path);
             return 1;
-        case 'p': {
-            engine::expect(len == file_path_length);
+        case 'P': {
+            engine::expect(len == pt_size_length);
             lua_pushinteger(L, r.pt_size);
             return 1;
         }
@@ -437,12 +437,12 @@ static void font_init(lua_State* L) {
             {nullptr, nullptr}
         };
         luaL_register(L, nullptr, meta);
-        lua_pushstring(L, "font");
+        lua_pushstring(L, "Font");
         lua_setfield(L, -2, mm::type);
     }
     lua_pop(L, 1);
     lua_pushcfunction(L, font_ctor, "font_ctor");
-    lua_setglobal(L, "font");
+    lua_setglobal(L, "Font");
 }
 namespace builtin {
 void init_global_types(lua_State *L) {

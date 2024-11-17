@@ -59,60 +59,60 @@ static int namecall(lua_State *L) {
     ty& r = check<ty>(L, 1);
     using la = lua_atom;
     switch(static_cast<lua_atom>(atom)) {
-        case la::dot: {
+        case la::DotProduct: {
             const double dot = blaze::dot(check<ty>(L, 1), check<ty>(L, 2));
             lua_pushnumber(L, dot);
             return 1;
         }
-        case la::normalize: {
+        case la::ToUnitVector: {
             create<ty>(L, blaze::normalize(check<ty>(L, 1)));
             return 1;
         }
-        case la::abs: {
+        case la::Abs: {
             create<ty>(L, blaze::abs(check<ty>(L, 1)));
             return 0;
         }
-        case la::magnitude: {
+        case la::Length: {
 
             auto& r = check<ty>(L, 1);
             lua_pushnumber(L, blaze::length(r));
             return 1;
         }
-        case la::set: {
+        case la::Set: {
             const int index = luaL_checkinteger(L, 2);
             const double value = luaL_checknumber(L, 3);
             if (not_in_range(index, r.size())) return lua_err::out_of_range(L, tn);
             r[index] = value;
             return 0;
         }
-        case la::at: {
+        case la::At: {
             const int index = luaL_checkinteger(L, 2);
             if (not_in_range(index, r.size())) return lua_err::out_of_range(L, tn);
             lua_pushnumber(L, r[index]);
             return 1;
         }
-        case la::extend: {
+        case la::Extend: {
             const int size = luaL_checkinteger(L, 2);
             r.extend(size, luaL_optboolean(L, 3, true));
             return 0;
         }
-        case la::reset: {
+        case la::Reset: {
             r.reset();
             return 0;
         }
-        case la::size: {
+        case la::Size: {
             lua_pushinteger(L, r.size());
             return 1;
         }
-        case la::capacity: {
+        case la::Capacity: {
             lua_pushinteger(L, r.capacity());
             return 1;
         }
-        case la::resize: {
+        case la::Resize: {
             r.resize(luaL_checkinteger(L, 2), luaL_optboolean(L, 3, true));
             return 0;
         }
-        case la::reserve: {
+        case la::Reserve: {
             r.reserve(luaL_checkinteger(L, 2));
             return 0;
         }

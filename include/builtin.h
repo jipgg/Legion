@@ -47,19 +47,19 @@ int lib_rendering(lua_State* L);
 int lib_graphics(lua_State* L);
 
 namespace tname {
-constexpr auto opaque_texture = "texture_ptr";
-constexpr auto color = "color";
-constexpr auto opaque_font = "font_ptr";
-constexpr auto rectangle = "rectangle";
-constexpr auto vertex = "vertex";
-constexpr auto matrix3 = "matrix3";
-constexpr auto vector = "vector";
-constexpr auto vector2 = "vector2";
-constexpr auto vector3 = "vector3";
-static constexpr auto path = "path";
-static constexpr auto directory_entry = "directory_entry";
-static constexpr auto event = "event";
-static constexpr auto texture = "texture";
+constexpr auto opaque_texture = "TexturePtr";
+constexpr auto color = "Color";
+constexpr auto opaque_font = "FontPtr";
+constexpr auto rectangle = "Rectangle";
+constexpr auto vertex = "Vertex";
+constexpr auto matrix3 = "Matrix3";
+constexpr auto vector = "Vector";
+constexpr auto vector2 = "Vector2";
+constexpr auto vector3 = "Vector3";
+static constexpr auto path = "Path";
+static constexpr auto directory_entry = "DirectoryEntry";
+static constexpr auto event = "Event";
+static constexpr auto texture = "Texture";
 }
 using texture_ptr = std::unique_ptr<SDL_Texture, decltype(&SDL_DestroyTexture)>;
 using font_ptr = std::unique_ptr<TTF_Font, decltype(&TTF_CloseFont)>;
