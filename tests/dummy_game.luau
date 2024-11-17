@@ -1,11 +1,11 @@
 --!strict
-local Graphics = luWaw.GetModule('Graphics')
-local FileSystem = luWaw.GetModule('FileSystem')
-local Window = luWaw.GetModule('Window')
-Window.Maximize()
-Graphics.SetBlendMode('blend')
-
+local Graphics = game.GetModule('Graphics')
+local FileSystem = game.GetModule('FileSystem')
+local Window = game.GetModule('Window')
 local RESOURCE_DIR = Path("resources")
+Graphics.SetBlendMode('blend')
+Window.SetIcon(tostring(RESOURCE_DIR / "coin.png"))
+
 local fps_label = {
     accumulated = 0,
     frame_count = 0,
@@ -15,7 +15,7 @@ print(`Exe = {FileSystem.ExecutablePath()}`)
 for i, entry in FileSystem.GetChildrenOf(FileSystem.ExecutablePath()) do
     print(`   entry: {entry:Path()}`)
 end
-fps_label.update_connection = luWaw.OnUpdate:Connect(function(dt: number)
+fps_label.update_connection = game.OnUpdate:Connect(function(dt: number)
     local self = fps_label
     self.frame_count += 1
     self.accumulated += dt
@@ -55,7 +55,7 @@ local my_font = Font(RESOURCE_DIR / "main_font.ttf", 100)
 local hello_text = {'h','e','l','l','o', ' ', 'w', 'o', 'r', 'l','d'}
 Graphics.SetBlendMode('blend')
 local text_change_accumulated = 0
-luWaw.OnUpdate:Connect(function(dt: number)
+game.OnUpdate:Connect(function(dt: number)
     text_change_accumulated += dt
     if text_change_accumulated < .02 then
         return
@@ -69,7 +69,7 @@ luWaw.OnUpdate:Connect(function(dt: number)
 end)
 
 local col
-luWaw.OnRender:Connect(function()
+game.OnRender:Connect(function()
     Graphics.ClearCanvas(Color(0, 0, 0, 255))
     col = Color(
         abs(cos(jw_angle)) * 255,
@@ -98,7 +98,7 @@ luWaw.OnRender:Connect(function()
     transformation *= Matrix3.fromScale(Vector2(1, cos(jw_angle * 4) * .1 + 1))
     Graphics.DrawString(my_font, table.concat(hello_text), transformation)
 end)
-luWaw.OnRender:Connect(function()
+game.OnRender:Connect(function()
     local angle = jw_angle
     local t = Matrix3(
         1, 0, 600 + math.cos(angle /2) * 100,
@@ -121,13 +121,13 @@ luWaw.OnRender:Connect(function()
     --gr.set_color(color(200, 200, 200):additive_blend(col))
     Graphics.DrawTexture(jw, transform)
 end)
-luWaw.OnUpdate:Connect(function(dt: number)
+game.OnUpdate:Connect(function(dt: number)
     jw_angle += math.rad(30) * dt
 end)
 
 local accumulated = 0
 local accumulated2 = 0
-luWaw.OnUpdate:Connect(function(deltasec: number)
+game.OnUpdate:Connect(function(deltasec: number)
     accumulated += deltasec
     if (accumulated > 10) then
         print(`accumulated: {accumulated} {deltasec}`)
@@ -136,27 +136,27 @@ luWaw.OnUpdate:Connect(function(deltasec: number)
 end)
 
 local connection  
-connection = luWaw.OnUpdate:Connect(function(deltasec: number)
+connection = game.OnUpdate:Connect(function(deltasec: number)
     accumulated2 += deltasec
     if (accumulated2 > 5) then
         print(`accumulated2: {accumulated2} {deltasec}`)
         accumulated2 = 0;
-        luWaw.OnUpdate:Disconnect(connection);
+        game.OnUpdate:Disconnect(connection);
         my_event:Fire(11000)
     end
 end)
-fps_label.render_connection = luWaw.OnRender:Connect(function()
+fps_label.render_connection = game.OnRender:Connect(function()
     local self = fps_label
     Graphics.SetDrawColor(Color(255, 255, 255))
     Graphics.DrawString(self.label, Matrix3.fromTranslation(Vector2(0, 0)))
 end)
 
-luWaw.OnKeyUp:Connect(function(key: KeyCode)
+game.OnKeyUp:Connect(function(key: KeyCode)
     if key == '0' then
     end
 end)
 
-luWaw.OnKeyDown:Connect(function(key: KeyCode)
+game.OnKeyDown:Connect(function(key: KeyCode)
     if key == 'a' then
         print('up')
     end

@@ -20,7 +20,7 @@ int main(int argc, zstring* argv) {
     enable_ansi_escape_sequences();
     #endif
     engine::start_options opts{
-        .window_name{"luWaw!"},
+        .window_name{"luwaw!"},
         .window_size{800, 600},
         .window_resizable = true,
         .hardware_accelerated = true,

@@ -199,7 +199,7 @@ export type Event<Params...> = {
     Disconnect: (self: Event<Params...>, id: EventConnectionId)->(),
     Fire: (self: Event<Params...>, Params...)->(),
 }
-export type luWaw = {
+export type Luwaw = {
     GetModule: (('Graphics')->Graphics)
         & (('FileSystem')->FileSystem)
         & (('Window')->Window),
@@ -211,7 +211,7 @@ export type luWaw = {
     OnMouseButtonUp: Event<MouseButtonType, Vector2>,
     OnShutdown: Event<>,
 }
-declare luWaw: luWaw
+declare game: Luwaw
 declare Rectangle: (x: number?, y: number?, w: number?, h: number?)->Rectangle
 declare Vector2: (x: number?, y: number?)->Vector2
 declare Vector3: (x: number?, y: number?, z: number?)->Vector3

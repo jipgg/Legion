@@ -7,7 +7,7 @@ set(include_dir ${CMAKE_SOURCE_DIR}/include)
 set(resource_dir ${CMAKE_SOURCE_DIR}/resources)
 set(luau_library_dir ${resource_dir}/luau_library)
 set(resource_output_dir ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/resources)
-project(luWaw LANGUAGES CXX C)
+project(luwaw LANGUAGES CXX C)
 
 find_package(SDL2 REQUIRED CONFIG REQUIRED COMPONENTS SDL2)
 find_package(SDL2 REQUIRED CONFIG COMPONENTS SDL2main)
@@ -22,12 +22,12 @@ add_subdirectory(extern/luau)
 
 file(GLOB_RECURSE source_files ${source_dir}/*.cpp)
 if (LINUX)
-    add_executable(luWaw ${source_files})
+    add_executable(luwaw ${source_files})
 elseif(WIN32)
-    add_executable(luWaw WIN32 ${source_files})
+    add_executable(luwaw WIN32 ${source_files})
 endif()
-target_include_directories(luWaw PUBLIC ${include_dir})
-target_link_libraries(luWaw PRIVATE
+target_include_directories(luwaw PUBLIC ${include_dir})
+target_link_libraries(luwaw PRIVATE
     SDL2::SDL2main
     SDL2::SDL2
     SDL2_ttf::SDL2_ttf
@@ -38,6 +38,6 @@ target_link_libraries(luWaw PRIVATE
     Luau.CodeGen
     Luau.Config
 )
-target_link_libraries(luWaw PUBLIC blaze::blaze )
+target_link_libraries(luwaw PUBLIC blaze::blaze )
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory "${resource_dir}" "$<TARGET_FILE_DIR:${PROJECT_NAME}>/resources")

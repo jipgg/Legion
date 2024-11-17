@@ -29,7 +29,7 @@ static SDL_Event sdl_event_dummy{};
 static SDL_Rect sdl_rect_dummy{};
 static lua_State* main_state;
 static fs::path bin_path;
-static constexpr auto builtin_name = "luWaw";
+static constexpr auto builtin_name = "game";
 namespace events {
 static bi::event* updating;
 static bi::event* rendering;
