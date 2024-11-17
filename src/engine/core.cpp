@@ -180,8 +180,10 @@ static void init_luau_state(lua_State* L, const fs::path& main_entry_point) {
         using namespace std::string_literals;
         printerr("failed to read the file '"s + main_entry_point.string() + "'");
     } else {
+        auto identifier = main_entry_point.filename().string();
+        identifier = "=" + identifier;
         std::string bytecode = Luau::compile(*source, compile_options());
-        if (luau_load(L, "=main_entry_point", bytecode.data(), bytecode.size(), 0)) {
+        if (luau_load(L, identifier.c_str(), bytecode.data(), bytecode.size(), 0)) {
             printerr(luaL_checkstring(L, -1));
         } else {
             if (lua_pcall(L, 0, 0, 0)) {
