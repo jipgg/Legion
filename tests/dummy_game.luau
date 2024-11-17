@@ -3,7 +3,7 @@ local Graphics = game.GetModule('Graphics')
 local Files = game.GetModule('Files')
 local Window = game.GetModule('Window')
 local RESOURCE_DIR = FilePath("resources")
-Graphics.BlendMode = 'blend'
+Graphics.BlendMode = 'Blend'
 Window.SetIcon(tostring(RESOURCE_DIR / "coin.png"))
 Window.Title = "Yoooooo"
 Window.Size = Vector2(1240, 720)
@@ -12,7 +12,7 @@ Window.Borderless = true
 
 print(`Exe = {Files.ExecutablePath()}`)
 for i, entry: DirectoryEntry in Files.GetChildrenOf(Files.ExecutablePath()) do
-    print(`   entry: {entry:Path()}`)
+    print(`   entry: {entry:FilePath()}`)
 end
 
 local a = Matrix3.FromTranslation(Vector2(100, 100))
@@ -27,7 +27,7 @@ print(g, g * a)
 print(Matrix3.FromScale(Vector2(10, 20)))
 
 local jw = Texture(RESOURCE_DIR / "jw.png")
-jw.BlendMode = "blend"
+jw.BlendMode = "Blend"
 jw.Color = Color(255, 255, 255)
 
 local myEvent: Event<number> = Event()
@@ -86,7 +86,7 @@ game.OnRender:Connect(function()
     Graphics.DrawColor = col:Modulate(col)
     Graphics.FillCircle(Vector2(100, 200), 40)
     Graphics.DrawColor = Color(col.Red, col.Green, col.Blue, 100):Invert()
-    Graphics.BlendMode = 'blend'
+    Graphics.BlendMode = 'Blend'
     Graphics.FillCircle(Vector2(500, 400), 450)
     Graphics.DrawColor = Color(col.Red, col.Green, col.Blue, 50)
     Graphics.FillEllipse(Vector2(400, 480), Vector2(400, 100));
@@ -149,7 +149,7 @@ connection = game.OnUpdate:Connect(function(deltasec: number)
 end)
 fpsLabel.render_connection = game.OnRender:Connect(function()
     local self = fpsLabel
-    Graphics.Color = Color(255, 255, 255)
+    Graphics.DrawColor = Color(255, 255, 255)
     Graphics.DrawString(self.Label, Matrix3.FromTranslation(Vector2(0, 0)))
 end)
 
@@ -159,7 +159,7 @@ game.OnKeyUp:Connect(function(key: KeyCode)
 end)
 
 game.OnKeyDown:Connect(function(key: KeyCode)
-    if key == 'a' then
+    if key == 'A' then
         print('up')
     end
 end)

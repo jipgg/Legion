@@ -36,7 +36,7 @@ enum class lua_atom {
     HasRootDirectory,
     IsDirectory,
     IsFifo,
-    Path,
+    FilePath,
     IsSocket,
     IsOther,
     IsRegularFile,

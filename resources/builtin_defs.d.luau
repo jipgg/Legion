@@ -1,15 +1,11 @@
 declare function collectgarbage(opt: ("collect" | "count")?)
-export type CopyOptions = "recursive"|"copy symlinks"|
-    "skip symlinks"|"skip existing"|"update existing"|
-    "create symlinks"|"directories only"|"create hard links"|
-    "overwrite existing"
-export type FileType = 'fifo'|'socket'|'block'|'regular'|
-    'symlink'|'unknown'|'junction'|'character'|'directory'|
-    'not found'|'none'
-export type Perms = 'unknown'|'others exec'|'all'|'mask'|
-    'set gid'|'set uid'|'group all'|'group exec'|'group read'|
-    'owner exec'|'owner read'|'others read'|'others all'|'sticky bit'|
-    'others read'|'group write'|'owner write'|'others write'|'none'
+export type CopyOptions = "Recursive"|"Copy Symlinks"|
+    "Skip Symlinks"|"Skip Existing"|"Update Existing"|
+    "Create Symlinks"|"Directories Only"|"Create Hard Links"|
+    "Overwrite Existing"
+export type FileType = 'Fifo'|'Socket'|'block'|'Regular'|
+    'Symlink'|'Unknown'|'Junction'|'Character'|'Directory'|
+    'Not Found'|'None'
 declare class FilePath
     function Stem(self): FilePath
     function IsEmpty(self): boolean
@@ -34,7 +30,7 @@ end
 declare class DirectoryEntry
     function IsDirectory(self): boolean
     function IsFifo(self): boolean
-    function Path(self): FilePath
+    function FilePath(self): FilePath
     function IsSocket(self): boolean
     function IsOther(self): boolean
     function IsSymlink(self): boolean
@@ -74,14 +70,14 @@ declare class Rectangle
     Height: number
 end
 declare class TexturePtr end
-export type RenderFlip = 'none'|'vertical'|'horizontal'
-export type KeyCode = 'esc'|'f1'|'f2'|'f3'|'f4'|'f5'|'f6'|'f7'|'f8'|'f9'|'f10'|'f11'|'f12'|
-    '1'|'2'|'3'|'4'|'5'|'6'|'7'|'8'|'9'|'0'|'minus'|'equals'|'backspace'|
-    'q'|'w'|'e'|'r'|'t'|'y'|'u'|'i'|'o'|'p'|'backslash'|
-    'a'|'s'|'d'|'f'|'g'|'h'|'j'|'k'|'l'|'enter'|
-    'z'|'x'|'c'|'v'|'b'|'n'|'n'|'m'|'comma'|'period'|'slash'|
-    'lshift'|'lctrl'|'lalt'|'space'|'ralt'|'left'|'up'|'down'|'right'
-export type MouseButtonType = "left" | "right"| "middle"
+export type RenderFlip = 'None'|'Vertical'|'Horizontal'
+export type KeyCode = 'Escape'|'F1'|'F2'|'F3'|'F4'|'F5'|'F6'|'F7'|'F8'|'F9'|'F10'|'F11'|'F12'|
+    '1'|'2'|'3'|'4'|'5'|'6'|'7'|'8'|'9'|'0'|'Minus'|'Equals'|'Backspace'|
+    'Q'|'W'|'E'|'R'|'T'|'Y'|'U'|'I'|'O'|'P'|'Backslash'|
+    'A'|'S'|'D'|'F'|'G'|'H'|'J'|'K'|'L'|'Enter'|
+    'Z'|'X'|'C'|'V'|'B'|'N'|'m'|'Comma'|'Period'|'slash'|
+    'Left Shift'|'Left Control'|'Left Alt'|'Space'|'Right Alt'|'Arrow Left'|'Arrow Up'|'Arrow Down'|'Arrow Right'
+export type MouseButtonType = "Left" | "Right"| "Middle"
 declare class Matrix3
     function Inverse(self): Matrix3
     function Transpose(self): Matrix3
@@ -159,7 +155,7 @@ export type WindowModule = {
     SetIcon: (file: string)->(),
     Focus: ()->(),
 }
-export type BlendMode= 'none'|'mul'|'add'|'mod'|'blend'|'invalid'
+export type BlendMode= 'None'|'Multiply'|'Add'|'Modulate'|'Blend'|'Invalid'
 export type GraphicsModule = {
     DrawColor: Color,
     BlendMode: BlendMode,

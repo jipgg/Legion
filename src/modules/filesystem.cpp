@@ -17,26 +17,26 @@ static std::optional<std::string> resolve_type(lua_State* L, int i) {
 static fs::copy_options to_copy_options(std::string_view str) {
     using copts = fs::copy_options;
     copts opt;
-    if (str == "recursive") opt = copts::recursive;
-    else if (str == "copy symlinks") opt = copts::copy_symlinks;
-    else if (str == "skip symlinks") opt = copts::skip_symlinks;
-    else if (str == "skip existing") opt = copts::skip_existing;
-    else if (str == "update existing") opt = copts::update_existing;
-    else if (str == "create symlinks") opt = copts::create_symlinks;
-    else if (str == "directories only") opt = copts::directories_only;
-    else if (str == "create hard links") opt = copts::create_hard_links;
-    else if (str == "overwrite existing") opt = copts::overwrite_existing;
+    if (str == "Recursive") opt = copts::recursive;
+    else if (str == "Copy Symlinks") opt = copts::copy_symlinks;
+    else if (str == "Skip Symlinks") opt = copts::skip_symlinks;
+    else if (str == "Skip Existing") opt = copts::skip_existing;
+    else if (str == "Update Existing") opt = copts::update_existing;
+    else if (str == "Create Symlinks") opt = copts::create_symlinks;
+    else if (str == "Directories Only") opt = copts::directories_only;
+    else if (str == "Create Hard Links") opt = copts::create_hard_links;
+    else if (str == "Overwrite Existing") opt = copts::overwrite_existing;
     else opt = copts::none;
     return opt;
 }
 static fs::file_type to_file_type(std::string_view str) {
     using ft = fs::file_type;
     ft t;
-    if (str == "none") t = ft::none;
-    else if (str == "junction") t = ft::junction;
-    else if (str == "fifo") t = ft::fifo;
-    else if (str == "block") t = ft::block;
-    else if (str == "socket") t = ft::socket;
+    if (str == "None") t = ft::none;
+    else if (str == "Junction") t = ft::junction;
+    else if (str == "Fifo") t = ft::fifo;
+    else if (str == "Block") t = ft::block;
+    else if (str == "Socket") t = ft::socket;
     return t;
 }
 static int create_directory(lua_State* L) {
@@ -163,7 +163,7 @@ static int directory_entry_namecall(lua_State* L) {
         case la::IsFifo:
             lua_pushboolean(L, r.is_fifo());
             return 1;
-        case la::Path:
+        case la::FilePath:
             create<fs::path>(L, r.path());
             return 1;
         case la::IsSocket:

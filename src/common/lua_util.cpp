@@ -7,21 +7,21 @@ std::optional<std::string> resolve_path_type(lua_State* L, int i) {
         return std::make_optional(luaL_checkstring(L, i));
     } else return std::nullopt;
 }
-static constexpr auto q = "q", w = "w", e = "e", r = "r",
-    t = "t", y = "y", i = "i", o = "o", p = "p", a = "a",
-    s = "s", d = "d", f = "f", g = "g", h = "h", j = "j",
-    k = "k", l = "l", z = "z", x = "x", c = "c", v = "v",
-    b = "b", n = "n", m = "m", space = "space", lctrl = "lctrl",
-    lalt = "lalt", rctrl = "rctrl", ralt = "ralt", one = "1",
+static constexpr auto q = "Q", w = "W", e = "E", r = "R",
+    t = "T", y = "Y", i = "I", o = "O", p = "P", a = "A",
+    s = "S", d = "D", f = "F", g = "G", h = "H", j = "J",
+    k = "K", l = "L", z = "Z", x = "X", c = "C", v = "V",
+    b = "B", n = "N", m = "M", space = "Space", lctrl = "Left Control",
+    lalt = "Left Alt", rctrl = "Right Control", ralt = "Right Alt", one = "1",
     two = "2", three = "3", four = "4", five = "5", six = "6",
     seven = "7", eight = "8", nine = "9", zero = "0",
-    f1 = "f1", f2 = "f2", f3 = "f3", f4 = "f4", f5 = "f5",
-    f6 = "f6", f7 = "f7", f8 = "f8", f9 = "f9", f10 = "f10",
-    f11 = "f11", f12 = "f12", tab = "tab", left = "left", right = "right",
-    up = "up", down = "down", lshift = "lshift", rshift = "rshift",
-    enter = "enter", backslash = "backslash", slash = "slash", comma = "comma",
-    period = "period", minus = "minus", equals = "equals", backspace = "backspace",
-    esc = "esc";
+    f1 = "F1", f2 = "F2", f3 = "F3", f4 = "F4", f5 = "F5",
+    f6 = "F6", f7 = "F7", f8 = "F8", f9 = "F9", f10 = "F10",
+    f11 = "F11", f12 = "F12", tab = "Tab", left = "Arrow Left", right = "Arrow Right",
+    up = "Arrow Up", down = "Arrow Down", lshift = "Left Shift", rshift = "Right Shift",
+    enter = "Enter", backslash = "Backslash", slash = "Slash", comma = "Comma",
+    period = "Period", minus = "Minus", equals = "Equals", backspace = "Backspace",
+    esc = "Escape";
 static constexpr auto nullkey = "undefined";
 const char* scancode_to_string(SDL_Scancode scancode) {
     switch (scancode) {

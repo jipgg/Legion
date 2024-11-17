@@ -45,9 +45,9 @@ static fs::path res_path() {
 }
 static czstring mouse_button_to_string(Uint8 button) {
     switch (button) {
-        case SDL_BUTTON_RIGHT: return "right";
-        case SDL_BUTTON_MIDDLE: return "middle";
-        default: return "left";
+        case SDL_BUTTON_RIGHT: return "Right";
+        case SDL_BUTTON_MIDDLE: return "Middle";
+        default: return "Left";
     }
 }
 

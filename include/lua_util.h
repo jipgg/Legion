@@ -11,21 +11,21 @@
 [[nodiscard]] SDL_Scancode string_to_scancode(std::string_view string);
 std::optional<std::string> resolve_path_type(lua_State* L, int i);
 namespace {
-constexpr const char* bm_add = "add";
-constexpr const char* bm_mod = "mod";
-constexpr const char* bm_mul = "mul";
-constexpr const char* bm_blend = "blend";
-constexpr const char* bm_none = "none";
-constexpr const char* bm_invalid = "invalid";
+constexpr const char* bm_add = "Add";
+constexpr const char* bm_mod = "Modulate";
+constexpr const char* bm_mul = "Multiply";
+constexpr const char* bm_blend = "Blend";
+constexpr const char* bm_none = "None";
+constexpr const char* bm_invalid = "Invalid";
 }
 [[nodiscard]] __forceinline constexpr const char* blendmode_to_string(SDL_BlendMode bm) {
     switch (bm) {
-        case SDL_BLENDMODE_ADD: return "add";
-        case SDL_BLENDMODE_MOD: return "mod";
-        case SDL_BLENDMODE_MUL: return "mul";
-        case SDL_BLENDMODE_BLEND: return "blend";
-        case SDL_BLENDMODE_NONE: return "none";
-        default: return "invalid";
+        case SDL_BLENDMODE_ADD: return bm_add;
+        case SDL_BLENDMODE_MOD: return bm_mod;
+        case SDL_BLENDMODE_MUL: return bm_mul;
+        case SDL_BLENDMODE_BLEND: return bm_blend;
+        case SDL_BLENDMODE_NONE: return bm_none;
+        default: return bm_invalid;
     }
 }
 [[nodiscard]] __forceinline constexpr SDL_BlendMode string_to_blendmode(std::string_view string) {
