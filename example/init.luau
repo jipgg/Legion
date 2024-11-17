@@ -4,56 +4,36 @@ local Files = game.GetModule('Files')
 local Window = game.GetModule('Window')
 local RESOURCE_DIR = FilePath("resources")
 Graphics.BlendMode = 'blend'
-Window.SetIcon(tostring(RESOURCE_DIR / "coin.png"))
-Window.Title = "Yoooooo"
+Window.Title = "Hello World"
 Window.Size = Vector2(1240, 720)
-Window.Position = Vector2(0, 20)
-Window.Borderless = true
+Window.Position = Vector2(100, 100)
+Window.SetIcon(tostring(RESOURCE_DIR / "coin.png"))
+Window.AlwaysOnTop = true
 
 print(`Exe = {Files.ExecutablePath()}`)
 for i, entry: DirectoryEntry in Files.GetChildrenOf(Files.ExecutablePath()) do
     print(`   entry: {entry:Path()}`)
 end
-
-local a = Matrix3.FromTranslation(Vector2(100, 100))
-local g = Matrix3(
-    {1, 0, 0},
-    {0, 1, 0},
-    {0, 0, 1}
-)
-local aRect = Rectangle(100, 100, 100, 100)
-print(aRect, aRect.Width, aRect.Height, aRect.X)
-print(g, g * a)
-print(Matrix3.FromScale(Vector2(10, 20)))
-
-local jw = Texture(RESOURCE_DIR / "jw.png")
-jw.BlendMode = "blend"
-jw.Color = Color(255, 255, 255)
+local dummyImage = Texture(RESOURCE_DIR / "jw.png")
+dummyImage.BlendMode = "blend"
+dummyImage.Color = Color(255, 255, 255)
 
 local myEvent: Event<number> = Event()
 
-myEvent:Connect(function(num: number)
-    Window.Title = `Yo check this number out {num}`
-    Window.Opacity = 0.5
-    Window.Borderless = false
-end)
-local fpsLabel = {
-    Accumulated = 0,
-    FrameCount = 0,
-    Label = "fps",
-}
-fpsLabel.UpdateConnection = game.OnUpdate:Connect(function(dt: number)
+local fpsLabel = {accumulated = 0, frameCount = 0, label = "fps"}
+
+fpsLabel.updateConnection = game.OnUpdate:Connect(function(dt: number)
     local self = fpsLabel
-    self.FrameCount += 1
-    self.Accumulated += dt
-    if (self.Accumulated >= 1) then
-        self.Label = `{self.FrameCount} fps`
-        self.FrameCount = 0
-        self.Accumulated = 0
+    self.frameCount += 1
+    self.accumulated += dt
+    if (self.accumulated >= 1) then
+        self.label = `{self.frameCount} fps`
+        self.frameCount = 0
+        self.accumulated = 0
     end
 end)
 
-local jwAngle = 0
+local myAngle = 0
 local abs = math.abs
 local sin = math.sin
 local cos = math.cos
@@ -73,35 +53,34 @@ game.OnUpdate:Connect(function(dt: number)
     textChangeAccumulated = 0
 end)
 
-local col
+local color
 game.OnRender:Connect(function()
     Graphics.ClearCanvas(Color(0, 0, 0, 255))
-    col = Color(abs(cos(jwAngle)) * 255, abs(sin(jwAngle - 45)) * 255, abs(sin(jwAngle)) * 255, 255)
-    Graphics.DrawColor = col:AlphaBlend(col)
+    color = Color(abs(cos(myAngle)) * 255, abs(sin(myAngle - 45)) * 255, abs(sin(myAngle)) * 255, 255)
+    Graphics.DrawColor = color:AlphaBlend(color)
     Graphics.FillCircle(Vector2(100, 100), 40)
-    Graphics.DrawColor = col:Multiply(col:Modulate(col))
+    Graphics.DrawColor = color:Multiply(color:Modulate(color))
     Graphics.FillRectangle(Rectangle(200-40, 100-40, 80, 80))
-    Graphics.DrawColor = col:Multiply(col:Invert())
+    Graphics.DrawColor = color:Multiply(color:Invert())
     Graphics.FillRectangle(Rectangle(200-40, 200-40, 80, 80))
-    Graphics.DrawColor = col:Modulate(col)
+    Graphics.DrawColor = color:Modulate(color)
     Graphics.FillCircle(Vector2(100, 200), 40)
-    Graphics.DrawColor = Color(col.Red, col.Green, col.Blue, 100):Invert()
+    Graphics.DrawColor = Color(color.Red, color.Green, color.Blue, 100):Invert()
     Graphics.BlendMode = 'blend'
     Graphics.FillCircle(Vector2(500, 400), 450)
-    Graphics.DrawColor = Color(col.Red, col.Green, col.Blue, 50)
+    Graphics.DrawColor = Color(color.Red, color.Green, color.Blue, 50)
     Graphics.FillEllipse(Vector2(400, 480), Vector2(400, 100));
-    Graphics.DrawColor = Color(col.Red, col.Green, col.Blue, 50):Invert():Modulate(col)
+    Graphics.DrawColor = Color(color.Red, color.Green, color.Blue, 50):Invert():Modulate(color)
     Graphics.FillEllipse(Vector2(400, 300), Vector2(200, 400));
-
-    Graphics.DrawColor = Color(col.Red, col.Green, col.Blue, 50):Invert():Multiply(col)
+    Graphics.DrawColor = Color(color.Red, color.Green, color.Blue, 50):Invert():Multiply(color)
     Graphics.FillEllipse(Vector2(400, 480), Vector2(400, 300));
-    Graphics.DrawColor = Color(100, 100, 100):AdditiveBlend(col)
+    Graphics.DrawColor = Color(100, 100, 100):AdditiveBlend(color)
     local transformation = Matrix3.FromTranslation(Vector2(50, 400))
-    transformation *= Matrix3.FromScale(Vector2(1, cos(jwAngle * 4) * .1 + 1))
+    transformation *= Matrix3.FromScale(Vector2(1, cos(myAngle * 4) * .1 + 1))
     Graphics.DrawString(myFont, table.concat(helloText), transformation)
 end)
 game.OnRender:Connect(function()
-    local angle = jwAngle
+    local angle = myAngle
     local t = Matrix3(
         1, 0, 600 + math.cos(angle /2) * 100,
         0, 1, 200 + math.cos(angle / 3) * 50,
@@ -115,16 +94,15 @@ game.OnRender:Connect(function()
         0, .3, 0,
         0, 0, 1)
     local off = Matrix3(
-        1, 0, -jw.Width / 2,
-        0, 1, -jw.Height / 2,
+        1, 0, -dummyImage.Width / 2,
+        0, 1, -dummyImage.Height / 2,
         0, 0, 1
     )
     local transform = t * r * s * off
-    --gr.set_color(color(200, 200, 200):additive_blend(col))
-    Graphics.DrawTexture(jw, transform)
+    Graphics.DrawTexture(dummyImage, transform)
 end)
 game.OnUpdate:Connect(function(dt: number)
-    jwAngle += math.rad(30) * dt
+    myAngle += math.rad(30) * dt
 end)
 
 local accumulated = 0
@@ -149,8 +127,8 @@ connection = game.OnUpdate:Connect(function(deltasec: number)
 end)
 fpsLabel.render_connection = game.OnRender:Connect(function()
     local self = fpsLabel
-    Graphics.Color = Color(255, 255, 255)
-    Graphics.DrawString(self.Label, Matrix3.FromTranslation(Vector2(0, 0)))
+    Graphics.DrawColor = Color(255, 255, 255)
+    Graphics.DrawString(self.label, Matrix3.FromTranslation(Vector2(0, 0)))
 end)
 
 game.OnKeyUp:Connect(function(key: KeyCode)

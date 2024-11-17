@@ -161,8 +161,8 @@ export type WindowModule = {
 }
 export type BlendMode= 'none'|'mul'|'add'|'mod'|'blend'|'invalid'
 export type GraphicsModule = {
-    SetDrawColor: (col: Color)->(),
-    SetBlendMode: (mode: BlendMode)->(),
+    DrawColor: Color,
+    BlendMode: BlendMode,
     DrawRectangle: (rect: Rectangle)->(),
     DrawRectangles: (...Rectangle)->(),
     DrawPixel: (point: Vector2)->(),

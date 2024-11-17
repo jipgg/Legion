@@ -442,11 +442,49 @@ static int draw_texture(lua_State* L) {
     SDL_RenderCopy(util::renderer(), r.ptr.get(), &src, &dst);
     return 0;
 }
+static constexpr size_t draw_color_length = std::string("DrawColor").length();
+static constexpr size_t blend_mode_length = std::string("BlendMode").length();
+static int index(lua_State* L) {
+    size_t length;
+    const char* key = luaL_checklstring(L, 2, &length);
+    switch (*key) {
+        case 'D': {
+            engine::expect(length == draw_color_length);
+            create<bi::color>(L, util::current_draw_color());
+            return 1;
+        }
+        case 'B': {
+            engine::expect(length == blend_mode_length);
+            SDL_BlendMode bm;
+            SDL_GetRenderDrawBlendMode(util::renderer(), &bm);
+            lua_pushstring(L, blendmode_to_string(bm));
+            return 1;
+        }
+    }
+    return 0;
+}
+static int newindex(lua_State* L) {
+    size_t length;
+    const char* key = luaL_checklstring(L, 2, &length);
+    switch (*key) {
+        case 'D': {
+            engine::expect(length == draw_color_length);
+            auto& color = check<bi::color>(L, 3);
+            SDL_SetRenderDrawColor(util::renderer(), color.r, color.g, color.b, color.a);
+            return 0;
+        }
+        case 'B': {
+            engine::expect(length == blend_mode_length);
+            const char* bm = luaL_checkstring(L, 3);
+            SDL_SetRenderDrawBlendMode(util::renderer(), string_to_blendmode(bm));
+            return 0;
+        }
+    }
+    return 0;
+}
 namespace builtin {
 int lib_graphics(lua_State *L) {
     const luaL_Reg lib[] = {
-        {"SetDrawColor", set_color},
-        {"SetBlendMode", set_blend_mode},
         {"DrawRectangle", draw_rectangle},
         {"DrawRectangles", draw_rectangles},
         {"FillRectangle", fill_rectangle},
@@ -466,6 +504,15 @@ int lib_graphics(lua_State *L) {
     };
     lua_newtable(L);
     luaL_register(L, nullptr, lib);
+    if (luaL_newmetatable(L, "builtin_graphics_module")) {
+        const luaL_Reg meta[] = {
+            {metamethod::index, index},
+            {metamethod::newindex, newindex},
+            {nullptr, nullptr}
+        };
+        luaL_register(L, nullptr, meta);
+    }
+    lua_setmetatable(L, -2);
     return 1;
 }
 }
