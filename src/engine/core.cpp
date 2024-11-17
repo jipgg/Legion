@@ -31,13 +31,13 @@ static lua_State* main_state;
 static fs::path bin_path;
 static constexpr auto builtin_name = "game";
 namespace events {
-static bi::event* updating;
-static bi::event* rendering;
-static bi::event* key_pressed;
-static bi::event* key_released;
-static bi::event* mouse_pressed;
-static bi::event* mouse_released;
-static bi::event* shutting_down;
+static std::unique_ptr<bi::event> on_update;
+static std::unique_ptr<bi::event> on_render;
+static std::unique_ptr<bi::event> on_key_down;
+static std::unique_ptr<bi::event> on_key_up;
+static std::unique_ptr<bi::event> on_mouse_button_down;
+static std::unique_ptr<bi::event> on_mouse_button_up;
+static std::unique_ptr<bi::event> on_shutdown;
 }
 
 static fs::path res_path() {
@@ -152,19 +152,27 @@ static void init_luau_state(lua_State* L, const fs::path& main_entry_point) {
     builtin::class_event(L);
     lua_setglobal(L, "Event");
     lua_getglobal(L, builtin_name);
-    events::updating = &create<bi::event>(L, L);
+    //events::on_update = &create<bi::event>(L, L);
+    events::on_update = std::make_unique<bi::event>(L);
+    push(L, *events::on_update);
     lua_setfield(L, -2, "OnUpdate");
-    events::rendering = &create<bi::event>(L, L);
+    events::on_render = std::make_unique<bi::event>(L);
+    push(L, *events::on_render);
     lua_setfield(L, -2, "OnRender");
-    events::key_pressed = &create<bi::event>(L, L);
+    events::on_key_down = std::make_unique<bi::event>(L);
+    push(L, *events::on_key_down);
     lua_setfield(L, -2, "OnKeyDown");
-    events::key_released = &create<bi::event>(L, L);
+    events::on_key_up = std::make_unique<bi::event>(L);
+    push(L, *events::on_key_up);
     lua_setfield(L, -2, "OnKeyUp");
-    events::mouse_pressed = &create<bi::event>(L, L);
+    events::on_mouse_button_down = std::make_unique<bi::event>(L);
+    push(L, *events::on_mouse_button_down);
     lua_setfield(L, -2, "OnMouseButtonDown");
-    events::mouse_released = &create<bi::event>(L, L);
+    events::on_mouse_button_up = std::make_unique<bi::event>(L);
+    push(L, *events::on_mouse_button_up);
     lua_setfield(L, -2, "OnMouseButtonUp");
-    events::shutting_down = &create<bi::event>(L, L);
+    events::on_shutdown = std::make_unique<bi::event>(L);
+    push(L, *events::on_shutdown);
     lua_setfield(L, -2, "OnShutdown");
     lua_pop(L, 1);
     std::optional<std::string> source = read_file(main_entry_point);
@@ -227,11 +235,11 @@ static void run() {
                     break;
                     case SDL_KEYDOWN:
                         lua_pushstring(main_state, scancode_to_string(e.key.keysym.scancode));
-                        events::key_pressed->fire(1);
+                        events::on_key_down->fire(1);
                     break;
                     case SDL_KEYUP:
                         lua_pushstring(main_state, scancode_to_string(e.key.keysym.scancode));
-                        events::key_released->fire(1);
+                        events::on_key_up->fire(1);
                     break;
                     case SDL_MOUSEBUTTONUP:
                         lua_pushstring(main_state, mouse_button_to_string(e.button.button));
@@ -239,7 +247,7 @@ static void run() {
                             static_cast<double>(sdl_event_dummy.button.x),
                             static_cast<double>(sdl_event_dummy.button.y)
                         };
-                        events::mouse_released->fire(2);
+                        events::on_mouse_button_up->fire(2);
                     break;
                     case SDL_MOUSEBUTTONDOWN:
                         lua_pushstring(main_state, mouse_button_to_string(e.button.button));
@@ -247,7 +255,7 @@ static void run() {
                             static_cast<double>(sdl_event_dummy.button.x),
                             static_cast<double>(sdl_event_dummy.button.y)
                         };
-                        events::mouse_pressed->fire(2);
+                        events::on_mouse_button_down->fire(2);
                     break;
                 }
             }
@@ -256,15 +264,15 @@ static void run() {
             const double delta_s = ch::duration<double>(curr_tp - cached_last_tp).count();
             cached_last_tp = curr_tp;
             lua_pushnumber(main_state, delta_s);
-            events::updating->fire(1);
+            events::on_update->fire(1);
         } {//rendering
-            events::rendering->fire(0);
+            events::on_render->fire(0);
             SDL_RenderPresent(renderer_ptr);
         }
     }
 }
 static void shutdown() {
-    events::shutting_down->fire(0);
+    events::on_shutdown->fire(0);
     lua_close(main_state);
     util::clear_all_cache_registries();
     default_font_ptr.reset();

@@ -46,7 +46,9 @@ int type_tag() {
 }
 template <class my_type>
 bool is_type(lua_State* L, int idx) {
-    return lua_isuserdata(L, idx) and lua_userdatatag(L, idx) == type_tag<my_type>();
+    const bool is_full_userdata = lua_isuserdata(L, idx) and lua_userdatatag(L, idx) == type_tag<my_type>();
+    const bool is_light_userdata = lua_islightuserdata(L, idx) and lua_lightuserdatatag(L, idx) == type_tag<my_type>(); 
+    return is_full_userdata or is_light_userdata;
 }
 template<class my_type>
 const char* metatable_name() {
@@ -78,9 +80,20 @@ my_type& create(lua_State* L) {
 }
 template <class my_type>
 my_type& check(lua_State* L, int objindex) {
-    engine::expect(is_type<my_type>(L, objindex), std::string("builtin type ") + typeid(my_type).name() + " expected.");
-    void* ud = lua_touserdatatagged(L, objindex, type_tag<my_type>());
+    engine::expect(is_type<my_type>(L, objindex), std::string("builtin type ") + typeid(my_type).name() + " expected."); void* ud;
+    if (lua_islightuserdata(L, objindex)) {
+        ud = lua_tolightuserdatatagged(L, objindex, type_tag<my_type>());
+    } else {
+        ud = lua_touserdatatagged(L, objindex, type_tag<my_type>());
+    }
     return *static_cast<my_type*>(ud);
+}
+template <class my_type>
+void push(lua_State* L, my_type& userdata) {
+    lua_pushlightuserdatatagged(L, &userdata, type_tag<my_type>());
+    if (luaL_getmetatable(L, metatable_name<my_type>())) {
+        lua_setmetatable(L, -2);
+    }
 }
 namespace lua_err {
 __forceinline int invalid_member(lua_State* L, const char* tname) {
