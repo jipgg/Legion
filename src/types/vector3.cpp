@@ -26,27 +26,20 @@ static int index(lua_State *L) {
     const char index = *luaL_checkstring(L, 2);
     const auto& self = check<vector3>(L, 1);
     switch (index) {
-        case 'x': lua_pushnumber(L, self.at(0)); return 1;
-        case 'y': lua_pushnumber(L, self.at(1)); return 1;
-        case 'z': lua_pushnumber(L, self.at(2)); return 1;
+        case 'X': lua_pushnumber(L, self.at(0)); return 1;
+        case 'Y': lua_pushnumber(L, self.at(1)); return 1;
+        case 'Z': lua_pushnumber(L, self.at(2)); return 1;
         default: return lua_err::invalid_member(L, tn);
     }
 }
 static int newindex(lua_State *L) {
     const double n = luaL_checknumber(L, 3);
     auto& self = check<vector3>(L, 1);
-    if (lua_isstring(L, 2)) {
-        switch (*luaL_checkstring(L, 2)) {
-            case 'x': self.at(0) = n; return 0;
-            case 'y': self.at(1) = n; return 0;
-            case 'z': self.at(2) = n; return 0;
-            default: return lua_err::invalid_member(L, tn);
-        }
-    } else if (lua_isnumber(L, 2)) {
-        const int index = luaL_checkinteger(L, 2);
-        if (index >= self.size() or index < 0) return lua_err::out_of_range(L, tn);
-        self[index] = n;
-        return 0;
+    switch (*luaL_checkstring(L, 2)) {
+        case 'X': luaL_error(L, "Property 'X' is readonly."); return 0;
+        case 'Y': luaL_error(L, "Property 'Y' is readonly"); return 0;
+        case 'Z': luaL_error(L, "Property 'Z' is readonly."); return 0;
+        default: return lua_err::invalid_member(L, tn);
     }
     return lua_err::invalid_type(L);
 }

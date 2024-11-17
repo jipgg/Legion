@@ -380,7 +380,7 @@ static void texture_init(lua_State* L) {
     }
     lua_pop(L, 1);
     const luaL_Reg ctors[] = {
-        {"fromString", texture_ctor_from_string},
+        {"FromString", texture_ctor_from_string},
         {nullptr, nullptr}
     };
     lua_newtable(L);

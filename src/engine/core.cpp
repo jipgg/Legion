@@ -52,7 +52,7 @@ static czstring mouse_button_to_string(Uint8 button) {
 }
 
 namespace module {
-static builtin_module filesystem{"FileSystem", builtin::lib_filesystem};
+static builtin_module filesystem{"Files", builtin::lib_filesystem};
 static builtin_module window{"Window", builtin::lib_window};
 static builtin_module graphics{"Graphics", builtin::lib_graphics};
 static builtin_module rendering{"rendering", builtin::lib_rendering};
@@ -148,7 +148,7 @@ static void init_luau_state(lua_State* L, const fs::path& main_entry_point) {
     builtin::class_matrix3(L);
     lua_setglobal(L, "Matrix3");
     builtin::class_path(L);
-    lua_setglobal(L, "Path");
+    lua_setglobal(L, "FilePath");
     builtin::class_event(L);
     lua_setglobal(L, "Event");
     lua_getglobal(L, builtin_name);

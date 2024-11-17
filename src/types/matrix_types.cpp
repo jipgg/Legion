@@ -190,9 +190,9 @@ int builtin::class_matrix3(lua_State *L) {
     }
     lua_pop(L, 1);
     const luaL_Reg lib[] = {
-        {"fromScale", ctor_from_scale},
-        {"fromTranslation", ctor_from_position},
-        {"fromRotation", ctor_from_rotation},
+        {"FromScale", ctor_from_scale},
+        {"FromTranslation", ctor_from_position},
+        {"FromRotation", ctor_from_rotation},
         {nullptr, nullptr}
     };
     lua_newtable(L);

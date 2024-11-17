@@ -10,31 +10,31 @@ export type Perms = 'unknown'|'others exec'|'all'|'mask'|
     'set gid'|'set uid'|'group all'|'group exec'|'group read'|
     'owner exec'|'owner read'|'others read'|'others all'|'sticky bit'|
     'others read'|'group write'|'owner write'|'others write'|'none'
-declare class Path
-    function Stem(self): Path
+declare class FilePath
+    function Stem(self): FilePath
     function IsEmpty(self): boolean
-    function FileName(self): Path
+    function FileName(self): FilePath
     function HasStem(self): boolean
-    function RootPath(self): Path
-    function ParentPath(self): Path
+    function RootPath(self): FilePath
+    function ParentPath(self): FilePath
     function IsAbsolute(self): boolean
     function IsRelative(self): boolean
-    function Extension(self): Path
+    function Extension(self): FilePath
     function ReplaceExtension(self, s: string)
-    function RelativePath(self): Path
+    function RelativePath(self): FilePath
     function Compare(self): number
-    function RootName(self): Path
-    function RootDirectory(self): Path
+    function RootName(self): FilePath
+    function RootDirectory(self): FilePath
     function HasRootPath(self): boolean
     function HasRootName(self): boolean
     function HasRootDirectory(self): boolean
     function __tostring(self): string
-    function __div(self, other: string | Path): Path
+    function __div(self, other: string | FilePath): FilePath
 end
 declare class DirectoryEntry
     function IsDirectory(self): boolean
     function IsFifo(self): boolean
-    function Path(self): Path
+    function Path(self): FilePath
     function IsSocket(self): boolean
     function IsOther(self): boolean
     function IsSymlink(self): boolean
@@ -125,46 +125,42 @@ declare class Vector
     function __unm(self): Vector
 end
 declare class Font
-    FilePath: Path
+    FilePath: FilePath
     PointSize: number
 end
-export type FileSystem = {
-    CreateDirectory: (where: Path | string) -> boolean,
-    Exists: (path: Path | string) -> boolean,
-    IsCharacterFile: (path: Path | string) -> boolean,
-    CopyFile: (from: Path | string, to: Path | string, opt: CopyOptions?) -> boolean,
-    Rename: (from: Path | string, to: Path | string) -> (),
-    Remove: (path: Path | string) -> boolean,
-    RemoveAll: (path: Path | string) -> number,
-    Copy: (from: Path | string, to: Path | string, opt: CopyOptions?) -> (),
-    Absolute: (path: Path | string) -> Path,
-    GetChildrenOf: (path: Path | string) -> {DirectoryEntry},
-    GetDescendantsOf: (path: Path | string) -> {DirectoryEntry},
-    ExecutablePath: ()->Path,
-    CurrentPath: ()->Path,
-    Canonical: (path: Path)->Path,
-    Proximate: (path: Path, base: Path?)->Path,
-    CreateSymlink: (to: Path, new_symlink: Path)->(),
-    Relative: (path: Path, base: Path?)->Path,
+export type FilesModule = {
+    CreateDirectory: (where: FilePath | string) -> boolean,
+    Exists: (path: FilePath | string) -> boolean,
+    IsCharacterFile: (path: FilePath | string) -> boolean,
+    CopyFile: (from: FilePath | string, to: FilePath | string, opt: CopyOptions?) -> boolean,
+    Rename: (from: FilePath | string, to: FilePath | string) -> (),
+    Remove: (path: FilePath | string) -> boolean,
+    RemoveAll: (path: FilePath | string) -> number,
+    Copy: (from: FilePath | string, to: FilePath | string, opt: CopyOptions?) -> (),
+    Absolute: (path: FilePath | string) -> FilePath,
+    GetChildrenOf: (path: FilePath | string) -> {DirectoryEntry},
+    GetDescendantsOf: (path: FilePath | string) -> {DirectoryEntry},
+    ExecutablePath: ()->FilePath,
+    CurrentPath: ()->FilePath,
+    Canonical: (path: FilePath)->FilePath,
+    Proximate: (path: FilePath, base: FilePath?)->FilePath,
+    CreateSymlink: (to: FilePath, new_symlink: FilePath)->(),
+    Relative: (path: FilePath, base: FilePath?)->FilePath,
 }
-export type Window = {
-    GetSize: ()->(number, number),
-    SetSize: (w: number, h: number)->(),
+export type WindowModule = {
+    Size: Vector2,
+    Position: Vector2,
+    Title: string,
+    Opacity: number,
+    Borderless: boolean,
+    AlwaysOnTop: boolean,
     Maximize: ()->(),
     Minimize: ()->(),
-    SetTitle: ()->string,
-    SetTitle: (string)->(),
-    SetAlwaysOnTop: (boolean)->(),
-    SetBorderless: (boolean)->(),
-    GetPosition: ()->(number, number),
-    SetPosition: (x: number, y: number)->(),
-    SetOpacity: (opacity: number)->(),
-    GetOpacity: ()->number,
     SetIcon: (file: string)->(),
     Focus: ()->(),
 }
 export type BlendMode= 'none'|'mul'|'add'|'mod'|'blend'|'invalid'
-export type Graphics = {
+export type GraphicsModule = {
     SetDrawColor: (col: Color)->(),
     SetBlendMode: (mode: BlendMode)->(),
     DrawRectangle: (rect: Rectangle)->(),
@@ -200,9 +196,9 @@ export type Event<Params...> = {
     Fire: (self: Event<Params...>, Params...)->(),
 }
 export type Luwaw = {
-    GetModule: (('Graphics')->Graphics)
-        & (('FileSystem')->FileSystem)
-        & (('Window')->Window),
+    GetModule: (('Graphics')->GraphicsModule)
+        & (('Files')->FilesModule)
+        & (('Window')->WindowModule),
     OnUpdate: Event<number>,
     OnRender: Event<>,
     OnKeyDown: Event<KeyCode>,
@@ -217,9 +213,9 @@ declare Vector2: (x: number?, y: number?)->Vector2
 declare Vector3: (x: number?, y: number?, z: number?)->Vector3
 declare Vector: (...number)->Vector
 type Matrix3NamedConstructors = typeof(setmetatable({
-    fromScale = function(scale_factor: Vector2 | number): Matrix3 return {} :: any end,
-    fromRotation = function(radians: number): Matrix3 return {} :: any end,
-    fromTranslation = function(translation: Vector2): Matrix3 return {} :: any end,
+    FromScale = function(scale_factor: Vector2 | number): Matrix3 return {} :: any end,
+    FromRotation = function(radians: number): Matrix3 return {} :: any end,
+    FromTranslation = function(translation: Vector2): Matrix3 return {} :: any end,
 }, {__call = function(...): Matrix3 return {} :: any end}))
 declare Matrix3: 
         & ((row1: {number}, row2: {number}, row3: {number})->Matrix3)
@@ -227,12 +223,12 @@ declare Matrix3:
         & Matrix3NamedConstructors
 declare Color: ((r: number?, g: number?, b: number?, a: number?)->Color)
         & ((r: number, g: number, b: number, alpha: number)->Color)
-declare Path: (path: string)->Path
+declare FilePath: (path: string)->FilePath
 declare Event: <Params...>()->Event<Params...>
-declare Font: (file: Path, pt_size: number)->Font
+declare Font: (file: FilePath, pt_size: number)->Font
 
 type TextureNamedConstructors = typeof(setmetatable({
-    fromString = function(text: string, font: Font?, color: Color?): Texture return {} :: any end,
+    FromString = function(text: string, font: Font?, color: Color?): Texture return {} :: any end,
 }, {__call = function(...): Texture return {} :: any end}))
-declare Texture: ((file: Path | string)->Texture) & TextureNamedConstructors
+declare Texture: ((file: FilePath | string)->Texture) & TextureNamedConstructors
 

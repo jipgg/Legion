@@ -57,8 +57,8 @@ static int index(lua_State *L) {
     const char index = *luaL_checkstring(L, 2);
     auto& r = check<vector2>(L, 1);
     switch (index) {
-        case 'x': lua_pushnumber(L, r[0]); return 1;
-        case 'y': lua_pushnumber(L, r[1]); return 1;
+        case 'X': lua_pushnumber(L, r[0]); return 1;
+        case 'Y': lua_pushnumber(L, r[1]); return 1;
     }
     return 0;
 }
@@ -66,8 +66,8 @@ static int newindex(lua_State *L) {
     const double n = luaL_checknumber(L, 3);
     vector2& r = check<vector2>(L, 1);
     switch (*luaL_checkstring(L, 2)) {
-        case 'x': r[0] = n; return 0;
-        case 'y': r[1] = n; return 0;
+        case 'X': luaL_error(L, "property 'X' is readonly."); return 0;
+        case 'Y': luaL_error(L, "Property 'Y' is readonly."); return 0;
         default: return lua_err::invalid_member(L, tn::vector2);
     }
     return 0;
