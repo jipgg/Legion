@@ -1,37 +1,28 @@
 --!strict
 local Graphics = game.GetModule('Graphics')
 local Window = game.GetModule('Window')
+local fpsCounter = require('@example/fpsCounter')
+local dummyImage = require('@example/dummyImage')
 local RESOURCE_DIR = FilePath("resources")
-Graphics.BlendMode = 'Blend'
-Window.Title = "Hello World"
-Window.Size = Vector2(1240, 720)
-Window.Position = Vector2(100, 100)
-Window.SetIcon(tostring(RESOURCE_DIR / "coin.png"))
 
-local dummyImage = Texture(RESOURCE_DIR / "jw.png")
-dummyImage.BlendMode = "Blend"
-dummyImage.Color = Color(255, 255, 255)
+Graphics.BlendMode = 'Blend'
+Window.SetIcon(tostring(RESOURCE_DIR / "coin.png"))
+Window.Title = "Yoooooo"
+Window.Position = Vector2(100, 100)
+Window.Borderless = true
 
 local myEvent: Event<number> = Event()
 
-local fpsLabel = {accumulated = 0, frameCount = 0, label = "fps"}
-
-fpsLabel.updateConnection = game.OnUpdate:Connect(function(dt: number)
-    local self = fpsLabel
-    self.frameCount += 1
-    self.accumulated += dt
-    if (self.accumulated >= 1) then
-        self.label = `{self.frameCount} fps`
-        self.frameCount = 0
-        self.accumulated = 0
-    end
+myEvent:Connect(function(num: number)
+    Window.Title = `Yo check this number out {num}`
+    Window.Opacity = 0.5
+    Window.Borderless = false
 end)
-
-local myAngle = 0
+local currentAngle = 0
 local myFont = Font(RESOURCE_DIR / "main_font.ttf", 100)
 local helloText = {'h','e','l','l','o', ' ', 'w', 'o', 'r', 'l','d'}
 local textChangeAccumulated = 0
-game.OnUpdate:Connect(function(dt: number)
+game.Updating:Connect(function(dt: number)
     textChangeAccumulated += dt
     if textChangeAccumulated < .02 then
         return
@@ -44,13 +35,13 @@ game.OnUpdate:Connect(function(dt: number)
     textChangeAccumulated = 0
 end)
 
-local color
-game.OnRender:Connect(function()
+game.Rendering:Connect(function()
+    local color
     Graphics.ClearCanvas(Color(0, 0, 0, 255))
     color = Color(
-        math.abs(math.cos(myAngle)) * 255,
-        math.abs(math.sin(myAngle - 45)) * 255,
-        math.abs(math.sin(myAngle)) * 255, 255
+        math.abs(math.cos(currentAngle)) * 255,
+        math.abs(math.sin(currentAngle - 45)) * 255,
+        math.abs(math.sin(currentAngle)) * 255
     )
     Graphics.DrawColor = color:AlphaBlend(color)
     Graphics.FillCircle(Vector2(100, 100), 40)
@@ -61,7 +52,7 @@ game.OnRender:Connect(function()
     Graphics.DrawColor = color:Modulate(color)
     Graphics.FillCircle(Vector2(100, 200), 40)
     Graphics.DrawColor = Color(color.Red, color.Green, color.Blue, 100):Invert()
-    Graphics.BlendMode = 'blend'
+    Graphics.BlendMode = 'Blend'
     Graphics.FillCircle(Vector2(500, 400), 450)
     Graphics.DrawColor = Color(color.Red, color.Green, color.Blue, 50)
     Graphics.FillEllipse(Vector2(400, 480), Vector2(400, 100));
@@ -71,58 +62,11 @@ game.OnRender:Connect(function()
     Graphics.FillEllipse(Vector2(400, 480), Vector2(400, 300));
     Graphics.DrawColor = Color(100, 100, 100):AdditiveBlend(color)
     local transformation = Matrix3.FromTranslation(Vector2(50, 400))
-    transformation *= Matrix3.FromScale(Vector2(1, cos(myAngle * 4) * .1 + 1))
+    transformation *= Matrix3.FromScale(Vector2(1, math.cos(currentAngle * 4) * .1 + 1))
     Graphics.DrawString(myFont, table.concat(helloText), transformation)
 end)
-game.OnRender:Connect(function()
-    local angle = myAngle
-    local t = Matrix3(
-        1, 0, 600 + math.cos(angle /2) * 100,
-        0, 1, 200 + math.cos(angle / 3) * 50,
-        0, 0, 1)
-    local r = Matrix3(
-        math.cos(angle / 3), -math.sin(angle / 3), 0,
-        math.sin(angle * 2), math.cos(angle * 5), 0,
-        0, 0, 1)
-    local s = Matrix3(
-        math.sin(angle) * .3, 0, 0,
-        0, .3, 0,
-        0, 0, 1)
-    local off = Matrix3(
-        1, 0, -dummyImage.Width / 2,
-        0, 1, -dummyImage.Height / 2,
-        0, 0, 1
-    )
-    local transform = t * r * s * off
-    Graphics.DrawTexture(dummyImage, transform)
+game.Updating:Connect(function(dt: number)
+    currentAngle += math.rad(30) * dt
 end)
-game.OnUpdate:Connect(function(dt: number)
-    myAngle += math.rad(30) * dt
-end)
-
-local accumulated = 0
-local accumulated2 = 0
-game.OnUpdate:Connect(function(deltasec: number)
-    accumulated += deltasec
-    if (accumulated > 10) then
-        print(`accumulated: {accumulated} {deltasec}`)
-        accumulated = 0;
-    end
-end)
-
-local connection  
-connection = game.OnUpdate:Connect(function(deltasec: number)
-    accumulated2 += deltasec
-    if (accumulated2 > 5) then
-        print(`accumulated2: {accumulated2} {deltasec}`)
-        accumulated2 = 0;
-        game.OnUpdate:Disconnect(connection);
-        myEvent:Fire(11000)
-    end
-end)
-fpsLabel.render_connection = game.OnRender:Connect(function()
-    local self = fpsLabel
-    Graphics.DrawColor = Color(255, 255, 255)
-    Graphics.DrawString(self.label, Matrix3.FromTranslation(Vector2(0, 0)))
-end)
-return {}
+fpsCounter.init()
+dummyImage.init()

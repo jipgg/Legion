@@ -1,6 +1,8 @@
 #include <lualib.h>
 constexpr auto module_cache_name = "__builtin_module_cache";
 struct builtin_module {
+    static constexpr int not_initialized = -1;
+    inline static int builtin_module_cache_ref{not_initialized};
     const char* const name;
     const lua_CFunction loader;
     bool loaded{false};
@@ -11,18 +13,17 @@ struct builtin_module {
     }
     int load(lua_State* L) {
         if (loaded) {
-            lua_getglobal(L, module_cache_name);
+            lua_getref(L, builtin_module_cache_ref);
             lua_getfield(L, -1, name);
             lua_remove(L, -2);
             return 1;
         }
-        lua_getglobal(L, module_cache_name);
-        if (lua_isnil(L, -1)) {
-            lua_pop(L, 1);
+        if (builtin_module_cache_ref == not_initialized) {
             lua_newtable(L);
-            lua_setglobal(L, module_cache_name);
-            lua_getglobal(L, module_cache_name);
+            builtin_module_cache_ref = lua_ref(L, -1);
+            lua_pop(L, 1);
         }
+        lua_getref(L, builtin_module_cache_ref);
         lua_getfield(L, -1, name);
         if (lua_isnil(L, -1)) {
             lua_pop(L, 1);

@@ -2,6 +2,7 @@
     "languageMode": "strict",
     "aliases": {
         "tests": "./tests",
-        "builtin": "./resources/luau_library"
+        "builtin": "./resources/luau_library",
+        "example": "./example/"
     }
 }

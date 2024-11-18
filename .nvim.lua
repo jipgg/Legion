@@ -14,6 +14,7 @@ require"lspconfig".luau_lsp.setup {
                 directoryAliases = {
                     ["@tests"] = "./tests/",
                     ["@builtin"] = "./resources/luau_library/",
+                    ["@example"] = "./example/",
                 },
             },
         }
