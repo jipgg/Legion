@@ -29,11 +29,13 @@ static SDL_Event sdl_event_dummy{};
 static SDL_Rect sdl_rect_dummy{};
 static lua_State* main_state;
 static fs::path bin_path;
-static constexpr auto builtin_name = "game";
+static constexpr auto builtin_name = "core";
 namespace events {
+static unique_event shutting_down;
 static unique_event updating;
 static unique_event rendering;
-static unique_event shutting_down;
+static unique_event run_begin;
+static unique_event run_done;
 }
 
 static fs::path res_path() {
@@ -142,8 +144,10 @@ static void init_luau_state(lua_State* L, const fs::path& main_entry_point) {
     builtin::event_type(L);
     lua_setglobal(L, "Event");
     lua_getglobal(L, builtin_name);
-    register_event(L, events::updating, "Updating");
-    register_event(L, events::rendering, "Rendering");
+    register_event(L, events::run_begin, "BeforeRun");
+    register_event(L, events::run_done, "AfterRun");
+    register_event(L, events::updating, "DuringUpdate");
+    register_event(L, events::rendering, "DuringRender");
     register_event(L, events::shutting_down, "ShuttingDown");
     lua_pop(L, 1);
     std::optional<std::string> source = read_file(main_entry_point);
@@ -201,6 +205,7 @@ static void run() {
     auto& e = sdl_event_dummy;
     while (not quitting) {
         {// event handling
+            events::run_begin->fire(0);
             while (SDL_PollEvent(&e)) {
                 if (module::userinput.loaded) {
                     bi::handle_userinput_event(main_state, e);
@@ -226,6 +231,7 @@ static void run() {
             events::rendering->fire(0);
             SDL_RenderPresent(renderer_ptr);
         }
+        events::run_done->fire(0);//maybe time point as parameter
     }
 }
 static void shutdown() {

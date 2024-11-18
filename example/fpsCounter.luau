@@ -1,4 +1,5 @@
-local Graphics = game.GetModule("Graphics")
+local Graphics = core.GetModule("Graphics")
+local GRender = Graphics.Render
 local M = {
     accumulatedSeconds = 0,
     frameCount = 0,
@@ -17,7 +18,7 @@ function M.init()
     M.accumulatedSeconds = 0
     M.frameCount = 0
     M.text = "fps"
-    M.updateConnection = game.Updating:Connect(function(dt: number)
+    M.updateConnection = core.DuringUpdate:Connect(function(dt: number)
         M.frameCount += 1
         M.accumulatedSeconds += dt
         if M.accumulatedSeconds >= 1 then
@@ -26,19 +27,19 @@ function M.init()
             M.accumulatedSeconds = 0
         end
     end)
-    M.renderConnection = game.Rendering:Connect(function()
-        local OLD_DRAW_COLOR = Graphics.DrawColor
-        Graphics.DrawColor = M.drawColor
-        Graphics.DrawString(M.text, Matrix3.FromTranslation(Vector2(0, 0)))
-        Graphics.DrawColor = OLD_DRAW_COLOR
+    M.renderConnection = core.DuringRender:Connect(function()
+        local OLD_DRAW_COLOR = Graphics.Color
+        Graphics.Color = M.drawColor
+        GRender.Text(M.text, Matrix3.FromTranslation(Vector2(0, 0)))
+        Graphics.Color = OLD_DRAW_COLOR
     end)
 end
 
 function M.deinit()
     if M.updateConnection then
     end
-    game.Updating:Disconnect(assert(M.updateConnection))
-    game.Updating:Disconnect(assert(M.renderConnection))
+    core.DuringUpdate:Disconnect(assert(M.updateConnection))
+    core.DuringRender:Disconnect(assert(M.renderConnection))
 end
 
 return M :: Module

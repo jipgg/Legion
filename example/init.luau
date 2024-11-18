@@ -1,18 +1,20 @@
 --!strict
-local Graphics = game.GetModule('Graphics')
-local Window = game.GetModule('Window')
+local Graphics = core.GetModule('Graphics')
+local GDraw = Graphics.Draw
+local GFill = Graphics.Fill
+local Window = core.GetModule('Window')
 local fpsCounter = require('@example/fpsCounter')
 local dummyImage = require('@example/dummyImage')
 local RESOURCE_DIR = FilePath("resources")
-local UserInput = game.GetModule('UserInput')
+local UserInput = core.GetModule('UserInput')
 print(`is clip enabled {Graphics.IsClipEnabled()}`)
-Graphics.ClipRect = Rectangle(50, 50, 300, 400)
 print(`is clip enabled {Graphics.IsClipEnabled()}`)
-
 Graphics.BlendMode = 'Blend'
 Window.SetIcon(tostring(RESOURCE_DIR / "coin.png"))
 Window.Title = "Yoooooo"
 Window.Position = Vector2(100, 100)
+Window.Maximize()
+print(Window.Size)
 --Window.Borderless = true
 
 local myEvent: Event<number> = Event()
@@ -26,7 +28,7 @@ local currentAngle = 0
 local myFont = Font(RESOURCE_DIR / "main_font.ttf", 100)
 local helloText = {'h','e','l','l','o', ' ', 'w', 'o', 'r', 'l','d'}
 local textChangeAccumulated = 0
-game.Updating:Connect(function(dt: number)
+core.DuringUpdate:Connect(function(dt: number)
     textChangeAccumulated += dt
     if textChangeAccumulated < .02 then
         return
@@ -39,7 +41,7 @@ game.Updating:Connect(function(dt: number)
     textChangeAccumulated = 0
 end)
 
-game.Rendering:Connect(function()
+core.DuringRender:Connect(function()
     local color
     Graphics.ClearCanvas(Color(0, 0, 0, 255))
     color = Color(
@@ -47,29 +49,42 @@ game.Rendering:Connect(function()
         math.abs(math.sin(currentAngle - 45)) * 255,
         math.abs(math.sin(currentAngle)) * 255
     )
-    Graphics.DrawColor = color:AlphaBlend(color)
-    Graphics.FillCircle(Vector2(100, 100), 40)
-    Graphics.DrawColor = color:Multiply(color:Modulate(color))
-    Graphics.FillRectangle(Rectangle(200-40, 100-40, 80, 80))
-    Graphics.DrawColor = color:Multiply(color:Invert())
-    Graphics.FillRectangle(Rectangle(200-40, 200-40, 80, 80))
-    Graphics.DrawColor = color:Modulate(color)
-    Graphics.FillCircle(Vector2(100, 200), 40)
-    Graphics.DrawColor = Color(color.Red, color.Green, color.Blue, 100):Invert()
+    --Graphics.ClipRect = Rectangle(0, 0, Window.Size.X / 2, Window.Size.Y / 2)
+    local SIZE = Window.Size
+    Graphics.Viewport = Rectangle(0, 0, SIZE.X / 2, SIZE.Y)
+    Graphics.Color = color:AlphaBlend(color)
+    GFill.Circle(Vector2(100, 100), 40)
+    Graphics.Color = color:Multiply(color:Modulate(color))
+    GFill.Rectangle(Rectangle(200-40, 100-40, 80, 80))
+    Graphics.Color = color:Multiply(color:Invert())
+    
+    GFill.Rectangle(Rectangle(200-40, 200-40, 80, 80))
+    Graphics.Color = color:Modulate(color)
+    GFill.Circle(Vector2(100, 200), 40)
+    Graphics.Color = Color(color.Red, color.Green, color.Blue, 100):Invert()
     Graphics.BlendMode = 'Blend'
-    Graphics.FillCircle(Vector2(500, 400), 450)
-    Graphics.DrawColor = Color(color.Red, color.Green, color.Blue, 50)
-    Graphics.FillEllipse(Vector2(400, 480), Vector2(400, 100));
-    Graphics.DrawColor = Color(color.Red, color.Green, color.Blue, 50):Invert():Modulate(color)
-    Graphics.FillEllipse(Vector2(400, 300), Vector2(200, 400));
-    Graphics.DrawColor = Color(color.Red, color.Green, color.Blue, 50):Invert():Multiply(color)
-    Graphics.FillEllipse(Vector2(400, 480), Vector2(400, 300));
-    Graphics.DrawColor = Color(100, 100, 100):AdditiveBlend(color)
+    GFill.Circle(Vector2(500, 400), 450)
+    Graphics.Color = Color(color.Red, color.Green, color.Blue, 50)
+    GFill.Ellipse(Vector2(400, 480), Vector2(400, 100));
+    Graphics.Color = Color(color.Red, color.Green, color.Blue, 50):Invert():Modulate(color)
+    GFill.Ellipse(Vector2(400, 300), Vector2(200, 400));
+    Graphics.Color = Color(color.Red, color.Green, color.Blue, 50):Invert():Multiply(color)
+    GFill.Ellipse(Vector2(400, 480), Vector2(400, 300));
+    Graphics.Color = Color(100, 100, 100):AdditiveBlend(color)
     local transformation = Matrix3.FromTranslation(Vector2(50, 400))
     transformation *= Matrix3.FromScale(Vector2(1, math.cos(currentAngle * 4) * .1 + 1))
-    Graphics.DrawString(myFont, table.concat(helloText), transformation)
+
+    local S = Rectangle(SIZE.X / 2, 0, SIZE.X / 2, SIZE.Y / 2)
+    Graphics.Viewport = S
+    Graphics.BlendMode = "None"
+    Graphics.Color = Color(255, 255, 255)
+    GFill.Rectangle(Rectangle(0, 0, SIZE.X / 2, SIZE.Y / 2))
+    Graphics.BlendMode = "Blend"
+    Graphics.Color = Color(100, 100, 100):AdditiveBlend(color)
+    GDraw.String(myFont, table.concat(helloText), transformation)
+    Graphics.Viewport = Rectangle(0, 0, SIZE.X, SIZE.Y)
 end)
-game.Updating:Connect(function(dt: number)
+core.DuringUpdate:Connect(function(dt: number)
     currentAngle += math.rad(30) * dt
 end)
 fpsCounter.init()

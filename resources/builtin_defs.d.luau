@@ -173,30 +173,41 @@ export type WindowModule = {
     Maximized: Event<>,
 }
 export type BlendMode= 'None'|'Multiply'|'Add'|'Modulate'|'Blend'|'Invalid'
+type GraphicsModule_DrawFunctions = {
+        Rectangle: (rect: Rectangle)->(),
+        Rectangles: (...Rectangle)->(),
+        Pixel: (point: Vector2)->(),
+        Pixels: (...Vector2)->(),
+        Line: (t0: Vector2, t1: Vector2)->(),
+        Lines: ((...Vector2)->()), 
+        String: ((ft: Font, str: string, transform: Matrix3?)->())
+}
+type GraphicsModule_FillFunctions = {
+    Rectangle: (rect: Rectangle)->(),
+    Rectangles: (...Rectangle)->(),
+    Circle: ((center: Vector2, radius: number)->())
+        & ((transform: Matrix3, radius: number)->()),
+    Ellipse: (center: Vector2, radius: Vector2)->(),
+}
+type GraphicsModule_RenderFunctions = {
+    Text: ((ft: Font, str: string, transform: Matrix3?)->())
+        & ((text: string, transform: Matrix3?)->()),
+    Texture: ((texture: Texture, pos: Vector2?)->())
+        & ((texture: Texture, dest: Rectangle)->())
+        & ((texture: Texture, trs: Matrix3)->()),
+}
 export type GraphicsModule = {
-    DrawColor: Color,
+    Color: Color,
     BlendMode: BlendMode,
-    RenderViewport: Rectangle,
+    Viewport: Rectangle,
+    Scale: Vector2,
     VSyncEnabled: boolean,
     ClipRect: Rectangle?,
     IsClipEnabled: ()->boolean,
-    DrawRectangle: (rect: Rectangle)->(),
-    DrawRectangles: (...Rectangle)->(),
-    DrawPixel: (point: Vector2)->(),
-    DrawPixels: (...Vector2)->(),
-    FillRectangle: (rect: Rectangle)->(),
-    FillRectangles: (...Rectangle)->(),
-    DrawLine: (t0: Vector2, t1: Vector2)->(),
-    DrawLines: ((...Vector2)->()), 
-    FillCircle: ((center: Vector2, radius: number)->())
-        & ((transform: Matrix3, radius: number)->()),
-    FillEllipse: (center: Vector2, radius: Vector2)->(),
-    DrawString: ((ft: Font, str: string, transform: Matrix3?)->())
-        & ((text: string, transform: Matrix3?)->()),
     ClearCanvas: (bg: Color?)->(),
-    DrawTexture: ((texture: Texture, pos: Vector2?)->())
-        & ((texture: Texture, dest: Rectangle)->())
-        & ((texture: Texture, trs: Matrix3)->()),
+    Draw: GraphicsModule_DrawFunctions,
+    Fill: GraphicsModule_FillFunctions,
+    Render: GraphicsModule_RenderFunctions,
 }
 export type UserInputModule = {
     IsKeyDown: (key: KeyCode)->boolean,
@@ -226,11 +237,13 @@ export type Luwaw = {
         & (('Files')->FilesModule)
         & (('Window')->WindowModule)
         & (('UserInput')->UserInputModule),
-    Updating: Event<number>,
-    Rendering: Event<>,
+    DuringUpdate: Event<number>,
+    DuringRender: Event<>,
     ShuttingDown: Event<>,
+    BeforeRun: Event<>,
+    AfterRun: Event<>,
 }
-declare game: Luwaw
+declare core: Luwaw
 declare Rectangle: (x: number?, y: number?, w: number?, h: number?)->Rectangle
 declare Vector2: (x: number?, y: number?)->Vector2
 declare Vector3: (x: number?, y: number?, z: number?)->Vector3

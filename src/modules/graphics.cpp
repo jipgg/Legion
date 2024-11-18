@@ -443,111 +443,122 @@ static int draw_texture(lua_State* L) {
     SDL_RenderCopy(util::renderer(), r.ptr.get(), &src, &dst);
     return 0;
 }
-static constexpr size_t draw_color_length = std::string("DrawColor").length();
-static constexpr size_t blend_mode_length = std::string("BlendMode").length();
-static constexpr size_t render_viewport_length = std::string("RenderViewport").length();
-static constexpr size_t vsync_enabled_length = std::string("VSyncEnabled").length();
-static constexpr size_t clip_rect_length = std::string("ClipRect").length();
+static constexpr std::string_view draw_color = "Color";
+static constexpr std::string_view blend_mode = "BlendMode";
+static constexpr std::string_view viewport = "Viewport";
+static constexpr std::string_view vsync_enabled = "VSyncEnabled";
+static constexpr std::string_view clip_rect = "ClipRect";
+static constexpr std::string_view scale = "Scale";
+static consteval char char_v(const std::string_view v) {
+    return *v.data();
+}
 static int index(lua_State* L) {
-    size_t length;
-    const char* key = luaL_checklstring(L, 2, &length);
-    switch (*key) {
-        case 'D': {
-            engine::expect(length == draw_color_length);
-            create<bi::color>(L, util::current_draw_color());
-            return 1;
-        }
-        case 'B': {
-            engine::expect(length == blend_mode_length);
+    const std::string_view key = luaL_checkstring(L, 2);
+    switch (*key.data()) {
+        case char_v(blend_mode): {
+            engine::expect (key == blend_mode);
             SDL_BlendMode bm;
             SDL_GetRenderDrawBlendMode(util::renderer(), &bm);
             lua_pushstring(L, blendmode_to_string(bm));
             return 1;
         }
-        case 'R': {
-            engine::expect(length == render_viewport_length);
-            SDL_Rect vp;
-            SDL_RenderGetViewport(util::renderer(), &vp);
-            create<bi::rectangle>(L, 
-                static_cast<double>(vp.x),
-                static_cast<double>(vp.y),
-                static_cast<double>(vp.w),
-                static_cast<double>(vp.h)
-            );
-            return 1;
-        }
-        case 'V': {
-            engine::expect(length == vsync_enabled_length);
-            if (SDL_GetRendererInfo(util::renderer(), &info) != 0) {
-                luaL_error(L, SDL_GetError());
+        case char_v(viewport): {
+            if (key == viewport) {
+                SDL_Rect vp;
+                SDL_RenderGetViewport(util::renderer(), &vp);
+                create<bi::rectangle>(L, 
+                    static_cast<double>(vp.x),
+                    static_cast<double>(vp.y),
+                    static_cast<double>(vp.w),
+                    static_cast<double>(vp.h)
+                );
+                return 1;
+            } else if (key == vsync_enabled) {
+                if (SDL_GetRendererInfo(util::renderer(), &info) != 0) {
+                    luaL_error(L, SDL_GetError());
+                }
+                lua_pushboolean(L, info.flags & SDL_RENDERER_PRESENTVSYNC);
+                return 1;
             }
-            lua_pushboolean(L, info.flags & SDL_RENDERER_PRESENTVSYNC);
-            return 1;
         }
-        case 'C': {
-            engine::expect(length == clip_rect_length);
-            SDL_Rect cr;
-            SDL_RenderGetClipRect(util::renderer(), &cr);
-            create<rectangle>(L,
-                static_cast<double>(cr.x),
-                static_cast<double>(cr.y),
-                static_cast<double>(cr.w),
-                static_cast<double>(cr.h)
-            );
+        case char_v(clip_rect): {
+            if (key == draw_color) {
+                create<bi::color>(L, util::current_draw_color());
+                return 1;
+            } else if (key == clip_rect) {
+                SDL_Rect cr;
+                SDL_RenderGetClipRect(util::renderer(), &cr);
+                create<rectangle>(L,
+                    static_cast<double>(cr.x),
+                    static_cast<double>(cr.y),
+                    static_cast<double>(cr.w),
+                    static_cast<double>(cr.h)
+                );
+                return 1;
+            }
+        }
+        case char_v(scale): {
+            engine::expect(key == scale);
+            vec2f scale{};
+            SDL_RenderGetScale(util::renderer(), &scale[0], &scale[1]);
+            create<vector2>(L) = scale;
             return 1;
         }
     }
     return 0;
 }
 static int newindex(lua_State* L) {
-    size_t length;
-    const char* key = luaL_checklstring(L, 2, &length);
+    const std::string_view key = luaL_checkstring(L, 2);
     constexpr int value_idx = 3;
-    switch (*key) {
-        case 'D': {
-            engine::expect(length == draw_color_length);
-            auto& color = check<bi::color>(L, value_idx);
-            SDL_SetRenderDrawColor(util::renderer(), color.r, color.g, color.b, color.a);
-            return 0;
-        }
-        case 'B': {
-            engine::expect(length == blend_mode_length);
+    switch (*key.data()) {
+        case char_v(blend_mode): {
+            engine::expect(key == blend_mode);
             const char* bm = luaL_checkstring(L, value_idx);
             SDL_SetRenderDrawBlendMode(util::renderer(), string_to_blendmode(bm));
             return 0;
         }
-        case 'R': {
-            engine::expect(length = render_viewport_length);
-            auto& r = check<bi::rectangle>(L, value_idx);
-            SDL_Rect vp{
-                static_cast<int>(r.x),
-                static_cast<int>(r.y),
-                static_cast<int>(r.w),
-                static_cast<int>(r.h),
-            };
-            SDL_RenderSetViewport(util::renderer(), &vp);
-            return 0;
-        }
-        case 'V': {
-            engine::expect(length == vsync_enabled_length);
-            const bool enabled = luaL_checkboolean(L, value_idx);
-            SDL_RenderSetVSync(util::renderer(), enabled);
-            return 0;
-        }
-        case 'C': {
-            engine::expect(length == clip_rect_length);
-            if (is_type<rectangle>(L, value_idx)) {
-                const rectangle& r = check<rectangle>(L, value_idx);
-                SDL_Rect cr{
+        case char_v(viewport): {
+            if (key == vsync_enabled) {
+                const bool enabled = luaL_checkboolean(L, value_idx);
+                SDL_RenderSetVSync(util::renderer(), enabled);
+                return 0;
+            } else if (key == viewport) {
+                auto& r = check<bi::rectangle>(L, value_idx);
+                SDL_Rect vp{
                     static_cast<int>(r.x),
                     static_cast<int>(r.y),
                     static_cast<int>(r.w),
                     static_cast<int>(r.h),
                 };
-                SDL_RenderSetClipRect(util::renderer(), &cr);
-            } else if (lua_isnil(L, value_idx)) {
-                SDL_RenderSetClipRect(util::renderer(), nullptr);
+                SDL_RenderSetViewport(util::renderer(), &vp);
+                return 0;
             }
+        }
+        case char_v(clip_rect): {
+            if (key == draw_color) {
+                auto& color = check<bi::color>(L, value_idx);
+                SDL_SetRenderDrawColor(util::renderer(), color.r, color.g, color.b, color.a);
+                return 0;
+            } else if (key == clip_rect) {
+                if (is_type<rectangle>(L, value_idx)) {
+                    const rectangle& r = check<rectangle>(L, value_idx);
+                    SDL_Rect cr{
+                        static_cast<int>(r.x),
+                        static_cast<int>(r.y),
+                        static_cast<int>(r.w),
+                        static_cast<int>(r.h),
+                    };
+                    SDL_RenderSetClipRect(util::renderer(), &cr);
+                } else if (lua_isnil(L, value_idx)) {
+                    SDL_RenderSetClipRect(util::renderer(), nullptr);
+                }
+                return 0;
+            }
+        }
+        case char_v(scale): {
+            engine::expect(key == scale);
+            const auto& s = check<vector2>(L, value_idx);
+            SDL_RenderSetScale(util::renderer(), static_cast<float>(s[0]), static_cast<float>(s[1]));
             return 0;
         }
     }
@@ -580,8 +591,40 @@ int graphics_module(lua_State *L) {
         {"IsClipEnabled", is_clip_enabled},
         {nullptr, nullptr}
     };
+    const luaL_Reg draw[] = {
+        {"Rectangle", draw_rectangle},
+        {"Rectangles", draw_rectangles},
+        {"Line", draw_line},
+        {"Lines", draw_lines},
+        {"Pixel", draw_point},
+        {"Pixels", draw_points},
+        {"String", draw_string},
+        {"Texture", draw_texture},
+        {nullptr, nullptr},
+    };
+    const luaL_Reg fill[] = {
+        {"Rectangle", fill_rectangle},
+        {"Rectangles", fill_rectangles},
+        {"Circle", fill_circle},
+        {"Ellipse", fill_ellipse},
+        {nullptr, nullptr}
+    };
+    const luaL_Reg render[] = {
+        {"Text", draw_string},
+        {"Texture", draw_texture},
+        {nullptr, nullptr}
+    };
     lua_newtable(L);
     luaL_register(L, nullptr, lib);
+    lua_newtable(L);
+    luaL_register(L, nullptr, draw);
+    lua_setfield(L, -2, "Draw");
+    lua_newtable(L);
+    luaL_register(L, nullptr, fill);
+    lua_setfield(L, -2, "Fill");
+    lua_newtable(L);
+    luaL_register(L, nullptr, render);
+    lua_setfield(L, -2, "Render");
     if (luaL_newmetatable(L, "builtin_graphics_module")) {
         const luaL_Reg meta[] = {
             {metamethod::index, index},

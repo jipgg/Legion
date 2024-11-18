@@ -1,4 +1,5 @@
-local Graphics = game.GetModule('Graphics')
+local Graphics = core.GetModule('Graphics')
+local GRender = Graphics.Render
 
 local M = {
     dummy = Texture('resources/jw.png'),
@@ -11,7 +12,7 @@ export type Module = {
 function M.init()
     M.dummy.BlendMode = 'Blend'
     M.dummy.Color = Color(255, 255, 255)
-    game.Rendering:Connect(function()
+    core.DuringRender:Connect(function()
         local t = Matrix3(
             1, 0, 600 + math.cos(M.angle /2) * 100,
             0, 1, 200 + math.cos(M.angle / 3) * 50,
@@ -33,9 +34,9 @@ function M.init()
             0, 0, 1
         )
         local transform = t * r * s * off
-        Graphics.DrawTexture(M.dummy, transform)
+        GRender.Texture(M.dummy, transform)
     end)
-    game.Updating:Connect(function(dt: number)
+    core.DuringUpdate:Connect(function(dt: number)
         M.angle += math.rad(30) * dt
     end)
 end

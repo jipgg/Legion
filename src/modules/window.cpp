@@ -231,6 +231,8 @@ void handle_window_event(lua_State* L, SDL_WindowEvent& e) {
         case SDL_WINDOWEVENT_MAXIMIZED:
             maximized->fire(0);
         break;
+        case SDL_WINDOWEVENT_MINIMIZED:
+            minimized->fire(0);
         case SDL_WINDOWEVENT_RESTORED:
             restored->fire(0);
         break;
@@ -261,6 +263,8 @@ int window_module(lua_State *L) {
     register_event(L, restored, "Restored");
     register_event(L, closing, "Closing");
     register_event(L, exposed, "Exposed");
+    register_event(L, maximized, "Maximized");
+    register_event(L, minimized, "Minimized");
     if (luaL_newmetatable(L, "builtin_window_module")) {
         const luaL_Reg meta[] = {
             {metamethod::index, index},
