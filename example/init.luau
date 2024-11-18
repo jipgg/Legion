@@ -5,7 +5,9 @@ local fpsCounter = require('@example/fpsCounter')
 local dummyImage = require('@example/dummyImage')
 local RESOURCE_DIR = FilePath("resources")
 local UserInput = game.GetModule('UserInput')
-print(UserInput.MousePosition)
+print(`is clip enabled {Graphics.IsClipEnabled()}`)
+Graphics.ClipRect = Rectangle(50, 50, 300, 400)
+print(`is clip enabled {Graphics.IsClipEnabled()}`)
 
 Graphics.BlendMode = 'Blend'
 Window.SetIcon(tostring(RESOURCE_DIR / "coin.png"))
@@ -73,7 +75,12 @@ end)
 fpsCounter.init()
 dummyImage.init()
 UserInput.KeyPressed:Connect(function(key)
-    if (key == '0') then
+    if key == 'W' then
         print(`Mouse position: {UserInput.MousePosition}`)
+    elseif key == 'A' then
+        Graphics.VSyncEnabled = not Graphics.VSyncEnabled
+    elseif key == 'D' then
+        Graphics.ClipRect = nil
+        print(`is clip enabled {Graphics.IsClipEnabled()}`)
     end
 end)

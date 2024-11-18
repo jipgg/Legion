@@ -142,6 +142,9 @@ export type FilesModule = {
     Proximate: (path: FilePath, base: FilePath?)->FilePath,
     CreateSymlink: (to: FilePath, new_symlink: FilePath)->(),
     Relative: (path: FilePath, base: FilePath?)->FilePath,
+    ReadFile: (path: FilePath | string)->string?,
+    WriteFile: (path: FilePath | string, data: string)->boolean,
+    FilePath: (string)->FilePath,
 }
 export type WindowModule = {
     Size: Vector2,
@@ -173,6 +176,10 @@ export type BlendMode= 'None'|'Multiply'|'Add'|'Modulate'|'Blend'|'Invalid'
 export type GraphicsModule = {
     DrawColor: Color,
     BlendMode: BlendMode,
+    RenderViewport: Rectangle,
+    VSyncEnabled: boolean,
+    ClipRect: Rectangle?,
+    IsClipEnabled: ()->boolean,
     DrawRectangle: (rect: Rectangle)->(),
     DrawRectangles: (...Rectangle)->(),
     DrawPixel: (point: Vector2)->(),

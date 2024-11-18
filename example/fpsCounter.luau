@@ -21,7 +21,7 @@ function M.init()
         M.frameCount += 1
         M.accumulatedSeconds += dt
         if M.accumulatedSeconds >= 1 then
-            M.label = `{M.frameCount} fps`
+            M.text = `{M.frameCount} fps`
             M.frameCount = 0
             M.accumulatedSeconds = 0
         end

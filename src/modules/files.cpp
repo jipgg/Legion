@@ -65,6 +65,18 @@ static int is_character_file(lua_State* L) {
     luaL_error(L, "unsupported type");
     return 0;
 }
+static int read_text_file(lua_State* L) {
+    auto path = resolve_path_type(L, 1);
+    if (not path) return 0;
+    auto contents = read_file(*path);
+    if (not contents) return 0;
+    lua_pushlstring(L, contents->data(), contents->size());
+    return 1;
+}
+static int write_text_file(lua_State* L) {
+    lua_pushboolean(L, true);
+    return 1;
+}
 static int copy_file(lua_State* L) {
     auto from = resolve_type(L, 1);
     auto to = resolve_type(L, 2);
@@ -339,7 +351,10 @@ static const luaL_Reg fs_lib[] = {
     {"Canonical", canonical},
     {"Proximate", proximate},
     {"CreateSymlink", create_symlink},
+    {"FilePath", path_ctor},
     {"Relative", relative},
+    {"ReadFile", read_text_file},
+    {"WriteFile", write_text_file},
     {nullptr, nullptr}
 };
 static const luaL_Reg path_metatable[] = {
