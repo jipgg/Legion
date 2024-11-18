@@ -198,6 +198,7 @@ export type UserInputModule = {
     MouseButtonPressed: Event<MouseButtonType, Vector2>,
     MouseButtonReleased: Event<MouseButtonType, Vector2>,
     MouseMoved: Event<Vector2, Vector2>,
+    MousePosition: Vector2,
 }
 declare class EventConnectionId
     function __tostring(self): string

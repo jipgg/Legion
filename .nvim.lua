@@ -12,7 +12,6 @@ require"lspconfig".luau_lsp.setup {
             require = {
                 mode = "relativeToFile",
                 directoryAliases = {
-                    ["@tests"] = "./tests/",
                     ["@builtin"] = "./resources/luau_library/",
                     ["@example"] = "./example/",
                 },

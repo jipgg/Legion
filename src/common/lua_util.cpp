@@ -22,7 +22,7 @@ static constexpr auto q = "Q", w = "W", e = "E", r = "R",
     enter = "Enter", backslash = "Backslash", slash = "Slash", comma = "Comma",
     period = "Period", minus = "Minus", equals = "Equals", backspace = "Backspace",
     esc = "Escape";
-static constexpr auto nullkey = "undefined";
+static constexpr auto nullkey = "Undefined";
 const char* scancode_to_string(SDL_Scancode scancode) {
     switch (scancode) {
         case SDL_SCANCODE_Q: return q;

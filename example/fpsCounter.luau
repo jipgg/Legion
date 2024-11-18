@@ -29,7 +29,7 @@ function M.init()
     M.renderConnection = game.Rendering:Connect(function()
         local OLD_DRAW_COLOR = Graphics.DrawColor
         Graphics.DrawColor = M.drawColor
-        Graphics.DrawString(M.label, Matrix3.FromTranslation(Vector2(0, 0)))
+        Graphics.DrawString(M.text, Matrix3.FromTranslation(Vector2(0, 0)))
         Graphics.DrawColor = OLD_DRAW_COLOR
     end)
 end

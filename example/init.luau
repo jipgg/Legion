@@ -4,12 +4,14 @@ local Window = game.GetModule('Window')
 local fpsCounter = require('@example/fpsCounter')
 local dummyImage = require('@example/dummyImage')
 local RESOURCE_DIR = FilePath("resources")
+local UserInput = game.GetModule('UserInput')
+print(UserInput.MousePosition)
 
 Graphics.BlendMode = 'Blend'
 Window.SetIcon(tostring(RESOURCE_DIR / "coin.png"))
 Window.Title = "Yoooooo"
 Window.Position = Vector2(100, 100)
-Window.Borderless = true
+--Window.Borderless = true
 
 local myEvent: Event<number> = Event()
 
@@ -70,3 +72,8 @@ game.Updating:Connect(function(dt: number)
 end)
 fpsCounter.init()
 dummyImage.init()
+UserInput.KeyPressed:Connect(function(key)
+    if (key == '0') then
+        print(`Mouse position: {UserInput.MousePosition}`)
+    end
+end)

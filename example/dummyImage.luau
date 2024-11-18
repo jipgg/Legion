@@ -1,7 +1,7 @@
 local Graphics = game.GetModule('Graphics')
 
 local M = {
-    dummy = Texture('resourves/jw.png'),
+    dummy = Texture('resources/jw.png'),
     angle = 0,
 }
 export type Module = {
