@@ -81,7 +81,7 @@ int connection_id_tostring(lua_State* L) {
     return 1;
 }
 
-int class_event(lua_State* L) {
+int event_type(lua_State* L) {
     if (luaL_newmetatable(L, metatable_name<event::connection>())) {
         lua_pushcfunction(L, connection_id_tostring, "event_connection_id_tostring");
         lua_setfield(L, -2, metamethod::tostring);

@@ -27,24 +27,30 @@ constexpr auto len = "__len";
 constexpr auto call = "__call";
 constexpr auto pow = "__pow";
 }
-int class_matrix3(lua_State* L);
-int class_vector2(lua_State* L);
-int class_vector2i(lua_State* L);
-int class_vector3(lua_State* L);
-int class_vector(lua_State* L);
-int class_path(lua_State* L);
-int class_event(lua_State* L);
+int matrix3_type(lua_State* L);
+int vector2_type(lua_State* L);
+int vector2i_type(lua_State* L);
+int vector3_type(lua_State* L);
+int vector_type(lua_State* L);
+int path_type(lua_State* L);
+int event_type(lua_State* L);
 
 int fn_read_file(lua_State* L);
 int fn_get_mouse_position(lua_State* L);
 int fn_is_key_down(lua_State* L);
 int fn_is_point_in_rect(lua_State* L);
 
-int lib_sdl(lua_State* L);
-int lib_filesystem(lua_State* L);
-int lib_window(lua_State* L);
-int lib_rendering(lua_State* L);
-int lib_graphics(lua_State* L);
+int files_module(lua_State* L);
+
+int window_module(lua_State* L);
+void handle_window_event(lua_State* L, SDL_WindowEvent& e);
+
+int rendering_module(lua_State* L);
+int graphics_module(lua_State* L);
+int renderer_module(lua_State* L);
+int userinput_module(lua_State* L);
+void handle_userinput_event(lua_State* L, SDL_Event& e);
+
 
 namespace tname {
 constexpr auto opaque_texture = "TexturePtr";

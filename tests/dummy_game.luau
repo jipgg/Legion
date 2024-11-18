@@ -2,13 +2,17 @@
 local Graphics = game.GetModule('Graphics')
 local Files = game.GetModule('Files')
 local Window = game.GetModule('Window')
+local UserInput = game.GetModule('UserInput')
 local RESOURCE_DIR = FilePath("resources")
 Graphics.BlendMode = 'Blend'
 Window.SetIcon(tostring(RESOURCE_DIR / "coin.png"))
 Window.Title = "Yoooooo"
-Window.Size = Vector2(1240, 720)
-Window.Position = Vector2(0, 20)
+--Window.Size = Vector2(1240, 720)
+Window.Position = Vector2(100, 100)
 Window.Borderless = true
+Window.MouseEnter:Connect(function()
+    print("ENTERING THE WINDOW")
+end)
 
 print(`Exe = {Files.ExecutablePath()}`)
 for i, entry: DirectoryEntry in Files.GetChildrenOf(Files.ExecutablePath()) do
@@ -42,7 +46,7 @@ local fpsLabel = {
     FrameCount = 0,
     Label = "fps",
 }
-fpsLabel.UpdateConnection = game.OnUpdate:Connect(function(dt: number)
+fpsLabel.UpdateConnection = game.Updating:Connect(function(dt: number)
     local self = fpsLabel
     self.FrameCount += 1
     self.Accumulated += dt
@@ -60,7 +64,7 @@ local cos = math.cos
 local myFont = Font(RESOURCE_DIR / "main_font.ttf", 100)
 local helloText = {'h','e','l','l','o', ' ', 'w', 'o', 'r', 'l','d'}
 local textChangeAccumulated = 0
-game.OnUpdate:Connect(function(dt: number)
+game.Updating:Connect(function(dt: number)
     textChangeAccumulated += dt
     if textChangeAccumulated < .02 then
         return
@@ -74,7 +78,7 @@ game.OnUpdate:Connect(function(dt: number)
 end)
 
 local col
-game.OnRender:Connect(function()
+game.Rendering:Connect(function()
     Graphics.ClearCanvas(Color(0, 0, 0, 255))
     col = Color(abs(cos(jwAngle)) * 255, abs(sin(jwAngle - 45)) * 255, abs(sin(jwAngle)) * 255, 255)
     Graphics.DrawColor = col:AlphaBlend(col)
@@ -92,7 +96,6 @@ game.OnRender:Connect(function()
     Graphics.FillEllipse(Vector2(400, 480), Vector2(400, 100));
     Graphics.DrawColor = Color(col.Red, col.Green, col.Blue, 50):Invert():Modulate(col)
     Graphics.FillEllipse(Vector2(400, 300), Vector2(200, 400));
-
     Graphics.DrawColor = Color(col.Red, col.Green, col.Blue, 50):Invert():Multiply(col)
     Graphics.FillEllipse(Vector2(400, 480), Vector2(400, 300));
     Graphics.DrawColor = Color(100, 100, 100):AdditiveBlend(col)
@@ -100,7 +103,7 @@ game.OnRender:Connect(function()
     transformation *= Matrix3.FromScale(Vector2(1, cos(jwAngle * 4) * .1 + 1))
     Graphics.DrawString(myFont, table.concat(helloText), transformation)
 end)
-game.OnRender:Connect(function()
+game.Rendering:Connect(function()
     local angle = jwAngle
     local t = Matrix3(
         1, 0, 600 + math.cos(angle /2) * 100,
@@ -123,13 +126,13 @@ game.OnRender:Connect(function()
     --gr.set_color(color(200, 200, 200):additive_blend(col))
     Graphics.DrawTexture(jw, transform)
 end)
-game.OnUpdate:Connect(function(dt: number)
+game.Updating:Connect(function(dt: number)
     jwAngle += math.rad(30) * dt
 end)
 
 local accumulated = 0
 local accumulated2 = 0
-game.OnUpdate:Connect(function(deltasec: number)
+game.Updating:Connect(function(deltasec: number)
     accumulated += deltasec
     if (accumulated > 10) then
         print(`accumulated: {accumulated} {deltasec}`)
@@ -138,27 +141,27 @@ game.OnUpdate:Connect(function(deltasec: number)
 end)
 
 local connection  
-connection = game.OnUpdate:Connect(function(deltasec: number)
+connection = game.Updating:Connect(function(deltasec: number)
     accumulated2 += deltasec
     if (accumulated2 > 5) then
         print(`accumulated2: {accumulated2} {deltasec}`)
         accumulated2 = 0;
-        game.OnUpdate:Disconnect(connection);
+        game.Updating:Disconnect(connection);
         myEvent:Fire(11000)
     end
 end)
-fpsLabel.render_connection = game.OnRender:Connect(function()
+fpsLabel.render_connection = game.Rendering:Connect(function()
     local self = fpsLabel
     Graphics.DrawColor = Color(255, 255, 255)
     Graphics.DrawString(self.Label, Matrix3.FromTranslation(Vector2(0, 0)))
 end)
 
-game.OnKeyUp:Connect(function(key: KeyCode)
+UserInput.KeyPressed:Connect(function(key: KeyCode)
     if key == '0' then
     end
 end)
 
-game.OnKeyDown:Connect(function(key: KeyCode)
+UserInput.KeyReleased:Connect(function(key: KeyCode)
     if key == 'A' then
         print('up')
     end

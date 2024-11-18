@@ -483,7 +483,7 @@ static int newindex(lua_State* L) {
     return 0;
 }
 namespace builtin {
-int lib_graphics(lua_State *L) {
+int graphics_module(lua_State *L) {
     const luaL_Reg lib[] = {
         {"DrawRectangle", draw_rectangle},
         {"DrawRectangles", draw_rectangles},

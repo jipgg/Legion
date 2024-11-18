@@ -121,7 +121,7 @@ static int namecall(lua_State *L) {
         return 0;
     }
 }
-int builtin::class_vector2(lua_State* L) {
+int builtin::vector2_type(lua_State* L) {
     if (luaL_newmetatable(L, metatable_name<vector2>())) {
         const luaL_Reg meta [] = {
             {mm::index, index},

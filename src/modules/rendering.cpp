@@ -261,7 +261,7 @@ static int render_copy(lua_State* L) {
     return 0;
 }
 namespace builtin {
-int lib_rendering(lua_State *L) {
+int rendering_module(lua_State *L) {
     const luaL_Reg lib[] = {
         {"render_geometry_raw", render_geometry_raw},
         {"clear", clear},

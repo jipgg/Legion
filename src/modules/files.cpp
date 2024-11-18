@@ -367,7 +367,7 @@ static void init_types(lua_State* L) {
     }
 }
 namespace builtin {
-int class_path(lua_State *L) {
+int path_type(lua_State *L) {
     if (luaL_newmetatable(L, metatable_name<path>())) {
         luaL_register(L, nullptr, path_metatable);
         lua_pushstring(L, builtin::tname::path);
@@ -383,7 +383,7 @@ void init_filesystem_lib(lua_State *L) {
     //lua_pushcfunction(L, path_ctor, path_tname);
     //lua_setglobal(L, path_tname);
 }
-int lib_filesystem(lua_State *L) {
+int files_module(lua_State *L) {
     init_filesystem_lib(L);
     lua_newtable(L);
     luaL_register(L, nullptr, fs_lib);

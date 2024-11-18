@@ -1,21 +1,15 @@
 --!strict
 local Graphics = game.GetModule('Graphics')
-local Files = game.GetModule('Files')
 local Window = game.GetModule('Window')
 local RESOURCE_DIR = FilePath("resources")
-Graphics.BlendMode = 'blend'
+Graphics.BlendMode = 'Blend'
 Window.Title = "Hello World"
 Window.Size = Vector2(1240, 720)
 Window.Position = Vector2(100, 100)
 Window.SetIcon(tostring(RESOURCE_DIR / "coin.png"))
-Window.AlwaysOnTop = true
 
-print(`Exe = {Files.ExecutablePath()}`)
-for i, entry: DirectoryEntry in Files.GetChildrenOf(Files.ExecutablePath()) do
-    print(`   entry: {entry:Path()}`)
-end
 local dummyImage = Texture(RESOURCE_DIR / "jw.png")
-dummyImage.BlendMode = "blend"
+dummyImage.BlendMode = "Blend"
 dummyImage.Color = Color(255, 255, 255)
 
 local myEvent: Event<number> = Event()
@@ -34,9 +28,6 @@ fpsLabel.updateConnection = game.OnUpdate:Connect(function(dt: number)
 end)
 
 local myAngle = 0
-local abs = math.abs
-local sin = math.sin
-local cos = math.cos
 local myFont = Font(RESOURCE_DIR / "main_font.ttf", 100)
 local helloText = {'h','e','l','l','o', ' ', 'w', 'o', 'r', 'l','d'}
 local textChangeAccumulated = 0
@@ -56,7 +47,11 @@ end)
 local color
 game.OnRender:Connect(function()
     Graphics.ClearCanvas(Color(0, 0, 0, 255))
-    color = Color(abs(cos(myAngle)) * 255, abs(sin(myAngle - 45)) * 255, abs(sin(myAngle)) * 255, 255)
+    color = Color(
+        math.abs(math.cos(myAngle)) * 255,
+        math.abs(math.sin(myAngle - 45)) * 255,
+        math.abs(math.sin(myAngle)) * 255, 255
+    )
     Graphics.DrawColor = color:AlphaBlend(color)
     Graphics.FillCircle(Vector2(100, 100), 40)
     Graphics.DrawColor = color:Multiply(color:Modulate(color))
@@ -130,14 +125,4 @@ fpsLabel.render_connection = game.OnRender:Connect(function()
     Graphics.DrawColor = Color(255, 255, 255)
     Graphics.DrawString(self.label, Matrix3.FromTranslation(Vector2(0, 0)))
 end)
-
-game.OnKeyUp:Connect(function(key: KeyCode)
-    if key == '0' then
-    end
-end)
-
-game.OnKeyDown:Connect(function(key: KeyCode)
-    if key == 'a' then
-        print('up')
-    end
-end)
+return {}

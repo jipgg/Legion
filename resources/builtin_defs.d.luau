@@ -43,7 +43,7 @@ declare class Vector2
     Y: number
     function DotProduct(self, a: Vector2): number
     function ToUnitVector(self): Vector2
-    function Length(self): number
+function Length(self): number
     function Abs(self): Vector2
     function __add(self, a: Vector2): Vector2
     function __mul(self, scalar: number): Vector2
@@ -75,7 +75,7 @@ export type KeyCode = 'Escape'|'F1'|'F2'|'F3'|'F4'|'F5'|'F6'|'F7'|'F8'|'F9'|'F10
     '1'|'2'|'3'|'4'|'5'|'6'|'7'|'8'|'9'|'0'|'Minus'|'Equals'|'Backspace'|
     'Q'|'W'|'E'|'R'|'T'|'Y'|'U'|'I'|'O'|'P'|'Backslash'|
     'A'|'S'|'D'|'F'|'G'|'H'|'J'|'K'|'L'|'Enter'|
-    'Z'|'X'|'C'|'V'|'B'|'N'|'m'|'Comma'|'Period'|'slash'|
+    'Z'|'X'|'C'|'V'|'B'|'N'|'M'|'Comma'|'Period'|'slash'|
     'Left Shift'|'Left Control'|'Left Alt'|'Space'|'Right Alt'|'Arrow Left'|'Arrow Up'|'Arrow Down'|'Arrow Right'
 export type MouseButtonType = "Left" | "Right"| "Middle"
 declare class Matrix3
@@ -154,6 +154,20 @@ export type WindowModule = {
     Minimize: ()->(),
     SetIcon: (file: string)->(),
     Focus: ()->(),
+    FocusGained: Event<>,
+    FocusLost: Event<>,
+    Shown: Event<>,
+    Hidden: Event<>,
+    Resized: Event<Vector2>,
+    MouseEnter: Event<>,
+    MouseLeave: Event<>,
+    PositionChanged: Event<Vector2>,
+    SizeChanged: Event<Vector2>,
+    Restored: Event<>,
+    Closing: Event<>,
+    Exposed: Event<>,
+    Minimized: Event<>,
+    Maximized: Event<>,
 }
 export type BlendMode= 'None'|'Multiply'|'Add'|'Modulate'|'Blend'|'Invalid'
 export type GraphicsModule = {
@@ -177,6 +191,14 @@ export type GraphicsModule = {
         & ((texture: Texture, dest: Rectangle)->())
         & ((texture: Texture, trs: Matrix3)->()),
 }
+export type UserInputModule = {
+    IsKeyDown: (key: KeyCode)->boolean,
+    KeyPressed: Event<KeyCode>,
+    KeyReleased: Event<KeyCode>,
+    MouseButtonPressed: Event<MouseButtonType, Vector2>,
+    MouseButtonReleased: Event<MouseButtonType, Vector2>,
+    MouseMoved: Event<Vector2, Vector2>,
+}
 declare class EventConnectionId
     function __tostring(self): string
 end
@@ -194,14 +216,11 @@ export type Event<Params...> = {
 export type Luwaw = {
     GetModule: (('Graphics')->GraphicsModule)
         & (('Files')->FilesModule)
-        & (('Window')->WindowModule),
-    OnUpdate: Event<number>,
-    OnRender: Event<>,
-    OnKeyDown: Event<KeyCode>,
-    OnKeyUp: Event<KeyCode>,
-    OnMouseButtonDown: Event<MouseButtonType, Vector2>,
-    OnMouseButtonUp: Event<MouseButtonType, Vector2>,
-    OnShutdown: Event<>,
+        & (('Window')->WindowModule)
+        & (('UserInput')->UserInputModule),
+    Updating: Event<number>,
+    Rendering: Event<>,
+    ShuttingDown: Event<>,
 }
 declare game: Luwaw
 declare Rectangle: (x: number?, y: number?, w: number?, h: number?)->Rectangle

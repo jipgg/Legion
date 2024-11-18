@@ -15,6 +15,23 @@ static constexpr size_t icon_length = std::string("Icon").length();
 using engine::expect;
 using engine::window;
 using builtin::vector2;
+using builtin::vector2;
+using unique_event = std::unique_ptr<builtin::event>; 
+using builtin::event;
+static unique_event shown;
+static unique_event hidden;
+static unique_event mouse_entered;
+static unique_event mouse_left;
+static unique_event size_changed;
+static unique_event resized;
+static unique_event exposed;
+static unique_event position_changed;
+static unique_event minimized;
+static unique_event maximized;
+static unique_event restored;
+static unique_event focus_gained;
+static unique_event focus_lost;
+static unique_event closing;
 static bool is_always_on_top = false;
 static bool is_borderless = false;
 
@@ -179,7 +196,50 @@ static int focus(lua_State* L) {
 }
 
 namespace builtin {
-int lib_window(lua_State *L) {
+void handle_window_event(lua_State* L, SDL_WindowEvent& e) {
+    switch (e.event) {
+        case SDL_WINDOWEVENT_SHOWN:
+            shown->fire(0);
+        break;
+        case SDL_WINDOWEVENT_FOCUS_GAINED:
+            focus_gained->fire(0);
+        break;
+        case SDL_WINDOWEVENT_FOCUS_LOST:
+            focus_lost->fire(0);
+        break;
+        case SDL_WINDOWEVENT_EXPOSED:
+            exposed->fire(0);
+        break;
+        case SDL_WINDOWEVENT_RESIZED:
+            create<vector2>(L) = vec2i{e.data1, e.data2};
+            resized->fire(1);
+        break;
+        case SDL_WINDOWEVENT_SIZE_CHANGED:
+            create<vector2>(L) = vec2i{e.data1, e.data2};
+            size_changed->fire(1);
+        break;
+        case SDL_WINDOWEVENT_ENTER:
+            mouse_entered->fire(0);
+        break;
+        case SDL_WINDOWEVENT_LEAVE:
+            mouse_left->fire(0);
+        break;
+        case SDL_WINDOWEVENT_MOVED:
+            create<vector2>(L) = vec2i{e.data1, e.data2};
+            position_changed->fire(1);
+        break;
+        case SDL_WINDOWEVENT_MAXIMIZED:
+            maximized->fire(0);
+        break;
+        case SDL_WINDOWEVENT_RESTORED:
+            restored->fire(0);
+        break;
+        case SDL_WINDOWEVENT_CLOSE:
+            closing->fire(0);
+        break;
+    }
+}
+int window_module(lua_State *L) {
     const luaL_Reg lib[] = {
         {"Maximize", maximize},
         {"Minimize", minimize},
@@ -189,6 +249,18 @@ int lib_window(lua_State *L) {
     };
     lua_newtable(L);
     luaL_register(L, nullptr, lib);
+    register_event(L, hidden, "Hidden");
+    register_event(L, shown, "Shown");
+    register_event(L, resized, "Resized");
+    register_event(L, mouse_entered, "MouseEnter");
+    register_event(L, mouse_left, "MouseLeave");
+    register_event(L, size_changed, "SizeChanged");
+    register_event(L, position_changed, "PositionChanged");
+    register_event(L, focus_gained, "FocusGained");
+    register_event(L, focus_lost, "FocusLost");
+    register_event(L, restored, "Restored");
+    register_event(L, closing, "Closing");
+    register_event(L, exposed, "Exposed");
     if (luaL_newmetatable(L, "builtin_window_module")) {
         const luaL_Reg meta[] = {
             {metamethod::index, index},

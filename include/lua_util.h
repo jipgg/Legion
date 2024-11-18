@@ -125,3 +125,16 @@ __forceinline int invalid_argument(lua_State* L, int idx, std::optional<const ch
  __forceinline bool not_in_range(int index, int size, int min = 0) {
     return index >= size or index < 0;
 }
+using unique_event = std::unique_ptr<builtin::event>; 
+__forceinline void register_event(lua_State* L, unique_event& ev, const char* fieldname) {
+    ev = std::make_unique<builtin::event>(L);
+    push(L, *ev);
+    lua_setfield(L, -2, fieldname);
+}
+__forceinline const char* mouse_button_to_string(Uint8 button) {
+    switch (button) {
+        case SDL_BUTTON_RIGHT: return "Right";
+        case SDL_BUTTON_MIDDLE: return "Middle";
+        default: return "Left";
+    }
+}

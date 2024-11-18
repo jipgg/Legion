@@ -126,7 +126,7 @@ static int call(lua_State* L) {
     lua_pushnumber(L, r[index]);
     return 1;
 }
-int builtin::class_vector(lua_State* L) {
+int builtin::vector_type(lua_State* L) {
     if (luaL_newmetatable(L, metatable_name<ty>())) {
         const luaL_Reg meta [] = {
             {mm::add, add},

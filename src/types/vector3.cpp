@@ -102,7 +102,7 @@ static int namecall(lua_State *L) {
     }
     return 0;
 }
-int builtin::class_vector3(lua_State* L) {
+int builtin::vector3_type(lua_State* L) {
     namespace mm = bi::metamethod;
     if (luaL_newmetatable(L, metatable_name<vector3>())) {
         const luaL_Reg meta[] = {
