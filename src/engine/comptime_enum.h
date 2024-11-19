@@ -9,13 +9,13 @@
 #include "common.h"
 namespace comptime_enum {
 template<class Val, Val v>
-struct value {
+struct Value {
     static const constexpr auto value_ = v;
     constexpr operator Val() const {return v;}
 };
-template <class Func, std::size_t... indices>
-constexpr void inline_for(Func fn, std::index_sequence<indices...>) {
-  (fn(value<std::size_t, indices>{}), ...);
+template <class Func, std::size_t... Indices>
+constexpr void inline_for(Func fn, std::index_sequence<Indices...>) {
+  (fn(Value<std::size_t, Indices>{}), ...);
 }
 template <std::size_t count, typename Func>
 constexpr void inline_for(Func fn) {
@@ -29,8 +29,8 @@ constexpr void inline_for(Func fn) {
     _44, _45, _46, _47, _48, _49, _50, _51, _52, _53, _54, _55, _56, _57, _58, _59, _60, _61, _62, _63, count, ...) count
 #define comptime_SENTINEL _end
 template <class Ty>
-concept an_enum = std::is_enum_v<Ty>;
-template <an_enum Ty>
+concept Enum = std::is_enum_v<Ty>;
+template <Enum Ty>
 consteval std::size_t count() {
     return static_cast<std::size_t>(Ty::comptime_SENTINEL);
 }
@@ -40,18 +40,18 @@ template <>\
 consteval std::size_t comptime::count<Enum_type>() {\
     return comptime_COUNT_VA_ARGS(__VA_ARGS__);\
 }
-template <an_enum Ty, Ty last_item>
+template <Enum Ty, Ty LastItem>
 consteval std::size_t count() {
-    return static_cast<std::size_t>(last_item) + 1;
+    return static_cast<std::size_t>(LastItem) + 1;
 }
-struct enum_info {
+struct EnumInfo {
     std::string_view type;
     std::string_view name;
     std::string_view raw;
     int index;
 };
-template <an_enum Ty>
-struct enum_item {
+template <Enum Ty>
+struct EnumItem {
     std::string_view name;
     int index;
     constexpr Ty to_enum() const {return Ty(index);}
@@ -59,8 +59,8 @@ struct enum_item {
 };
 namespace detail {
 #if defined (_MSC_VER)//msvc compiler
-template <an_enum Ty, Ty val>
-consteval enum_info enum_info() {
+template <Enum Ty, Ty val>
+consteval EnumInfo enum_info() {
     const std::string_view raw{std::source_location::current().function_name()};
     const std::string enum_t_keyw{"<enum "};
     auto found = raw.find(enum_t_keyw);
@@ -81,8 +81,8 @@ consteval enum_info enum_info() {
     };
 }
 #elif defined(__clang__) || defined(__GNUC__)
-template <an_enum Ty, Ty val>
-consteval enum_info enum_info() {
+template <Enum Ty, Ty val>
+consteval EnumInfo enum_info() {
     using sv = std::string_view;
     const sv raw{std::source_location::current().function_name()};
     const sv enum_find{"Ty = "}; 
@@ -105,30 +105,30 @@ consteval enum_info enum_info() {
 static_assert(false, "platform not supported")
 #endif
 }
-template <an_enum Ty, int val>
-consteval enum_info info() {
+template <Enum Ty, int val>
+consteval EnumInfo info() {
     return detail::enum_info<Ty, static_cast<Ty>(val)>();
 }
-template <an_enum Ty, int val>
-constexpr enum_item<Ty> item() {
+template <Enum Ty, int val>
+constexpr EnumItem<Ty> item() {
     constexpr auto v = info<Ty, val>();
-    return enum_item<Ty>{
+    return EnumItem<Ty>{
         .name = v.name,
         .index = val,
     };
 }
-template <an_enum Ty, int size = count<Ty>()> 
-consteval std::array<enum_info, size> to_array() {
-    std::array<enum_info, size> arr{};
+template <Enum Ty, int size = count<Ty>()> 
+consteval std::array<EnumInfo, size> to_array() {
+    std::array<EnumInfo, size> arr{};
     inline_for<size>([&arr](auto i) {
         arr[i] = info<Ty, i>();
     });
     return arr;
 }
-template <an_enum Ty, int size = count<Ty>()>
-constexpr enum_item<Ty> item(std::string_view name) {
+template <Enum Ty, int size = count<Ty>()>
+constexpr EnumItem<Ty> item(std::string_view name) {
     constexpr auto array = to_array<Ty, size>();
-    auto found_it = std::ranges::find_if(array, [&name](const enum_info& e) {return e.name == name;});
+    auto found_it = std::ranges::find_if(array, [&name](const EnumInfo& e) {return e.name == name;});
     if (found_it == std::ranges::end(array)) {
         printerr("invalid enum name", name);
         assert(found_it != std::ranges::end(array));

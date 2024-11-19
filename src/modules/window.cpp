@@ -1,4 +1,5 @@
 #include "builtin.h"
+#include "builtin_types.h"
 #include "engine.h"
 #include <SDL.h>
 #include <SDL_image.h>
@@ -14,24 +15,22 @@ static constexpr size_t fullscreen_length = std::string("Fullscreen").length();
 static constexpr size_t icon_length = std::string("Icon").length();
 using engine::expect;
 using engine::window;
-using builtin::vector2;
-using builtin::vector2;
-using unique_event = std::unique_ptr<builtin::event>; 
-using builtin::event;
-static unique_event shown;
-static unique_event hidden;
-static unique_event mouse_entered;
-static unique_event mouse_left;
-static unique_event size_changed;
-static unique_event resized;
-static unique_event exposed;
-static unique_event position_changed;
-static unique_event minimized;
-static unique_event maximized;
-static unique_event restored;
-static unique_event focus_gained;
-static unique_event focus_lost;
-static unique_event closing;
+using builtin::Vec2;
+using builtin::Event;
+static UniqueEvent shown;
+static UniqueEvent hidden;
+static UniqueEvent mouse_entered;
+static UniqueEvent mouse_left;
+static UniqueEvent size_changed;
+static UniqueEvent resized;
+static UniqueEvent exposed;
+static UniqueEvent position_changed;
+static UniqueEvent minimized;
+static UniqueEvent maximized;
+static UniqueEvent restored;
+static UniqueEvent focus_gained;
+static UniqueEvent focus_lost;
+static UniqueEvent closing;
 static bool is_always_on_top = false;
 static bool is_borderless = false;
 
@@ -43,14 +42,14 @@ static int index(lua_State* L) {
             expect(length == size_length);
             int w, h;
             SDL_GetWindowSize(engine::window(), &w, &h);
-            create<builtin::vector2>(L) = vec2i{w, h};
+            create<Vec2>(L) = Vec2i{w, h};
             return 1;
         }
         case 'P': {
             expect(length == position_length);
             int x, y;
             SDL_GetWindowPosition(engine::window(), &x, &y);
-            create<builtin::vector2>(L) = vec2i{x, y};
+            create<Vec2>(L) = Vec2i{x, y};
             return 1;
         }
         case 'T': {
@@ -83,13 +82,13 @@ static int newindex(lua_State* L) {
     switch (key) {
         case 'S': {
             expect(length == size_length);
-            auto& new_size = check<builtin::vector2>(L, 3);
+            auto& new_size = check<Vec2>(L, 3);
             SDL_SetWindowSize(window(), static_cast<int>(new_size[0]), static_cast<int>(new_size[1]));
             return 0;
         }
         case 'P': {
             expect(length == position_length);
-            auto& pos = check<builtin::vector2>(L, 3);
+            auto& pos = check<Vec2>(L, 3);
             SDL_SetWindowPosition(window(), static_cast<int>(pos[0]), static_cast<int>(pos[1]));
             return 0;
         }
@@ -211,11 +210,11 @@ void handle_window_event(lua_State* L, SDL_WindowEvent& e) {
             exposed->fire(0);
         break;
         case SDL_WINDOWEVENT_RESIZED:
-            create<vector2>(L) = vec2i{e.data1, e.data2};
+            create<Vec2>(L) = Vec2i{e.data1, e.data2};
             resized->fire(1);
         break;
         case SDL_WINDOWEVENT_SIZE_CHANGED:
-            create<vector2>(L) = vec2i{e.data1, e.data2};
+            create<Vec2>(L) = Vec2i{e.data1, e.data2};
             size_changed->fire(1);
         break;
         case SDL_WINDOWEVENT_ENTER:
@@ -225,7 +224,7 @@ void handle_window_event(lua_State* L, SDL_WindowEvent& e) {
             mouse_left->fire(0);
         break;
         case SDL_WINDOWEVENT_MOVED:
-            create<vector2>(L) = vec2i{e.data1, e.data2};
+            create<Vec2>(L) = Vec2i{e.data1, e.data2};
             position_changed->fire(1);
         break;
         case SDL_WINDOWEVENT_MAXIMIZED:

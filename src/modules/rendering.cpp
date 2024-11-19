@@ -1,5 +1,6 @@
 #include "lua_util.h"
 #include "builtin.h"
+#include "builtin_types.h"
 #include <lualib.h>
 #include <lua.h>
 #include <luaconf.h>
@@ -11,23 +12,22 @@
 static std::vector<SDL_Point> point_buffer;
 static std::vector<SDL_Rect> rect_buffer;
 static std::vector<SDL_Vertex> vertex_buffer;
-namespace bi = builtin;
-using bi::color;
-using bi::rectangle;
-using bi::vector2;
-using bi::texture;
-using util::renderer;
+using builtin::Color;
+using builtin::Rect;
+using builtin::Vec2;
+using builtin::Texture;
+using engine::renderer;
 static int err_sdl(lua_State* L) {
     luaL_error(L, "SDL Error: %s", SDL_GetError());
 }
 
 static int set_draw_color(lua_State* L) {
-    auto& c = check<color>(L, 1);
+    auto& c = check<Color>(L, 1);
     SDL_SetRenderDrawColor(renderer(), c.r, c.g, c.b, c.a);
     return 0;
 }
 static int draw_rectangle(lua_State* L) {
-    auto& rect = check<rectangle>(L, 1);
+    auto& rect = check<Rect>(L, 1);
     SDL_Rect dummy{
         static_cast<int>(rect.x),
         static_cast<int>(rect.y),
@@ -43,7 +43,7 @@ static int draw_rectangles(lua_State* L) {
     rect_buffer.reserve(top);
     SDL_Rect dummy{};
     for (int i{1}; i <= top; ++i) {
-        auto& r = check<rectangle>(L, i);
+        auto& r = check<Rect>(L, i);
         dummy = {
             static_cast<int>(r.x),
             static_cast<int>(r.y),
@@ -60,14 +60,14 @@ static int draw_points(lua_State* L) {
     point_buffer.resize(0);
     point_buffer.reserve(top);
     for (int i{1}; i <= top; ++i) {
-        auto& p = check<vector2>(L, i);
+        auto& p = check<Vec2>(L, i);
         point_buffer.emplace_back(SDL_Point{static_cast<int>(p.at(0)), static_cast<int>(p.at(1))});
     }
     SDL_RenderDrawPoints(renderer(), point_buffer.data(), point_buffer.size());
     return 0;
 }
 static int fill_rectangle(lua_State* L) {
-    auto& rect = check<rectangle>(L, 1);
+    auto& rect = check<Rect>(L, 1);
     SDL_Rect dummy{
         static_cast<int>(rect.x),
         static_cast<int>(rect.y),
@@ -81,7 +81,7 @@ static int fill_rectangles(lua_State* L) {
     const int top = lua_gettop(L);
     rect_buffer.resize(top);
     for (int i{1}; i <= top; ++i) {
-        auto& r = check<rectangle>(L, i);
+        auto& r = check<Rect>(L, i);
         rect_buffer[i - 1] = SDL_Rect{
             static_cast<int>(r.x),
             static_cast<int>(r.y),
@@ -93,13 +93,13 @@ static int fill_rectangles(lua_State* L) {
     return 0;
 }
 static int draw_line(lua_State* L) {
-    auto& t0 = check<vector2>(L, 1);
-    auto& t1 = check<vector2>(L, 2);
+    auto& t0 = check<Vec2>(L, 1);
+    auto& t1 = check<Vec2>(L, 2);
     SDL_RenderDrawLine(renderer(), t0.at(0), t0.at(1), t1.at(0), t1.at(1));
     return 0;
 }
 static int draw_point(lua_State* L) {
-    auto& p = check<bi::vector2>(L, 1);
+    auto& p = check<Vec2>(L, 1);
     SDL_RenderDrawPoint(renderer(), p.at(0), p.at(1));
     return 0;
 }
@@ -108,12 +108,13 @@ static int draw_lines(lua_State* L) {
     point_buffer.resize(0);
     point_buffer.reserve(top);
     for (int i{1}; i <= top; ++i) {
-        auto& p = check<bi::vector2>(L, i);
+        auto& p = check<Vec2>(L, i);
         point_buffer.emplace_back(SDL_Point{int(p.at(0)), int(p.at(1))});
     }
     SDL_RenderDrawLines(renderer(), point_buffer.data(), point_buffer.size());
     return 0;
 }
+/*
 static int render_geometry_raw(lua_State* L) {
     SDL_Texture* texture{nullptr};
     if (is_type<bi::texture_ptr>(L, 1)) {
@@ -260,13 +261,10 @@ static int render_copy(lua_State* L) {
     SDL_RenderCopy(renderer(), r.ptr.get(), &src, &dst);
     return 0;
 }
+*/
 namespace builtin {
 int rendering_module(lua_State *L) {
     const luaL_Reg lib[] = {
-        {"render_geometry_raw", render_geometry_raw},
-        {"clear", clear},
-        {"flush", flush},
-        {"render_texture", render_copy},
         {nullptr, nullptr}
     };
     lua_newtable(L);

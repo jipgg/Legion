@@ -30,7 +30,7 @@ function M.init()
     M.renderConnection = core.DuringRender:Connect(function()
         local OLD_DRAW_COLOR = Graphics.Color
         Graphics.Color = M.drawColor
-        GRender.Text(M.text, Matrix3.FromTranslation(Vector2(0, 0)))
+        GRender.Text(M.text, Mat3.FromTranslation(Vec2(0, 0)))
         Graphics.Color = OLD_DRAW_COLOR
     end)
 end

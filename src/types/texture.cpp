@@ -1,19 +1,19 @@
 #include "builtin.h"
+#include "builtin_types.h"
 #include "lua_util.h"
 #include "engine.h"
 #include "SDL_image.h"
 #include "SDL_ttf.h"
 static constexpr const char* type = "Texture";
-using builtin::texture;
-using builtin::color;
+using builtin::Texture;
+using builtin::Color;
 using engine::expect;
-using builtin::font;
-using builtin::color;
+using builtin::Font;
 
 static constexpr size_t color_length{std::string("Color").length()};
 static constexpr size_t blend_mode_length{std::string("BlendMode").length()};
 static int texture_index(lua_State* L) {
-    auto& r = check<texture>(L, 1);
+    auto& r = check<Texture>(L, 1);
     const std::string_view key = luaL_checkstring(L, 2);
     switch (key.at(0)) {
         case 'W':
@@ -23,10 +23,10 @@ static int texture_index(lua_State* L) {
             lua_pushinteger(L, r.h);
             return 1;
         case 'C':
-            color col;
+            Color col;
             SDL_GetTextureColorMod(r.ptr.get(), &col.r, &col.g, &col.b);
             SDL_GetTextureAlphaMod(r.ptr.get(), &col.a);
-            create<color>(L, std::move(col));
+            create<Color>(L, std::move(col));
             return 1;
         case 'B':
             SDL_BlendMode bm;
@@ -37,7 +37,7 @@ static int texture_index(lua_State* L) {
     }
 }
 static int texture_newindex(lua_State* L) {
-    auto& r = check<texture>(L, 1);
+    auto& r = check<Texture>(L, 1);
     const std::string_view key = luaL_checkstring(L, 2);
     switch (key.at(0)) {
         case 'W': {
@@ -51,7 +51,7 @@ static int texture_newindex(lua_State* L) {
             return 0;
         }
         case 'C': {
-            const auto& new_color = check<color>(L, 3);
+            const auto& new_color = check<Color>(L, 3);
             SDL_SetTextureColorMod(r.ptr.get(), new_color.r, new_color.g, new_color.b);
             SDL_SetTextureAlphaMod(r.ptr.get(), new_color.a);
             return 0;
@@ -75,14 +75,14 @@ static int texture_ctor_call(lua_State* L) {
         luaL_error(L, SDL_GetError());
         return 0;
     }
-    scope_guard d([&surface] {SDL_FreeSurface(surface);});
+    ScopeGuard d([&surface] {SDL_FreeSurface(surface);});
     SDL_Texture* txt = SDL_CreateTextureFromSurface(engine::renderer(), surface);
     if (not txt) {
         luaL_error(L, SDL_GetError());
         return 0;
     }
-    create<texture>(L, texture{
-        builtin::texture_ptr(txt, SDL_DestroyTexture),
+    create<Texture>(L, Texture{
+        std::shared_ptr<SDL_Texture>(txt, SDL_DestroyTexture),
         surface->w,
         surface->h
     });
@@ -90,24 +90,24 @@ static int texture_ctor_call(lua_State* L) {
 }
 static int texture_ctor_from_string(lua_State* L) {
     const char* string = luaL_checkstring(L, 1);
-    font& ft = is_type<font>(L, 2) ?
-        check<font>(L, 2) : engine::default_font();
-    const color& col = is_type<color>(L, 3) ?
-        check<color>(L, 3) : color{0xff, 0xff, 0xff, 0xff};
+    Font& ft = is_type<Font>(L, 2) ?
+        check<Font>(L, 2) : engine::default_font();
+    const Color& col = is_type<Color>(L, 3) ?
+        check<Color>(L, 3) : Color{0xff, 0xff, 0xff, 0xff};
     SDL_Surface* surface = TTF_RenderText_Blended(
         ft.ptr.get(), string, col);
     if (not surface) {
         luaL_error(L, SDL_GetError());
         return 0;
     }
-    scope_guard d([&surface]{SDL_FreeSurface(surface);});
+    ScopeGuard d([&surface]{SDL_FreeSurface(surface);});
     SDL_Texture* txt = SDL_CreateTextureFromSurface(engine::renderer(), surface);
     if (not txt) {
         luaL_error(L, SDL_GetError());
         return 0;
     }
-    create<texture>(L, texture{
-        builtin::texture_ptr(txt, SDL_DestroyTexture),
+    create<Texture>(L, Texture{
+        std::shared_ptr<SDL_Texture>(txt, SDL_DestroyTexture),
         surface->w,
         surface->h
     });
@@ -115,14 +115,14 @@ static int texture_ctor_from_string(lua_State* L) {
 }
 namespace builtin {
 void register_texture_type(lua_State* L) {
-    if (luaL_newmetatable(L, metatable_name<texture>())) {
+    if (luaL_newmetatable(L, metatable_name<Texture>())) {
         const luaL_Reg meta[] = {
             {metamethod::index, texture_index},
             {metamethod::newindex, texture_newindex},
             {nullptr, nullptr}
         };
         luaL_register(L, nullptr, meta);
-        lua_pushstring(L, tname::texture);
+        lua_pushstring(L, type);
         lua_setfield(L, -2, metamethod::type);
     }
     lua_pop(L, 1);

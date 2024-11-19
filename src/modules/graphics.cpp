@@ -8,10 +8,16 @@
 #include "engine.h"
 #include "util.h"
 #include "common.h"
+#include "builtin_types.h"
+using builtin::Color;
+using builtin::Rect;
+using builtin::Vec2;
+using builtin::Mat3;
+using builtin::Texture;
 namespace std {//vec2i hash
 template<>
-struct hash<vec2i> {
-    size_t operator()(const vec2i& id) const noexcept {
+struct hash<Vec2i> {
+    size_t operator()(const Vec2i& id) const noexcept {
         size_t x = std::hash<int>{}(id[0]);
         size_t y = std::hash<int>{}(id[1]);
         return x ^ (y << 1);
@@ -21,16 +27,12 @@ struct hash<vec2i> {
 static std::vector<float> float_buffer;
 static std::vector<SDL_Point> point_buffer;
 static std::vector<SDL_Rect> rect_buffer;
-using circle_id = int;
-using radius_id = vec2i;
-static std::unordered_map<circle_id, std::unique_ptr<SDL_Texture, decltype(&SDL_DestroyTexture)>> circle_cache;
-static std::unordered_map<radius_id, std::unique_ptr<SDL_Texture, decltype(&SDL_DestroyTexture)>> ellipse_cache;
+using CircleId = int;
+using RadiusId = Vec2i;
+
+static std::unordered_map<CircleId, std::unique_ptr<SDL_Texture, decltype(&SDL_DestroyTexture)>> circle_cache;
+static std::unordered_map<RadiusId, std::unique_ptr<SDL_Texture, decltype(&SDL_DestroyTexture)>> ellipse_cache;
 static SDL_RendererInfo info;
-namespace bi = builtin;
-using bi::color;
-using bi::rectangle;
-using bi::vector2;
-using bi::texture;
 static int err_sdl(lua_State* L) {
     luaL_error(L, "SDL Error: %s", SDL_GetError());
 }
@@ -111,9 +113,9 @@ enum class cache_status {
     cached,
     cached_flipped_r,
 };
-__forceinline static cache_status is_cached(const vec2i& radii) {
+__forceinline static cache_status is_cached(const Vec2i& radii) {
     if (ellipse_cache.find(radii) != ellipse_cache.end()) return cache_status::cached;
-    if (ellipse_cache.find(vec2i{radii[1], radii[0]}) != ellipse_cache.end()) return cache_status::cached_flipped_r;
+    if (ellipse_cache.find(Vec2i{radii[1], radii[0]}) != ellipse_cache.end()) return cache_status::cached_flipped_r;
     return cache_status::not_cached;
 }
 __forceinline static void cache_circle(SDL_Renderer* renderer, int radius, SDL_Color curr_draw_color = util::current_draw_color()) {
@@ -121,31 +123,31 @@ __forceinline static void cache_circle(SDL_Renderer* renderer, int radius, SDL_C
     SDL_Texture* cache = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, diameter, diameter);
     SDL_SetTextureBlendMode(cache, SDL_BLENDMODE_BLEND);
         SDL_SetRenderTarget(renderer, cache);
-        scope_guard a([&renderer] {
+        ScopeGuard a([&renderer] {
             SDL_SetRenderTarget(renderer, nullptr);
         });
         SDL_SetRenderDrawColor(renderer, 0xff, 0xff, 0xff, 0xff);
-        scope_guard b([&renderer, &curr_draw_color]{
+        ScopeGuard b([&renderer, &curr_draw_color]{
             SDL_SetRenderDrawColor(renderer, curr_draw_color.r, curr_draw_color.g, curr_draw_color.b, curr_draw_color.a);
         });
         fill_circle_impl(renderer, radius, radius, radius);
         circle_cache.insert({radius, std::unique_ptr<SDL_Texture, decltype(&SDL_DestroyTexture)>{cache, SDL_DestroyTexture}});
 }
-__forceinline static void cache_ellipse(SDL_Renderer* renderer, const vec2i& radii, SDL_Color cdc = util::current_draw_color()) {
+__forceinline static void cache_ellipse(SDL_Renderer* renderer, const Vec2i& radii, SDL_Color cdc = util::current_draw_color()) {
     const int diameter_x = radii[0] * 2;
     const int diameter_y = radii[1] * 2;
     SDL_Texture* to_cache = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_TARGET, diameter_x, diameter_y);
     SDL_SetTextureBlendMode(to_cache, SDL_BLENDMODE_BLEND);
     SDL_SetRenderTarget(renderer, to_cache);
-    scope_guard a([&renderer] {SDL_SetRenderTarget(renderer, nullptr);});
+    ScopeGuard a([&renderer] {SDL_SetRenderTarget(renderer, nullptr);});
     SDL_SetRenderDrawColor(renderer, 0xff, 0xff, 0xff, 0xff);
-    scope_guard b([&renderer, &cdc] {SDL_SetRenderDrawColor(renderer, cdc.r, cdc.g, cdc.b, cdc.a);});
+    ScopeGuard b([&renderer, &cdc] {SDL_SetRenderDrawColor(renderer, cdc.r, cdc.g, cdc.b, cdc.a);});
     fill_ellipse_impl(renderer, radii[0], radii[1], radii[0], radii[1]);
     ellipse_cache.insert({radii, std::unique_ptr<SDL_Texture, decltype(&SDL_DestroyTexture)>(to_cache, SDL_DestroyTexture)});
     print("cached ellipse", radii[0], radii[1]);
 }
 __forceinline static void fill_cached_ellipse(
-    SDL_Renderer* renderer, const vec2i& radii, mat3f transform = util::default_transform) {
+    SDL_Renderer* renderer, const Vec2i& radii, Mat3f transform = util::default_transform) {
     SDL_Color color = util::current_draw_color();
     SDL_Texture* ellipse = nullptr;
     SDL_FRect dst{
@@ -165,7 +167,7 @@ __forceinline static void fill_cached_ellipse(
         case cache_status::cached_flipped_r:
             transform *= util::rotation_matrix(M_PI / 2.f);
             dst = {.x = float(-radii[1]), .y = float(-radii[0]), .w = float(radii[1] * 2), .h = float(radii[0] * 2)};
-            ellipse = ellipse_cache.at(vec2i{radii[1], radii[0]}).get();
+            ellipse = ellipse_cache.at(Vec2i{radii[1], radii[0]}).get();
             break;
     }
     engine::expect(
@@ -173,7 +175,7 @@ __forceinline static void fill_cached_ellipse(
         SDL_GetError()
     );
 }
-__forceinline static void fill_cached_circle(SDL_Renderer* renderer, int radius, const mat3f& transform = util::default_transform) {
+__forceinline static void fill_cached_circle(SDL_Renderer* renderer, int radius, const Mat3f& transform = util::default_transform) {
     SDL_Color curr_draw_color = util::current_draw_color();
     const int diameter = radius * 2;
     if (not is_cached(radius)) {
@@ -192,7 +194,7 @@ __forceinline static void fill_cached_circle(SDL_Renderer* renderer, int radius,
     );
 }
 static int set_color(lua_State* L) {
-    auto& c = check<color>(L, 1);
+    auto& c = check<Color>(L, 1);
     SDL_SetRenderDrawColor(util::renderer(), c.r, c.g, c.b, c.a);
     return 0;
 }
@@ -204,17 +206,17 @@ static int set_blend_mode(lua_State* L) {
 }
 static int draw_rectangle(lua_State* L) {
     SDL_Rect dummy{};
-    if (is_type<rectangle>(L, 1)) {
-        auto& rect = check<rectangle>(L, 1);
+    if (is_type<Rect>(L, 1)) {
+        auto& rect = check<Rect>(L, 1);
         dummy = {
             static_cast<int>(rect.x),
             static_cast<int>(rect.y),
             static_cast<int>(rect.w),
             static_cast<int>(rect.h)
         };
-    } else if (is_type<vector2>(L, 1)) {
-        auto& origin = check<vector2>(L, 1);
-        auto& size = check<vector2>(L, 2);
+    } else if (is_type<Vec2>(L, 1)) {
+        auto& origin = check<Vec2>(L, 1);
+        auto& size = check<Vec2>(L, 2);
         dummy = {
             static_cast<int>(origin[0]),
             static_cast<int>(origin[1]),
@@ -232,7 +234,7 @@ static int draw_rectangles(lua_State* L) {
     rect_buffer.reserve(top);
     SDL_Rect dummy{};
     for (int i{1}; i <= top; ++i) {
-        auto& r = check<rectangle>(L, i);
+        auto& r = check<Rect>(L, i);
         dummy = {
             static_cast<int>(r.x),
             static_cast<int>(r.y),
@@ -249,7 +251,7 @@ static int draw_points(lua_State* L) {
     point_buffer.resize(0);
     point_buffer.reserve(top);
     for (int i{1}; i <= top; ++i) {
-        auto& p = check<vector2>(L, i);
+        auto& p = check<Vec2>(L, i);
         point_buffer.emplace_back(SDL_Point{static_cast<int>(p.at(0)), static_cast<int>(p.at(1))});
     }
     SDL_RenderDrawPoints(util::renderer(), point_buffer.data(), point_buffer.size());
@@ -257,17 +259,17 @@ static int draw_points(lua_State* L) {
 }
 static int fill_rectangle(lua_State* L) {
     SDL_Rect dummy{};
-    if (is_type<rectangle>(L, 1)) {
-        auto& rect = check<rectangle>(L, 1);
+    if (is_type<Rect>(L, 1)) {
+        auto& rect = check<Rect>(L, 1);
         dummy = {
             static_cast<int>(rect.x),
             static_cast<int>(rect.y),
             static_cast<int>(rect.w),
             static_cast<int>(rect.h)
         };
-    } else if (is_type<vector2>(L, 1)) {
-        auto& origin = check<vector2>(L, 1);
-        auto& size = check<vector2>(L, 2);
+    } else if (is_type<Vec2>(L, 1)) {
+        auto& origin = check<Vec2>(L, 1);
+        auto& size = check<Vec2>(L, 2);
         dummy = {
             static_cast<int>(origin[0]),
             static_cast<int>(origin[1]),
@@ -275,7 +277,7 @@ static int fill_rectangle(lua_State* L) {
             static_cast<int>(size[1])
         };
     
-    } else return lua_err::invalid_argument(L, 1, (std::string(bi::tname::rectangle) + " | " + bi::tname::vector2).c_str());
+    } else return lua_err::invalid_argument(L, 1);
     SDL_RenderFillRect(util::renderer(), &dummy);
     return 0;
 }
@@ -283,7 +285,7 @@ static int fill_rectangles(lua_State* L) {
     const int top = lua_gettop(L);
     rect_buffer.resize(top);
     for (int i{1}; i <= top; ++i) {
-        auto& r = check<rectangle>(L, i);
+        auto& r = check<Rect>(L, i);
         rect_buffer[i - 1] = SDL_Rect{
             static_cast<int>(r.x),
             static_cast<int>(r.y),
@@ -295,13 +297,13 @@ static int fill_rectangles(lua_State* L) {
     return 0;
 }
 static int draw_line(lua_State* L) {
-    auto& t0 = check<vector2>(L, 1);
-    auto& t1 = check<vector2>(L, 2);
+    auto& t0 = check<Vec2>(L, 1);
+    auto& t1 = check<Vec2>(L, 2);
     SDL_RenderDrawLine(util::renderer(), t0.at(0), t0.at(1), t1.at(0), t1.at(1));
     return 0;
 }
 static int draw_point(lua_State* L) {
-    auto& p = check<bi::vector2>(L, 1);
+    auto& p = check<Vec2>(L, 1);
     SDL_RenderDrawPoint(util::renderer(), p.at(0), p.at(1));
     return 0;
 }
@@ -310,7 +312,7 @@ static int draw_lines(lua_State* L) {
     point_buffer.resize(0);
     point_buffer.reserve(top);
     for (int i{1}; i <= top; ++i) {
-        auto& p = check<bi::vector2>(L, i);
+        auto& p = check<Vec2>(L, i);
         point_buffer.emplace_back(SDL_Point{int(p.at(0)), int(p.at(1))});
     }
     SDL_RenderDrawLines(util::renderer(), point_buffer.data(), point_buffer.size());
@@ -321,7 +323,7 @@ static int draw_polygon(lua_State* L) {
     point_buffer.resize(0);
     for (int i{1}; i <= lua_objlen(L, 1); ++i) {
         lua_rawgeti(L, 1, i);
-        auto& point = check<vector2>(L, -1);
+        auto& point = check<Vec2>(L, -1);
         point_buffer.emplace_back(SDL_Point{
             static_cast<int>(point[0]),
             static_cast<int>(point[1])
@@ -334,12 +336,12 @@ static int draw_polygon(lua_State* L) {
 }
 
 static int fill_circle(lua_State* L) {
-    mat3f transform{};
-    if (is_type<vector2>(L, 1)) {
-        auto& center = check<vector2>(L, 1);
+    Mat3f transform{};
+    if (is_type<Vec2>(L, 1)) {
+        auto& center = check<Vec2>(L, 1);
         transform = util::translation_matrix(center);
-    } else if (is_type<bi::matrix3>(L, 1)) {
-        transform = check<bi::matrix3>(L, 1);
+    } else if (is_type<Mat3>(L, 1)) {
+        transform = check<Mat3>(L, 1);
     } else return lua_err::invalid_argument(L, 1);
     double radius = luaL_checknumber(L, 2);
     fill_cached_circle(util::renderer(),int(radius), transform);
@@ -347,14 +349,14 @@ static int fill_circle(lua_State* L) {
 }
 static int fill_ellipse(lua_State* L) {
     //auto& center = check<vector2>(L, 1);
-    mat3f transform{};
-    if (is_type<vector2>(L, 1)) {
-        auto& center = check<vector2>(L, 1);
+    Mat3f transform{};
+    if (is_type<Vec2>(L, 1)) {
+        auto& center = check<Vec2>(L, 1);
         transform = util::translation_matrix(center);
-    } else if (is_type<bi::matrix3>(L, 1)) {
-        transform = check<bi::matrix3>(L, 1);
+    } else if (is_type<Mat3>(L, 1)) {
+        transform = check<Mat3>(L, 1);
     } else return lua_err::invalid_argument(L, 1);
-    auto& radius = check<vector2>(L, 2);
+    auto& radius = check<Vec2>(L, 2);
     fill_cached_ellipse(util::renderer(), radius, transform);
     return 0;
 }
@@ -363,7 +365,7 @@ static int fill_polygon(lua_State* L) {
     const int len = lua_objlen(L, 1);
     for (int i{1}; i <= len; ++i) {
         lua_rawgeti(L, 1, i);
-        auto& point = check<vector2>(L, -1);
+        auto& point = check<Vec2>(L, -1);
         float_buffer.emplace_back(static_cast<float>(point[0]));
         float_buffer.emplace_back(static_cast<float>(point[1]));
         lua_pop(L, 1);
@@ -380,23 +382,23 @@ static int fill_polygon(lua_State* L) {
     return 0;
 }
 static int draw_string(lua_State* L) {
-    if (is_type<bi::font>(L, 1)) {
-        const mat3f& tr = is_type<bi::matrix3>(L, 3) ? mat3f(check<bi::matrix3>(L, 3)) : util::default_transform;
-        util::draw_string(check<bi::font>(L, 1), luaL_checkstring(L, 2), tr);
+    if (is_type<builtin::Font>(L, 1)) {
+        const Mat3f& tr = is_type<Mat3>(L, 3) ? Mat3f(check<Mat3>(L, 3)) : util::default_transform;
+        util::draw_string(check<builtin::Font>(L, 1), luaL_checkstring(L, 2), tr);
         return 0;
 
     }
     std::string_view text = luaL_checkstring(L, 1);
-    if (is_type<bi::matrix3>(L, 2)) {
-        mat3f tr = check<bi::matrix3>(L, 2);
+    if (is_type<Mat3>(L, 2)) {
+        Mat3f tr = check<Mat3>(L, 2);
         util::draw_string(engine::default_font(), text, tr);
         return 0;
     }
     return lua_err::invalid_type(L);
 }
 static int clear(lua_State* L) {
-    if (is_type<color>(L, 1)) {
-        auto& c = check<color>(L, 1);
+    if (is_type<Color>(L, 1)) {
+        auto& c = check<Color>(L, 1);
         SDL_SetRenderDrawColor(util::renderer(), c.r, c.g, c.b, c.a);
     }
     SDL_RenderClear(util::renderer());
@@ -407,12 +409,12 @@ static int flush(lua_State* L) {
     return 0;
 }
 static int draw_texture(lua_State* L) {
-    const texture& r = check<texture>(L, 1);
+    const builtin::Texture& r = check<builtin::Texture>(L, 1);
     SDL_Rect src{0, 0, r.w, r.h};
     SDL_Rect dst = src;
-    if (is_type<bi::matrix3>(L, 2)) {
-        auto& transform = check<bi::matrix3>(L, 2);
-        auto xy = util::get_quad_transform_raw(vec2i{r.w, r.h}, transform);
+    if (is_type<Mat3>(L, 2)) {
+        auto& transform = check<Mat3>(L, 2);
+        auto xy = util::get_quad_transform_raw(Vec2i{r.w, r.h}, transform);
         SDL_Color c{0xff, 0xff, 0xff, 0xff};
         SDL_GetTextureColorMod(r.ptr.get(), &c.r, &c.g, &c.b);
         SDL_GetTextureAlphaMod(r.ptr.get(), &c.a);
@@ -429,12 +431,12 @@ static int draw_texture(lua_State* L) {
         }
         return 0;
     }
-    if (is_type<vector2>(L, 2)) {
-        const auto& pos = check<vector2>(L, 2);
+    if (is_type<Vec2>(L, 2)) {
+        const auto& pos = check<Vec2>(L, 2);
         dst.x = pos[0];
         dst.y = pos[1];
-    } else if (is_type<rectangle>(L, 2)) {
-        const auto& dim = check<rectangle>(L, 2);
+    } else if (is_type<Rect>(L, 2)) {
+        const auto& dim = check<Rect>(L, 2);
         dst.x = dim.x;
         dst.y = dim.y;
         dst.w = dim.w;
@@ -466,7 +468,7 @@ static int index(lua_State* L) {
             if (key == viewport) {
                 SDL_Rect vp;
                 SDL_RenderGetViewport(util::renderer(), &vp);
-                create<bi::rectangle>(L, 
+                create<Rect>(L, 
                     static_cast<double>(vp.x),
                     static_cast<double>(vp.y),
                     static_cast<double>(vp.w),
@@ -483,12 +485,12 @@ static int index(lua_State* L) {
         }
         case char_v(clip_rect): {
             if (key == draw_color) {
-                create<bi::color>(L, util::current_draw_color());
+                create<Color>(L, util::current_draw_color());
                 return 1;
             } else if (key == clip_rect) {
                 SDL_Rect cr;
                 SDL_RenderGetClipRect(util::renderer(), &cr);
-                create<rectangle>(L,
+                create<Rect>(L,
                     static_cast<double>(cr.x),
                     static_cast<double>(cr.y),
                     static_cast<double>(cr.w),
@@ -499,9 +501,9 @@ static int index(lua_State* L) {
         }
         case char_v(scale): {
             engine::expect(key == scale);
-            vec2f scale{};
+            Vec2f scale{};
             SDL_RenderGetScale(util::renderer(), &scale[0], &scale[1]);
-            create<vector2>(L) = scale;
+            create<Vec2>(L) = scale;
             return 1;
         }
     }
@@ -523,7 +525,7 @@ static int newindex(lua_State* L) {
                 SDL_RenderSetVSync(util::renderer(), enabled);
                 return 0;
             } else if (key == viewport) {
-                auto& r = check<bi::rectangle>(L, value_idx);
+                auto& r = check<Rect>(L, value_idx);
                 SDL_Rect vp{
                     static_cast<int>(r.x),
                     static_cast<int>(r.y),
@@ -536,12 +538,12 @@ static int newindex(lua_State* L) {
         }
         case char_v(clip_rect): {
             if (key == draw_color) {
-                auto& color = check<bi::color>(L, value_idx);
+                auto& color = check<Color>(L, value_idx);
                 SDL_SetRenderDrawColor(util::renderer(), color.r, color.g, color.b, color.a);
                 return 0;
             } else if (key == clip_rect) {
-                if (is_type<rectangle>(L, value_idx)) {
-                    const rectangle& r = check<rectangle>(L, value_idx);
+                if (is_type<Rect>(L, value_idx)) {
+                    const Rect& r = check<Rect>(L, value_idx);
                     SDL_Rect cr{
                         static_cast<int>(r.x),
                         static_cast<int>(r.y),
@@ -557,7 +559,7 @@ static int newindex(lua_State* L) {
         }
         case char_v(scale): {
             engine::expect(key == scale);
-            const auto& s = check<vector2>(L, value_idx);
+            const auto& s = check<Vec2>(L, value_idx);
             SDL_RenderSetScale(util::renderer(), static_cast<float>(s[0]), static_cast<float>(s[1]));
             return 0;
         }

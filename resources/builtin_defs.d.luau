@@ -38,18 +38,18 @@ declare class DirectoryEntry
     function IsRegularFile(self): boolean
     function IsCharacterFile(self): boolean
 end
-declare class Vector2
+declare class Vec2
     X: number
     Y: number
-    function DotProduct(self, a: Vector2): number
-    function ToUnitVector(self): Vector2
+    function DotProduct(self, a: Vec2): number
+    function ToUnitVector(self): Vec2
 function Length(self): number
-    function Abs(self): Vector2
-    function __add(self, a: Vector2): Vector2
-    function __mul(self, scalar: number): Vector2
-    function __div(self, scalar: number): Vector2
-    function __sub(self, a: Vector2): Vector2
-    function __unm(self): Vector2
+    function Abs(self): Vec2
+    function __add(self, a: Vec2): Vec2
+    function __mul(self, scalar: number): Vec2
+    function __div(self, scalar: number): Vec2
+    function __sub(self, a: Vec2): Vec2
+    function __unm(self): Vec2
     function __call(self, index: number): number
 end
 declare class Color
@@ -63,7 +63,7 @@ declare class Color
     function AdditiveBlend(self, src: Color): Color
     function AlphaBlend(self, src: Color): Color
 end
-declare class Rectangle
+declare class Rect
     X: number
     Y: number
     Width: number
@@ -78,34 +78,34 @@ export type KeyCode = 'Escape'|'F1'|'F2'|'F3'|'F4'|'F5'|'F6'|'F7'|'F8'|'F9'|'F10
     'Z'|'X'|'C'|'V'|'B'|'N'|'M'|'Comma'|'Period'|'slash'|
     'Left Shift'|'Left Control'|'Left Alt'|'Space'|'Right Alt'|'Arrow Left'|'Arrow Up'|'Arrow Down'|'Arrow Right'
 export type MouseButtonType = "Left" | "Right"| "Middle"
-declare class Matrix3
-    function Inverse(self): Matrix3
-    function Transpose(self): Matrix3
-    __mul: ((Matrix3, Matrix3)->Matrix3)
-        & ((Matrix3, Vector3)->Vector3)
-        & ((Matrix3, Vector)->Vector)
-    function __add(self, other: Matrix3): Matrix3
-    function __sub(self, other: Matrix3): Matrix3
+declare class Mat3
+    function Inverse(self): Mat3
+    function Transpose(self): Mat3
+    __mul: ((Mat3, Mat3)->Mat3)
+        & ((Mat3, Vec3)->Vec3)
+        & ((Mat3, Vec)->Vec)
+    function __add(self, other: Mat3): Mat3
+    function __sub(self, other: Mat3): Mat3
 end
-declare class Vector3
+declare class Vec3
     X: number
     Y: number
     Z: number
-    function DotProduct(self, a: Vector3): number
-    function ToUnitVector(self): Vector3
+    function DotProduct(self, a: Vec3): number
+    function ToUnitVector(self): Vec3
     function Length(self): number
-    function Abs(self): Vector3
-    function __add(self, a: Vector3): Vector3
-    function __mul(self, scalar: number): Vector3
-    function __div(self, scalar: number): Vector3
-    function __sub(self, a: Vector3): Vector3
-    function __unm(self): Vector3
+    function Abs(self): Vec3
+    function __add(self, a: Vec3): Vec3
+    function __mul(self, scalar: number): Vec3
+    function __div(self, scalar: number): Vec3
+    function __sub(self, a: Vec3): Vec3
+    function __unm(self): Vec3
 end
-declare class Vector
-    function DotProduct(self, a: Vector): number
-    function ToUnitVector(self): Vector
+declare class Vec
+    function DotProduct(self, a: Vec): number
+    function ToUnitVector(self): Vec
     function Length(self): number
-    function Abs(self): Vector
+    function Abs(self): Vec
     function At(self, index: number): number
     function Set(self, index: number, value: number)
     function Reset(self)
@@ -114,11 +114,11 @@ declare class Vector
     function Capacity(self): number
     function Resize(self, size: number, preserve: boolean?)
     function Reserve(self, amount: number)
-    function __add(self, a: Vector): Vector
-    function __mul(self, scalar: number): Vector
-    function __div(self, scalar: number): Vector
-    function __sub(self, a: Vector): Vector
-    function __unm(self): Vector
+    function __add(self, a: Vec): Vec
+    function __mul(self, scalar: number): Vec
+    function __div(self, scalar: number): Vec
+    function __sub(self, a: Vec): Vec
+    function __unm(self): Vec
 end
 declare class Font
     FilePath: FilePath
@@ -147,8 +147,8 @@ export type FilesModule = {
     FilePath: (string)->FilePath,
 }
 export type WindowModule = {
-    Size: Vector2,
-    Position: Vector2,
+    Size: Vec2,
+    Position: Vec2,
     Title: string,
     Opacity: number,
     Borderless: boolean,
@@ -161,11 +161,11 @@ export type WindowModule = {
     FocusLost: Event<>,
     Shown: Event<>,
     Hidden: Event<>,
-    Resized: Event<Vector2>,
+    Resized: Event<Vec2>,
     MouseEnter: Event<>,
     MouseLeave: Event<>,
-    PositionChanged: Event<Vector2>,
-    SizeChanged: Event<Vector2>,
+    PositionChanged: Event<Vec2>,
+    SizeChanged: Event<Vec2>,
     Restored: Event<>,
     Closing: Event<>,
     Exposed: Event<>,
@@ -174,35 +174,35 @@ export type WindowModule = {
 }
 export type BlendMode= 'None'|'Multiply'|'Add'|'Modulate'|'Blend'|'Invalid'
 type GraphicsModule_DrawFunctions = {
-        Rectangle: (rect: Rectangle)->(),
-        Rectangles: (...Rectangle)->(),
-        Pixel: (point: Vector2)->(),
-        Pixels: (...Vector2)->(),
-        Line: (t0: Vector2, t1: Vector2)->(),
-        Lines: ((...Vector2)->()), 
-        String: ((ft: Font, str: string, transform: Matrix3?)->())
+        Rectangle: (rect: Rect)->(),
+        Rectangles: (...Rect)->(),
+        Pixel: (point: Vec2)->(),
+        Pixels: (...Vec2)->(),
+        Line: (t0: Vec2, t1: Vec2)->(),
+        Lines: ((...Vec2)->()), 
+        String: ((ft: Font, str: string, transform: Mat3?)->())
 }
 type GraphicsModule_FillFunctions = {
-    Rectangle: (rect: Rectangle)->(),
-    Rectangles: (...Rectangle)->(),
-    Circle: ((center: Vector2, radius: number)->())
-        & ((transform: Matrix3, radius: number)->()),
-    Ellipse: (center: Vector2, radius: Vector2)->(),
+    Rectangle: (rect: Rect)->(),
+    Rectangles: (...Rect)->(),
+    Circle: ((center: Vec2, radius: number)->())
+        & ((transform: Mat3, radius: number)->()),
+    Ellipse: (center: Vec2, radius: Vec2)->(),
 }
 type GraphicsModule_RenderFunctions = {
-    Text: ((ft: Font, str: string, transform: Matrix3?)->())
-        & ((text: string, transform: Matrix3?)->()),
-    Texture: ((texture: Texture, pos: Vector2?)->())
-        & ((texture: Texture, dest: Rectangle)->())
-        & ((texture: Texture, trs: Matrix3)->()),
+    Text: ((ft: Font, str: string, transform: Mat3?)->())
+        & ((text: string, transform: Mat3?)->()),
+    Texture: ((texture: Texture, pos: Vec2?)->())
+        & ((texture: Texture, dest: Rect)->())
+        & ((texture: Texture, trs: Mat3)->()),
 }
 export type GraphicsModule = {
     Color: Color,
     BlendMode: BlendMode,
-    Viewport: Rectangle,
-    Scale: Vector2,
+    Viewport: Rect,
+    Scale: Vec2,
     VSyncEnabled: boolean,
-    ClipRect: Rectangle?,
+    ClipRect: Rect?,
     IsClipEnabled: ()->boolean,
     ClearCanvas: (bg: Color?)->(),
     Draw: GraphicsModule_DrawFunctions,
@@ -213,10 +213,10 @@ export type UserInputModule = {
     IsKeyDown: (key: KeyCode)->boolean,
     KeyPressed: Event<KeyCode>,
     KeyReleased: Event<KeyCode>,
-    MouseButtonPressed: Event<MouseButtonType, Vector2>,
-    MouseButtonReleased: Event<MouseButtonType, Vector2>,
-    MouseMoved: Event<Vector2, Vector2>,
-    MousePosition: Vector2,
+    MouseButtonPressed: Event<MouseButtonType, Vec2>,
+    MouseButtonReleased: Event<MouseButtonType, Vec2>,
+    MouseMoved: Event<Vec2, Vec2>,
+    MousePosition: Vec2,
 }
 declare class EventConnectionId
     function __tostring(self): string
@@ -244,27 +244,27 @@ export type Luwaw = {
     AfterRun: Event<>,
 }
 declare core: Luwaw
-declare Rectangle: (x: number?, y: number?, w: number?, h: number?)->Rectangle
-declare Vector2: (x: number?, y: number?)->Vector2
-declare Vector3: (x: number?, y: number?, z: number?)->Vector3
-declare Vector: (...number)->Vector
-type Matrix3NamedConstructors = typeof(setmetatable({
-    FromScale = function(scale_factor: Vector2 | number): Matrix3 return {} :: any end,
-    FromRotation = function(radians: number): Matrix3 return {} :: any end,
-    FromTranslation = function(translation: Vector2): Matrix3 return {} :: any end,
-}, {__call = function(...): Matrix3 return {} :: any end}))
-declare Matrix3: 
-        & ((row1: {number}, row2: {number}, row3: {number})->Matrix3)
-        & ((e11: number?, e12: number?, e13: number?, e21: number?, e22: number?, e23: number?, e31: number?, e32: number?, e33: number?)->Matrix3)
-        & Matrix3NamedConstructors
+declare Rect: (x: number?, y: number?, w: number?, h: number?)->Rect
+declare Vec2: (x: number?, y: number?)->Vec2
+declare Vec3: (x: number?, y: number?, z: number?)->Vec3
+declare Vec: (...number)->Vec
+type Mat3_named_constructors = typeof(setmetatable({
+    FromScale = function(scale_factor: Vec2 | number): Mat3 return {} :: any end,
+    FromRotation = function(radians: number): Mat3 return {} :: any end,
+    FromTranslation = function(translation: Vec2): Mat3 return {} :: any end,
+}, {__call = function(...): Mat3 return {} :: any end}))
+declare Mat3: 
+        & ((row1: {number}, row2: {number}, row3: {number})->Mat3)
+        & ((e11: number?, e12: number?, e13: number?, e21: number?, e22: number?, e23: number?, e31: number?, e32: number?, e33: number?)->Mat3)
+        & Mat3_named_constructors 
 declare Color: ((r: number?, g: number?, b: number?, a: number?)->Color)
         & ((r: number, g: number, b: number, alpha: number)->Color)
 declare FilePath: (path: string)->FilePath
 declare Event: <Params...>()->Event<Params...>
 declare Font: (file: FilePath, pt_size: number)->Font
 
-type TextureNamedConstructors = typeof(setmetatable({
+type Texture_named_constructors = typeof(setmetatable({
     FromString = function(text: string, font: Font?, color: Color?): Texture return {} :: any end,
 }, {__call = function(...): Texture return {} :: any end}))
-declare Texture: ((file: FilePath | string)->Texture) & TextureNamedConstructors
+declare Texture: ((file: FilePath | string)->Texture) & Texture_named_constructors
 

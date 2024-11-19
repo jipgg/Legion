@@ -13,24 +13,24 @@
 #include <stdexcept>
 #include <array>
 #include <blaze/Blaze.h>
-using vec2f = blaze::StaticVector<float, 2, false, blaze::aligned, blaze::unpadded>;
-using vec2d = blaze::StaticVector<double, 2, false, blaze::aligned, blaze::unpadded>;
+using Vec2f = blaze::StaticVector<float, 2, false, blaze::aligned, blaze::unpadded>;
+using Vec2d = blaze::StaticVector<double, 2, false, blaze::aligned, blaze::unpadded>;
 using vec2i16 = blaze::StaticVector<int16_t, 2, false, blaze::aligned, blaze::unpadded>;
-using vec3d = blaze::StaticVector<double, 3, false, blaze::aligned, blaze::unpadded>;
-using vec3f = blaze::StaticVector<float, 3>;
-using vec2i = blaze::StaticVector<int, 2, false, blaze::aligned, blaze::unpadded>;
-using mat3x3 = blaze::StaticMatrix<double, 3, 3>;
-using mat3f = blaze::StaticMatrix<float, 3, 3>;
-struct scope_guard {
-    using defer_function = std::function<void()>;
-    defer_function block;
-    ~scope_guard() {block();};
+using Vec3d = blaze::StaticVector<double, 3, false, blaze::aligned, blaze::unpadded>;
+using Vec3f = blaze::StaticVector<float, 3>;
+using Vec2i = blaze::StaticVector<int, 2, false, blaze::aligned, blaze::unpadded>;
+using Mat3d = blaze::StaticMatrix<double, 3, 3>;
+using Mat3f = blaze::StaticMatrix<float, 3, 3>;
+struct ScopeGuard {
+    using DeferFunction = std::function<void()>;
+    DeferFunction block;
+    ~ScopeGuard() {block();};
 };
 //concepts
 template <class Ty>
-concept comparable_to_nullptr = std::is_convertible_v<decltype(std::declval<Ty>() != nullptr), bool>;
+concept ComparableToNullptr = std::is_convertible_v<decltype(std::declval<Ty>() != nullptr), bool>;
 template <class Ty>
-concept an_enum = std::is_enum_v<Ty>;
+concept Enum = std::is_enum_v<Ty>;
 //free functions
 #ifdef _WIN32
 void attach_console();
@@ -57,7 +57,7 @@ void enable_ansi_escape_sequences();
     };
 }
 template <class Key, class Val>
-class sparse_set {
+class SparseSet {
     std::unordered_map<Key, size_t> sparse_; //maybe make a sparse array for this for better cache locality
     std::vector<Val> dense_;
 public:
@@ -109,19 +109,19 @@ public:
     }
 };
 template <typename Key, typename Val>
-class flat_map {
+class FlatMap {
 public:
-    using pair_t = std::pair<Key, Val>;
-    using container_t = std::vector<pair_t>;
-    using iterator = typename container_t::iterator;
-    using const_iterator = typename container_t::const_iterator;
-    using reverse_iterator = typename container_t::reverse_iterator;
-    using const_reverse_iterator = typename container_t::const_reverse_iterator;
-    iterator begin() { return data_.begin(); }
-    const_iterator begin() const { return data_.begin(); }
-    iterator end() { return data_.end(); }
-    const_iterator end() const { return data_.end(); }
-    iterator insert(pair_t pair) {
+    using Pair = std::pair<Key, Val>;
+    using Container = std::vector<Pair>;
+    using Iterator = typename Container::iterator;
+    using ConstIterator = typename Container::const_iterator;
+    using ReverseIterator = typename Container::reverse_iterator;
+    using ConstReverseIterator = typename Container::const_reverse_iterator;
+    Iterator begin() { return data_.begin(); }
+    ConstIterator begin() const { return data_.begin(); }
+    Iterator end() { return data_.end(); }
+    ConstIterator end() const { return data_.end(); }
+    Iterator insert(Pair pair) {
         auto it = std::lower_bound(data_.begin(), data_.end(), pair,
             [](const auto& lhs, const auto& rhs) {
                 return lhs.first < rhs.first;
@@ -129,7 +129,7 @@ public:
         return data_.insert(it, std::move(pair));
     }
     [[nodiscard]] const std::optional<std::reference_wrapper<Val>> find(const Key& key) const {
-        iterator it = search_for(key);
+        Iterator it = search_for(key);
         if (it != data_.end() && it->first == key) {
             return std::ref(it->second);
         }
@@ -163,29 +163,29 @@ public:
         data_.erase(search_for(key));
     }
 private:
-    [[nodiscard]] const_iterator search_for(const Key& key) const {
-        constexpr pair_t dummy = std::make_pair(key, Val{});
+    [[nodiscard]] ConstIterator search_for(const Key& key) const {
+        constexpr Pair dummy = std::make_pair(key, Val{});
         return std::lower_bound(data_.begin(), data_.end(), dummy,
             [](const auto& lhs, const auto& rhs) {return lhs.first < rhs.first;});
     }
-    container_t data_; 
+    Container data_; 
 };
 template <class Ty>
-class flat_stack {
+class FlatStack {
 public:
-    using container_t = std::vector<Ty>;
-    using iterator = typename container_t::iterator;
-    using const_iterator = typename container_t::const_iterator;
-    using reverse_iterator = typename container_t::reverse_iterator;
-    using const_reverse_iterator = typename container_t::const_reverse_iterator;
-    iterator begin() { return data_.begin(); }
-    const_iterator begin() const { return data_.begin(); }
-    iterator end() { return data_.end(); }
-    const_iterator end() const { return data_.end(); }
-    reverse_iterator rbegin() { return data_.rbegin(); }
-    const_reverse_iterator rbegin() const { return data_.rbegin(); }
-    reverse_iterator rend() { return data_.rend(); }
-    const_reverse_iterator rend() const { return data_.rend(); }
+    using Container = std::vector<Ty>;
+    using Iterator = typename Container::iterator;
+    using ConstIterator = typename Container::const_iterator;
+    using ReverseIterator = typename Container::reverse_iterator;
+    using ConstReverseIterator = typename Container::const_reverse_iterator;
+    Iterator begin() { return data_.begin(); }
+    ConstIterator begin() const { return data_.begin(); }
+    Iterator end() { return data_.end(); }
+    ConstIterator end() const { return data_.end(); }
+    ReverseIterator rbegin() { return data_.rbegin(); }
+    ConstReverseIterator rbegin() const { return data_.rbegin(); }
+    ReverseIterator rend() { return data_.rend(); }
+    ConstReverseIterator rend() const { return data_.rend(); }
     Ty& at(size_t idx) {return data_.at(idx);}
     const Ty& at(size_t idx) const {return data_.at(idx);}
     Ty& operator[](size_t idx) {return data_[idx];}
@@ -201,59 +201,18 @@ private:
     std::vector<Ty> data_;
 };
 // constexpr structs
-struct recti64 {
-    int64_t data;
-    [[nodiscard]] constexpr recti64(int16_t x, int16_t y, int16_t width, int16_t height): data(0) {
-        data |= static_cast<int64_t>(x) << x_s
-            | static_cast<int64_t>(y) << y_s
-            | static_cast<int64_t>(width) << width_s
-            | static_cast<int64_t>(height) << height_s;
-    }
-    [[nodiscard]] constexpr int16_t x() const {return data >> x_s & INT16_MAX;}
-    [[nodiscard]] constexpr int16_t y() const {return data >> y_s & INT16_MAX;}
-    [[nodiscard]] constexpr int16_t width() const {return data >> width_s & INT16_MAX;}
-    [[nodiscard]] constexpr int16_t height() const {return data >> height_s & INT16_MAX;}
-private:
-    static constexpr int bitsize = 16;
-    static constexpr int x_s = 0 * bitsize;
-    static constexpr int y_s = 1 * bitsize;
-    static constexpr int width_s = 2 * bitsize;
-    static constexpr int height_s = 3 * bitsize;
-};
-struct coloru32 {
-    uint32_t data;
-    [[nodiscard]] constexpr coloru32(uint32_t color): data(color) {}
-    [[nodiscard]] constexpr coloru32(uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
-        uint32_t color{0};
-        color |= r << red_s;
-        color |= g << green_s;
-        color |= b << blue_s;
-        color |= a << alpha_s;
-        data = color;
-    }
-    [[nodiscard]] constexpr uint8_t red() const {return data >> red_s & UINT8_MAX;}
-    [[nodiscard]] constexpr uint8_t green() const {return data >> green_s & UINT8_MAX;}
-    [[nodiscard]] constexpr uint8_t blue() const {return data >> blue_s & UINT8_MAX;}
-    [[nodiscard]] constexpr uint8_t alpha() const {return data >> alpha_s & UINT8_MAX;}
-private:
-    static constexpr int bitsize = 8;
-    static constexpr int red_s = 3 * bitsize;
-    static constexpr int green_s = 2 * bitsize;
-    static constexpr int blue_s = 1 * bitsize;
-    static constexpr int alpha_s = 0 * bitsize;
-};
 constexpr int bits_in_byte_count = 8;
-class dynamic_bitset {
+class DynamicBitset {
     std::size_t bitsize_;
     std::size_t capacity_;
     std::uint8_t* data_;
 public:
-    dynamic_bitset(std::size_t bit_count = 0) noexcept;
-    ~dynamic_bitset() noexcept;
-    dynamic_bitset(const dynamic_bitset& a);
-    dynamic_bitset& operator=(const dynamic_bitset& a);
-    dynamic_bitset(dynamic_bitset&& a) noexcept;
-    dynamic_bitset& operator=(dynamic_bitset&& a) noexcept;
+    DynamicBitset(std::size_t bit_count = 0) noexcept;
+    ~DynamicBitset() noexcept;
+    DynamicBitset(const DynamicBitset& a);
+    DynamicBitset& operator=(const DynamicBitset& a);
+    DynamicBitset(DynamicBitset&& a) noexcept;
+    DynamicBitset& operator=(DynamicBitset&& a) noexcept;
     void set(std::size_t i);
     void set();
     void reset();
@@ -272,12 +231,12 @@ private:
     void reallocate(std::size_t new_capacity);
 };
 template <class Ty>
-class lazy_pool {
+class LazyPool {
     std::vector<Ty> data_;
-    dynamic_bitset unused_;
+    DynamicBitset unused_;
 public:
     inline static auto default_init = [](Ty& v) {v = Ty{};};
-    constexpr lazy_pool(int initial_size = 0): data_(), unused_(initial_size) {
+    constexpr LazyPool(int initial_size = 0): data_(), unused_(initial_size) {
         if (initial_size > 0) data_.reserve(initial_size);
         unused_.set();
 

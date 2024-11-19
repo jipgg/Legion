@@ -1,18 +1,22 @@
+#pragma once
 #include <blaze/Blaze.h>
 #include <memory>
+#include <filesystem>
 #include <SDL.h>
+#include <SDL_ttf.h>
 struct lua_State;
 namespace builtin {
 
-void register_matrix3_type(lua_State* L);
-void register_vector2_type(lua_State* L);
-void register_vector3_type(lua_State* L);
-void register_vector_type(lua_State* L);
-void register_path_type(lua_State* L);
+void register_mat3_type(lua_State* L);
+void register_vec2_type(lua_State* L);
+void register_vec3_type(lua_State* L);
+void register_vec_type(lua_State* L);
+void register_file_path_type(lua_State* L);
 void register_event_type(lua_State* L);
 void register_font_type(lua_State* L);
 void register_texture_type(lua_State* L);
 void register_color_type(lua_State* L);
+void register_rect_type(lua_State* L);
 
 struct Rect {double x, y, w, h;};
 using Color = SDL_Color;
@@ -20,7 +24,7 @@ using Vec2 = blaze::StaticVector<double, 2, blaze::defaultTransposeFlag, blaze::
 using Vec3 = blaze::StaticVector<double, 3, blaze::defaultTransposeFlag, blaze::aligned,
     blaze::unpadded /*not 100% sure why but this causes issues when turning ud back to blaze type if set padded*/>; 
 using Vec = blaze::DynamicVector<double>;
-using Mat3 = blaze::StaticMatrix<double, 3, 3, blaze::defaultStorageOrder, blaze::aligned, blaze::unpadded>;
+using Mat3 = blaze::StaticMatrix<double, 3, 3>;
 using FilePath = std::filesystem::path;
 using DirectoryEntry = std::filesystem::directory_entry;
 struct Event {

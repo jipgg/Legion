@@ -1,12 +1,14 @@
 #include "builtin.h"
+#include "builtin_types.h"
 #include "lua_util.h"
 #include "lua_atom.h"
 #include <sstream>
-namespace bi = builtin;
+static constexpr auto type = "Mat3";
 using namespace std::string_literals;
-namespace mm = bi::metamethod;
-using bi::matrix3;
-namespace tn = bi::tname;
+using builtin::Mat3;
+using builtin::Vec3;
+using builtin::Vec;
+using builtin::Vec2;
 
 static int err_invalid_vector_size(lua_State* L, int size, int expected) {
     luaL_error(L, "invalid vector size '%d', expected %d", size, expected);
@@ -21,7 +23,7 @@ static int ctor(lua_State* L) {
         double e = luaL_optnumber(L, i + 1, 0);
         arr[row][col] = e;
     }
-    create<matrix3>(L) = matrix3{arr};
+    create<Mat3>(L) = Mat3{arr};
     return 1;
 }
 static int ctor_call(lua_State* L) {
@@ -46,7 +48,7 @@ static int ctor_call(lua_State* L) {
         const double e31 = element(L, 4, 1);
         const double e32 = element(L, 4, 2);
         const double e33 = element(L, 4, 3);
-        create<matrix3>(L) = matrix3{
+        create<Mat3>(L) = Mat3{
             {e11, e12, e13},
             {e21, e22, e23},
             {e31, e32, e33},
@@ -60,13 +62,13 @@ static int ctor_call(lua_State* L) {
         double e = luaL_optnumber(L, i + 2, 0);
         arr[row][col] = e;
     }
-    create<matrix3>(L) = matrix3{arr};
+    create<Mat3>(L) = Mat3{arr};
     return 1;
 }
 static int ctor_from_scale(lua_State* L) {
-    vec2d s{};
-    if (is_type<bi::vector2>(L, 1)) {
-        auto& v = check<bi::vector2>(L, 1);
+    Vec2d s{};
+    if (is_type<Vec2>(L, 1)) {
+        auto& v = check<Vec2>(L, 1);
         s = v;
     } else if (lua_isnumber(L, 1)) {
         double num = luaL_checknumber(L, 1);
@@ -75,7 +77,7 @@ static int ctor_from_scale(lua_State* L) {
         luaL_error(L, "invalid argument 1");
         return 0;
     }
-    create<matrix3>(L) = matrix3{
+    create<Mat3>(L) = Mat3{
         {s[0], 0, 0},
         {0, s[1], 0},
         {0, 0, 1},
@@ -84,7 +86,7 @@ static int ctor_from_scale(lua_State* L) {
 }
 static int ctor_from_rotation(lua_State* L) {
     double rad = luaL_checknumber(L, 1);
-    create<matrix3>(L) = matrix3{
+    create<Mat3>(L) = Mat3{
         {cos(rad), -sin(rad), 0},
         {sin(rad), cos(rad), 0},
         {0, 0, 1}
@@ -92,8 +94,8 @@ static int ctor_from_rotation(lua_State* L) {
     return 1;
 }
 static int ctor_from_position(lua_State* L) {
-    auto& t = check<bi::vector2>(L, 1);
-    create<matrix3>(L) = matrix3{
+    auto& t = check<Vec2>(L, 1);
+    create<Mat3>(L) = Mat3{
         {1, 0, t[0]},
         {0, 1, t[1]},
         {0, 0, 1},
@@ -101,45 +103,45 @@ static int ctor_from_position(lua_State* L) {
     return 1;
 }
 static int call(lua_State* L) {
-    auto& r = check<matrix3>(L, 1);
+    auto& r = check<Mat3>(L, 1);
     const int i = luaL_checkinteger(L, 2);
     const int j = luaL_checkinteger(L, 3);
     lua_pushnumber(L, r.at(i, j));
     return 1;
 }
 static int mul(lua_State* L) {
-    auto& self = check<matrix3>(L, 1);
-    if (is_type<matrix3>(L, 2)) {
-        auto& rhs = check<matrix3>(L, 2);
-        create<matrix3>(L) = self * rhs;
+    auto& self = check<Mat3>(L, 1);
+    if (is_type<Mat3>(L, 2)) {
+        auto& rhs = check<Mat3>(L, 2);
+        create<Mat3>(L) = self * rhs;
         return 1;
-    } else if (is_type<bi::vector3>(L, 2)) {
-        create<bi::vector3>(L) = self * check<bi::vector3>(L, 2);
+    } else if (is_type<Vec3>(L, 2)) {
+        create<Vec3>(L) = self * check<Vec3>(L, 2);
         return 1;
-    } else if (is_type<bi::vector>(L, 2)) {
-        auto& v = check<bi::vector>(L, 2);
+    } else if (is_type<Vec>(L, 2)) {
+        auto& v = check<Vec>(L, 2);
         if (v.size() != 3) return err_invalid_vector_size(L, v.size(), 3);
-        create<bi::vector>(L, self * v);
+        create<Vec>(L, self * v);
         return 1;
     }
     return 0;
 }
 static int add(lua_State* L) {
-    auto& lhs = check<matrix3>(L, 1);
-    auto& rhs = check<matrix3>(L, 2);
-    create<matrix3>(L) = lhs + rhs;
+    auto& lhs = check<Mat3>(L, 1);
+    auto& rhs = check<Mat3>(L, 2);
+    create<Mat3>(L) = lhs + rhs;
     return 1;
 }
 static int sub(lua_State* L) {
-    auto& lhs = check<matrix3>(L, 1);
-    auto& rhs = check<matrix3>(L, 2);
-    create<matrix3>(L) = lhs - rhs;
+    auto& lhs = check<Mat3>(L, 1);
+    auto& rhs = check<Mat3>(L, 2);
+    create<Mat3>(L) = lhs - rhs;
     return 1;
 }
 static int tostring(lua_State* L) {
-    auto& r = check<matrix3>(L, 1);
+    auto& r = check<Mat3>(L, 1);
     std::stringstream ss{};
-    ss << tn::matrix3 << ": {\n    {";
+    ss << type << ": {\n    {";
     ss << r.at(0, 0) << ", " << r.at(0, 1) << ", " << r.at(0, 2) << "},\n    {";
     ss << r.at(1, 0) << ", " << r.at(1, 1) << ", " << r.at(1, 2) << "},\n    {";
     ss << r.at(2, 0) << ", " << r.at(2, 1) << ", " << r.at(2, 2) << "}\n}";
@@ -147,18 +149,18 @@ static int tostring(lua_State* L) {
     return 1;
 }
 static int namecall(lua_State* L) {
-    auto& r = check<matrix3>(L, 1);
+    auto& r = check<Mat3>(L, 1);
     int atom;
     lua_namecallatom(L, &atom);
     using la = lua_atom;
     switch (static_cast<la>(atom)) {
         case la::Transpose:
-            create<matrix3>(L) = r.transpose();
+            create<Mat3>(L) = r.transpose();
         return 1;
         case la::Inverse: {
-            matrix3 inv = r;
+            Mat3 inv = r;
             blaze::invert3x3<blaze::InversionFlag::asGeneral>(inv);
-            create<matrix3>(L) = inv;
+            create<Mat3>(L) = inv;
         } return 1;
         default:
         break;
@@ -167,27 +169,27 @@ static int namecall(lua_State* L) {
 }
 
 namespace builtin {
-void register_matrix3_type(lua_State *L) {
-    if (luaL_newmetatable(L, metatable_name<matrix3>())) {
+void register_mat3_type(lua_State *L) {
+    if (luaL_newmetatable(L, metatable_name<Mat3>())) {
         const luaL_Reg meta[] = {
-            {mm::call, call},
-            {mm::namecall, namecall},
-            {mm::add, add},
-            {mm::sub, sub},
-            {mm::mul, mul},
-            {mm::tostring, tostring},
+            {metamethod::call, call},
+            {metamethod::namecall, namecall},
+            {metamethod::add, add},
+            {metamethod::sub, sub},
+            {metamethod::mul, mul},
+            {metamethod::tostring, tostring},
             {nullptr, nullptr}
         };
         luaL_register(L, nullptr, meta);
-        lua_pushstring(L, tn::matrix3);
-        lua_setfield(L, -2, mm::type);
+        lua_pushstring(L, type);
+        lua_setfield(L, -2, metamethod::type);
     }
     lua_pop(L, 1);
     using namespace std::string_literals;
-    const std::string ctor_tname = (tn::matrix3 + "_ctor"s);
+    const std::string ctor_tname = (type + "_ctor"s);
     if (luaL_newmetatable(L, ctor_tname.c_str())) {
         lua_pushcfunction(L, ctor_call, (ctor_tname + "_call").c_str());
-        lua_setfield(L, -2, mm::call);
+        lua_setfield(L, -2, metamethod::call);
     }
     lua_pop(L, 1);
     const luaL_Reg lib[] = {
@@ -200,6 +202,6 @@ void register_matrix3_type(lua_State *L) {
     luaL_register(L, nullptr, lib);
     luaL_getmetatable(L, ctor_tname.c_str());
     lua_setmetatable(L, -2);
-    lua_setglobal(L, tname::matrix3);
+    lua_setglobal(L, type);
 }
 }

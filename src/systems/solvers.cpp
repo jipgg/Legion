@@ -1,21 +1,22 @@
 #include "systems.h"
-using builtin::vector2;
-using builtin::rectangle;
+#include "builtin_types.h"
+using builtin::Vec2;
+using builtin::Rect;
 
-namespace solve {
+namespace solvers {
 float effective_elasticity(float e1, float e2) {
     return (e1 + e2) / 2.f;
 }
-std::array<vector2, 2> velocities_after_collision(
-    float  e1, float m1, const vector2& u1,
-    float e2, float m2, const vector2& u2) {
+std::array<Vec2, 2> velocities_after_collision(
+    float  e1, float m1, const Vec2& u1,
+    float e2, float m2, const Vec2& u2) {
     const float e = effective_elasticity(e1, e2);
     return {
-        vector2{ (m1 * u1 + m2 * u2 - m2 * e * (u1 - u2)) / (m1 + m2) },
-        vector2{ (m1 * u1 + m2 * u2 + m1 * e * (u1 - u2)) / (m1 + m2) }
+        Vec2{ (m1 * u1 + m2 * u2 - m2 * e * (u1 - u2)) / (m1 + m2) },
+        Vec2{ (m1 * u1 + m2 * u2 + m1 * e * (u1 - u2)) / (m1 + m2) }
     };
 }
-bool is_overlapping(const rectangle&a, const rectangle&b) {
+bool is_overlapping(const Rect&a, const Rect&b) {
 // If one rectangle is on left side of the other
 	if (( a.x + a.w) < b.x or ( b.x + b.w ) < a.x) {
 		return false;}
@@ -24,21 +25,20 @@ bool is_overlapping(const rectangle&a, const rectangle&b) {
 		return false;}
 	return true;
 }
-bool is_point_in_rect(const vector2& point, const rectangle& rect) {
+bool is_point_in_rect(const Vec2& point, const Rect& rect) {
     return point[0] >= rect.x
         and point[0] <= rect.x + rect.w
         and point[1] >= rect.y
         and point[1] <= rect.y + rect.h;
 }
-std::array<vector2, 4> corner_points(const vector2& pos, const vector2& size) {
-        using v2 = builtin::vector2;
-        v2 left = pos + v2{0, size.at(1) / 2.f};
-        v2 right = pos + v2{size.at(0), size.at(1) / 2.f};
-        v2 top = pos + v2{size.at(0) / 2.f, 0};
-        v2 bottom = pos + v2{size.at(0) / 2.0, size.at(1)};
+std::array<Vec2, 4> corner_points(const Vec2& pos, const Vec2& size) {
+        Vec2 left = pos + Vec2{0, size.at(1) / 2.f};
+        Vec2 right = pos + Vec2{size.at(0), size.at(1) / 2.f};
+        Vec2 top = pos + Vec2{size.at(0) / 2.f, 0};
+        Vec2 bottom = pos + Vec2{size.at(0) / 2.0, size.at(1)};
         return {left, right, top, bottom};
 }
-rectangle to_rect(const vector2& pos, const vector2& size) {
-    return rectangle{pos[0], pos[1], size[0], size[1]};
+Rect to_rect(const Vec2& pos, const Vec2& size) {
+    return Rect{pos[0], pos[1], size[0], size[1]};
 }
 }

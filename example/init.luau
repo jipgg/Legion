@@ -12,7 +12,7 @@ print(`is clip enabled {Graphics.IsClipEnabled()}`)
 Graphics.BlendMode = 'Blend'
 Window.SetIcon(tostring(RESOURCE_DIR / "coin.png"))
 Window.Title = "Yoooooo"
-Window.Position = Vector2(100, 100)
+Window.Position = Vec2(100, 100)
 Window.Maximize()
 print(Window.Size)
 --Window.Borderless = true
@@ -51,38 +51,38 @@ core.DuringRender:Connect(function()
     )
     --Graphics.ClipRect = Rectangle(0, 0, Window.Size.X / 2, Window.Size.Y / 2)
     local SIZE = Window.Size
-    Graphics.Viewport = Rectangle(0, 0, SIZE.X / 2, SIZE.Y)
+    Graphics.Viewport = Rect(0, 0, SIZE.X / 2, SIZE.Y)
     Graphics.Color = color:AlphaBlend(color)
-    GFill.Circle(Vector2(100, 100), 40)
+    GFill.Circle(Vec2(100, 100), 40)
     Graphics.Color = color:Multiply(color:Modulate(color))
-    GFill.Rectangle(Rectangle(200-40, 100-40, 80, 80))
+    GFill.Rectangle(Rect(200-40, 100-40, 80, 80))
     Graphics.Color = color:Multiply(color:Invert())
     
-    GFill.Rectangle(Rectangle(200-40, 200-40, 80, 80))
+    GFill.Rectangle(Rect(200-40, 200-40, 80, 80))
     Graphics.Color = color:Modulate(color)
-    GFill.Circle(Vector2(100, 200), 40)
+    GFill.Circle(Vec2(100, 200), 40)
     Graphics.Color = Color(color.Red, color.Green, color.Blue, 100):Invert()
     Graphics.BlendMode = 'Blend'
-    GFill.Circle(Vector2(500, 400), 450)
+    GFill.Circle(Vec2(500, 400), 450)
     Graphics.Color = Color(color.Red, color.Green, color.Blue, 50)
-    GFill.Ellipse(Vector2(400, 480), Vector2(400, 100));
+    GFill.Ellipse(Vec2(400, 480), Vec2(400, 100));
     Graphics.Color = Color(color.Red, color.Green, color.Blue, 50):Invert():Modulate(color)
-    GFill.Ellipse(Vector2(400, 300), Vector2(200, 400));
+    GFill.Ellipse(Vec2(400, 300), Vec2(200, 400));
     Graphics.Color = Color(color.Red, color.Green, color.Blue, 50):Invert():Multiply(color)
-    GFill.Ellipse(Vector2(400, 480), Vector2(400, 300));
+    GFill.Ellipse(Vec2(400, 480), Vec2(400, 300));
     Graphics.Color = Color(100, 100, 100):AdditiveBlend(color)
-    local transformation = Matrix3.FromTranslation(Vector2(50, 400))
-    transformation *= Matrix3.FromScale(Vector2(1, math.cos(currentAngle * 4) * .1 + 1))
+    local transformation = Mat3.FromTranslation(Vec2(50, 400))
+    transformation *= Mat3.FromScale(Vec2(1, math.cos(currentAngle * 4) * .1 + 1))
 
-    local S = Rectangle(SIZE.X / 2, 0, SIZE.X / 2, SIZE.Y / 2)
+    local S = Rect(SIZE.X / 2, 0, SIZE.X / 2, SIZE.Y / 2)
     Graphics.Viewport = S
     Graphics.BlendMode = "None"
     Graphics.Color = Color(255, 255, 255)
-    GFill.Rectangle(Rectangle(0, 0, SIZE.X / 2, SIZE.Y / 2))
+    GFill.Rectangle(Rect(0, 0, SIZE.X / 2, SIZE.Y / 2))
     Graphics.BlendMode = "Blend"
     Graphics.Color = Color(100, 100, 100):AdditiveBlend(color)
     GDraw.String(myFont, table.concat(helloText), transformation)
-    Graphics.Viewport = Rectangle(0, 0, SIZE.X, SIZE.Y)
+    Graphics.Viewport = Rect(0, 0, SIZE.X, SIZE.Y)
 end)
 core.DuringUpdate:Connect(function(dt: number)
     currentAngle += math.rad(30) * dt

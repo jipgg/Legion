@@ -1,13 +1,14 @@
 #include "builtin.h"
+#include "builtin_types.h"
 #include "lua_util.h"
-using builtin::event;
-using builtin::vector2;
-static unique_event key_pressed;
-static unique_event key_released;
-static unique_event mouse_button_pressed;
-static unique_event mouse_button_released;
-static unique_event mouse_moved;
-static unique_event mouse_wheeled;
+using builtin::Event;
+using builtin::Vec2;
+static UniqueEvent key_pressed;
+static UniqueEvent key_released;
+static UniqueEvent mouse_button_pressed;
+static UniqueEvent mouse_button_released;
+static UniqueEvent mouse_moved;
+static UniqueEvent mouse_wheeled;
 
 static int is_key_down(lua_State* L) {
     std::string_view key = luaL_checkstring(L, 1);
@@ -22,9 +23,9 @@ static int index(lua_State* L) {
     switch (*key) {
         case 'M':
             engine::expect(length == mouse_position_length);
-            vec2i pos{};
+            Vec2i pos{};
             SDL_GetMouseState(&pos[0], &pos[1]);
-            create<vector2>(L) = pos;
+            create<Vec2>(L) = pos;
             return 1;
     }
     luaL_error(L, "invalid index");
@@ -80,17 +81,17 @@ void handle_userinput_event(lua_State* L, SDL_Event& e) {
         return;
         case SDL_MOUSEBUTTONUP:
             lua_pushstring(L, mouse_button_to_string(e.button.button));
-            create<vector2>(L) = vec2i{e.button.x, e.button.y};
+            create<Vec2>(L) = Vec2i{e.button.x, e.button.y};
             mouse_button_released->fire(2);
         return;
         case SDL_MOUSEBUTTONDOWN:
             lua_pushstring(L, mouse_button_to_string(e.button.button));
-            create<vector2>(L) = vec2i{e.button.x, e.button.y};
+            create<Vec2>(L) = Vec2i{e.button.x, e.button.y};
             mouse_button_pressed->fire(2);
         return;
         case SDL_MOUSEMOTION:
-            create<vector2>(L) = vec2i{e.motion.x, e.motion.y};
-            create<vector2>(L) = vec2i{e.motion.xrel, e.motion.yrel};
+            create<Vec2>(L) = Vec2i{e.motion.x, e.motion.y};
+            create<Vec2>(L) = Vec2i{e.motion.xrel, e.motion.yrel};
             mouse_moved->fire(2);
         return;
         case SDL_MOUSEWHEEL:

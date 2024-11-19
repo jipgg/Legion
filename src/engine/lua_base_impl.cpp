@@ -7,15 +7,14 @@
 #include <Luau/CodeGen.h>
 #include "Require.h"
 #include "common.h"
-#include "builtin.h"
 #include "lua_base.h"
 namespace fs = std::filesystem;
-namespace tn = builtin::tname;
 struct global_options {
     int optimizationLevel = 2;
     int debugLevel = 1;
 } global_opts;
 static bool codegen = true;
+/*
 static const char* userdata_types[] = {
     tn::rectangle,
     tn::opaque_texture,
@@ -31,12 +30,13 @@ static const char* userdata_types[] = {
     tn::texture,
     nullptr
 };
+*/
 Luau::CompileOptions compile_options() {
     Luau::CompileOptions result = {};
     result.optimizationLevel = global_opts.optimizationLevel;
     result.debugLevel = global_opts.debugLevel;
     result.typeInfoLevel = 1;
-    result.userdataTypes = userdata_types;
+    //result.userdataTypes = userdata_types;
     return result;
 }
 static int lua_loadstring(lua_State* L) {

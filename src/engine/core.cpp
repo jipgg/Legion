@@ -10,43 +10,44 @@
 #include <luacodegen.h>
 #include "lua_util.h"
 #include "builtin.h"
+#include "builtin_types.h"
 #include <Luau/Compiler.h>
 #include "lua_atom.h"
 #include "comptime_enum.h"
 #include "lua_base.h"
-#include "builtin_module.h"
+#include "BuiltinModule.h"
 #include "util.h"
+#include <stdexcept>
 namespace ch = std::chrono;
 namespace fs = std::filesystem;
 using czstring = const char*;
-namespace bi = builtin;
+static constexpr auto builtin_name = "core";
 static SDL_Window* window_ptr{nullptr};
 static SDL_Renderer* renderer_ptr{nullptr};
-static std::unique_ptr<builtin::font> default_font_ptr{nullptr};
+static std::unique_ptr<builtin::Font> default_font_ptr{nullptr};
 static bool quitting{false};
 static bool paused{false};
 static SDL_Event sdl_event_dummy{};
 static SDL_Rect sdl_rect_dummy{};
 static lua_State* main_state;
 static fs::path bin_path;
-static constexpr auto builtin_name = "core";
-namespace events {
-static unique_event shutting_down;
-static unique_event updating;
-static unique_event rendering;
-static unique_event run_begin;
-static unique_event run_done;
-}
 
 static fs::path res_path() {
     return bin_path / "resources/luau_library";
 }
 namespace module {
-static builtin_module filesystem{"Files", builtin::files_module};
-static builtin_module window{"Window", builtin::window_module};
-static builtin_module graphics{"Graphics", builtin::graphics_module};
-static builtin_module userinput("UserInput", builtin::userinput_module);
-static builtin_module rendering{"rendering", builtin::rendering_module};
+static BuiltinModule filesystem{"Files", builtin::files_module};
+static BuiltinModule window{"Window", builtin::window_module};
+static BuiltinModule graphics{"Graphics", builtin::graphics_module};
+static BuiltinModule userinput("UserInput", builtin::userinput_module);
+static BuiltinModule rendering{"rendering", builtin::rendering_module};
+}
+namespace events {
+static UniqueEvent shutting_down;
+static UniqueEvent updating;
+static UniqueEvent rendering;
+static UniqueEvent run_begin;
+static UniqueEvent run_done;
 }
 
 static bool push_callback(lua_State* L, const char* name) {
@@ -66,29 +67,29 @@ static bool push_callback(lua_State* L, const char* name) {
 }
 static int lua_load_image(lua_State* L) {
     std::string file{};
-    if (is_type<bi::path>(L, 1)) {
-        file = check<bi::path>(L, 1).string();
+    if (is_type<builtin::FilePath>(L, 1)) {
+        file = check<builtin::FilePath>(L, 1).string();
     } else file = luaL_checkstring(L, 1);
     SDL_Surface* loaded = IMG_Load(file.c_str());
     if (not loaded) {
         luaL_error(L, SDL_GetError());
         return 0;
     }
-    scope_guard d{[&loaded]{ SDL_FreeSurface(loaded); }};
+    ScopeGuard d{[&loaded]{ SDL_FreeSurface(loaded); }};
     SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer_ptr, loaded);
     if (not texture) {
         luaL_error(L, SDL_GetError());
         return 0;
     }
-    create<bi::texture>(L, bi::texture{
-        bi::texture_ptr(texture, SDL_DestroyTexture),
+    create<builtin::Texture>(L, builtin::Texture{
+        std::shared_ptr<SDL_Texture>(texture, SDL_DestroyTexture),
         loaded->w,
         loaded->h});
     return 1;
 }
 static int load_builtin_module(lua_State* L) {
     std::string key = luaL_checkstring(L, 1);
-     auto cache_import_module = [&L, &key](builtin_module& module, int(*fn)(lua_State* L)) {
+     auto cache_import_module = [&L, &key](BuiltinModule& module, int(*fn)(lua_State* L)) {
         lua_getglobal(L, module_cache_name);
         if (lua_isnil(L, -1)) {
             lua_pop(L, 1);
@@ -114,42 +115,47 @@ static int load_builtin_module(lua_State* L) {
     luaL_error(L, "invalid module name '%s'.", key.c_str());
     return 0;
 }
-static void init_luau_state(lua_State* L, const fs::path& main_entry_point) {
+static void init_luau_state(const fs::path& main_entry_point) {
     luaL_openlibs(main_state);
-    lua_callbacks(L)->useratom = [](const char* raw_name, size_t s) {
+    lua_callbacks(main_state)->useratom = [](const char* raw_name, size_t s) {
         std::string_view name{raw_name, s};
         static constexpr auto count = static_cast<size_t>(lua_atom::_last);
-        auto e = comptime_enum::item<lua_atom, count>(name);
-        return static_cast<int16_t>(e.index);
+        try {
+            auto e = comptime_enum::item<lua_atom, count>(name);
+            return static_cast<int16_t>(e.index);
+        } catch (std::out_of_range& e) {
+            luaL_error(main_state, e.what());
+            return 0i16;
+        }
     };
-    lua_register_globals(L);
+    lua_register_globals(main_state);
     const luaL_Reg engine_functions[] = {
         {"GetModule", load_builtin_module},
         {nullptr, nullptr}
     };
-    lua_newtable(L);
-    luaL_register(L, nullptr, engine_functions);
-    lua_setglobal(L, builtin_name);
+    lua_newtable(main_state);
+    luaL_register(main_state, nullptr, engine_functions);
+    lua_setglobal(main_state, builtin_name);
     {
         using namespace builtin;
-        register_matrix3_type(L);
-        register_vector2_type(L);
-        register_vector3_type(L);
-        register_vector_type(L);
-        register_path_type(L);
-        register_event_type(L);
-        register_font_type(L);
-        register_texture_type(L);
-        register_color_type(L);
-        register_rectangle_type(L);
+        register_mat3_type(main_state);
+        register_vec2_type(main_state);
+        register_vec3_type(main_state);
+        register_vec_type(main_state);
+        register_file_path_type(main_state);
+        register_event_type(main_state);
+        register_font_type(main_state);
+        register_texture_type(main_state);
+        register_color_type(main_state);
+        register_rect_type(main_state);
     }
-    lua_getglobal(L, builtin_name);
-    register_event(L, events::run_begin, "BeforeRun");
-    register_event(L, events::run_done, "AfterRun");
-    register_event(L, events::updating, "DuringUpdate");
-    register_event(L, events::rendering, "DuringRender");
-    register_event(L, events::shutting_down, "ShuttingDown");
-    lua_pop(L, 1);
+    lua_getglobal(main_state, builtin_name);
+    register_event(main_state, events::run_begin, "BeforeRun");
+    register_event(main_state, events::run_done, "AfterRun");
+    register_event(main_state, events::updating, "DuringUpdate");
+    register_event(main_state, events::rendering, "DuringRender");
+    register_event(main_state, events::shutting_down, "ShuttingDown");
+    lua_pop(main_state, 1);
     std::optional<std::string> source = read_file(main_entry_point);
     if (not source) {
         using namespace std::string_literals;
@@ -158,18 +164,18 @@ static void init_luau_state(lua_State* L, const fs::path& main_entry_point) {
         auto identifier = main_entry_point.filename().string();
         identifier = "=" + identifier;
         std::string bytecode = Luau::compile(*source, compile_options());
-        if (luau_load(L, identifier.c_str(), bytecode.data(), bytecode.size(), 0)) {
-            printerr(luaL_checkstring(L, -1));
+        if (luau_load(main_state, identifier.c_str(), bytecode.data(), bytecode.size(), 0)) {
+            printerr(luaL_checkstring(main_state, -1));
         } else {
-            if (lua_pcall(L, 0, 0, 0)) {
-                printerr(luaL_checkstring(L, -1));
+            if (lua_pcall(main_state, 0, 0, 0)) {
+                printerr(luaL_checkstring(main_state, -1));
             }
         }
     }
     
     luaL_sandbox(main_state);
 }
-static void init(engine::start_options opts) {
+static void init(engine::LaunchOptions opts) {
     SDL_Init(SDL_INIT_VIDEO);// should do proper error handling here
     TTF_Init();
     IMG_Init(IMG_INIT_PNG | IMG_INIT_JPG | IMG_INIT_WEBP | IMG_INIT_TIF);
@@ -190,7 +196,7 @@ static void init(engine::start_options opts) {
         printerr(SDL_GetError());
         assert(false);
     }
-    default_font_ptr = std::make_unique<builtin::font>(builtin::font{
+    default_font_ptr = std::make_unique<builtin::Font>(builtin::Font{
         .ptr{font_resource, TTF_CloseFont},
         .pt_size = pt_size,
         .file_path = font_path
@@ -198,7 +204,7 @@ static void init(engine::start_options opts) {
     engine::expect(default_font_ptr->ptr.get());
     main_state = luaL_newstate();
     bin_path = std::move(opts.bin_path);
-    init_luau_state(main_state, opts.main_entry_point);
+    init_luau_state(opts.main_entry_point);
 }
 static void run() {
     auto cached_last_tp = ch::steady_clock::now();
@@ -208,7 +214,7 @@ static void run() {
             events::run_begin->fire(0);
             while (SDL_PollEvent(&e)) {
                 if (module::userinput.loaded) {
-                    bi::handle_userinput_event(main_state, e);
+                    builtin::handle_userinput_event(main_state, e);
                 }
                 switch (e.type) {
                     case SDL_QUIT:
@@ -216,7 +222,7 @@ static void run() {
                     break;
                     case SDL_WINDOWEVENT:
                         if (module::window.loaded) {
-                            bi::handle_window_event(main_state, e.window);
+                            builtin::handle_window_event(main_state, e.window);
                         }
                     break;
                 }
@@ -246,7 +252,7 @@ static void shutdown() {
     SDL_Quit();
 }
 namespace engine {
-int bootstrap(start_options opts) {
+int bootstrap(LaunchOptions opts) {
     init(opts);
     run();
     shutdown();
@@ -256,8 +262,8 @@ SDL_Window* window() {return window_ptr;}
 SDL_Renderer* renderer() {return renderer_ptr;}
 lua_State* lua_state() {return main_state;}
 void quit() {quitting = true;}
-builtin::font& default_font() {return *default_font_ptr;}
-builtin::font& debug_font() {return *default_font_ptr;}
+builtin::Font& default_font() {return *default_font_ptr;}
+builtin::Font& debug_font() {return *default_font_ptr;}
 void expect(bool expression, std::string_view reason, const std::source_location& location) {
     if (expression) return;
     luaL_error(main_state, "Failed expected precondition. Luau state terminated.\n-> Reason: %s\n-> In file: %s\n-> At line: %d (column: %d) \n-> In function: %s",

@@ -1,12 +1,12 @@
 #include <lualib.h>
 constexpr auto module_cache_name = "__builtin_module_cache";
-struct builtin_module {
+struct BuiltinModule {
     static constexpr int not_initialized = -1;
     inline static int builtin_module_cache_ref{not_initialized};
     const char* const name;
     const lua_CFunction loader;
     bool loaded{false};
-    builtin_module(const char* name, lua_CFunction loader):
+    BuiltinModule(const char* name, lua_CFunction loader):
         name(name),
         loader(loader),
         loaded(false) {

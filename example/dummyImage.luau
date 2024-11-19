@@ -13,22 +13,22 @@ function M.init()
     M.dummy.BlendMode = 'Blend'
     M.dummy.Color = Color(255, 255, 255)
     core.DuringRender:Connect(function()
-        local t = Matrix3(
+        local t = Mat3(
             1, 0, 600 + math.cos(M.angle /2) * 100,
             0, 1, 200 + math.cos(M.angle / 3) * 50,
             0, 0, 1
         )
-        local r = Matrix3(
+        local r = Mat3(
             math.cos(M.angle / 3), -math.sin(M.angle / 3), 0,
             math.sin(M.angle * 2), math.cos(M.angle * 5), 0,
             0, 0, 1
         )
-        local s = Matrix3(
+        local s = Mat3(
             math.sin(M.angle) * .3, 0, 0,
             0, .3, 0,
             0, 0, 1
         )
-        local off = Matrix3(
+        local off = Mat3(
             1, 0, -M.dummy.Width / 2,
             0, 1, -M.dummy.Height / 2,
             0, 0, 1
