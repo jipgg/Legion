@@ -67,8 +67,8 @@ static bool push_callback(lua_State* L, const char* name) {
 }
 static int lua_load_image(lua_State* L) {
     std::string file{};
-    if (is_type<builtin::FilePath>(L, 1)) {
-        file = check<builtin::FilePath>(L, 1).string();
+    if (is_type<builtin::files::Path>(L, 1)) {
+        file = check<builtin::files::Path>(L, 1).string();
     } else file = luaL_checkstring(L, 1);
     SDL_Surface* loaded = IMG_Load(file.c_str());
     if (not loaded) {
@@ -142,7 +142,7 @@ static void init_luau_state(const fs::path& main_entry_point) {
         register_vec2_type(main_state);
         register_vec3_type(main_state);
         register_vec_type(main_state);
-        register_file_path_type(main_state);
+        //register_file_path_type(main_state);
         register_event_type(main_state);
         register_font_type(main_state);
         register_texture_type(main_state);
@@ -199,7 +199,7 @@ static void init(engine::LaunchOptions opts) {
     default_font_ptr = std::make_unique<builtin::Font>(builtin::Font{
         .ptr{font_resource, TTF_CloseFont},
         .pt_size = pt_size,
-        .file_path = font_path
+        .path = font_path
     });
     engine::expect(default_font_ptr->ptr.get());
     main_state = luaL_newstate();

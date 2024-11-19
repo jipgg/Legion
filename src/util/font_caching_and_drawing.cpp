@@ -3,20 +3,20 @@
 #include "engine.h"
 using builtin::Font;
 using builtin::Texture;
-using builtin::FilePath;
+using builtin::files::Path;
 struct FontId {
-    FilePath file_path;
+    Path path;
     int pt_size;
     friend bool operator==(const FontId& lhs, const FontId& rhs) {
-        return lhs.file_path == rhs.file_path and lhs.pt_size == rhs.pt_size;
+        return lhs.path == rhs.path and lhs.pt_size == rhs.pt_size;
     }
-    FontId(const Font& font): file_path(font.file_path), pt_size(font.pt_size) {}
+    FontId(const Font& font): path(font.path), pt_size(font.pt_size) {}
 };
 namespace std {
     template<>
     struct hash<FontId> {
         size_t operator()(const FontId& fid) const noexcept {
-            size_t hash1 = std::hash<FilePath>{}(fid.file_path);
+            size_t hash1 = std::hash<Path>{}(fid.path);
             size_t hash2 = std::hash<int>{}(fid.pt_size);
             return hash1 ^ (hash2 << 1);//relatively balanced
         }

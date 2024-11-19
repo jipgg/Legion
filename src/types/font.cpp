@@ -2,7 +2,7 @@
 #include "builtin_types.h"
 #include "lua_util.h"
 using builtin::Font;
-using builtin::FilePath;
+using builtin::files::Path;
 static constexpr auto type = "Font";
 
 static int index(lua_State* L) {
@@ -11,7 +11,7 @@ static int index(lua_State* L) {
     const char initial = *luaL_checklstring(L, 2, &len);
     switch (initial) {
         case 'f':
-            create<FilePath>(L, r.file_path);
+            create<Path>(L, r.path);
             return 1;
         case 'p': {
             lua_pushinteger(L, r.pt_size);
@@ -25,7 +25,7 @@ static int newindex(lua_State* L) {
     return 0;
 }
 static int ctor(lua_State* L) {
-    const auto& font_path = check<FilePath>(L, 1);
+    const auto& font_path = check<Path>(L, 1);
     const int pt_size = luaL_checkinteger(L, 2);
     TTF_Font* font_resource = TTF_OpenFont(font_path.string().c_str(), pt_size);
     engine::expect(font_resource != nullptr, SDL_GetError());
@@ -33,7 +33,7 @@ static int ctor(lua_State* L) {
     create<builtin::Font>(L, builtin::Font{
         .ptr{font_resource, TTF_CloseFont},
         .pt_size = pt_size,
-        .file_path = font_path
+        .path = font_path
     });
     return 1;
 }

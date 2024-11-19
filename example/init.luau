@@ -5,19 +5,21 @@ local GFill = Graphics.fill
 local Window = core.get_module('Window')
 local fpsCounter = require('@example/fpsCounter')
 local dummyImage = require('@example/dummyImage')
-local RESOURCE_DIR = FilePath("resources")
+local Files = core.get_module("Files")
+local RESOURCE_DIR = Files.Path("resources")
 local UserInput = core.get_module('UserInput')
 print(`is clip enabled {Graphics.is_clip_enabled()}`)
 print(`is clip enabled {Graphics.is_clip_enabled()}`)
 Graphics.blend_mode = 'Blend'
-Window.set_icon(tostring(RESOURCE_DIR / "coin.png"))
+Window.set_icon(tostring(RESOURCE_DIR :: Files_Path / "coin.png"))
 Window.title = "Yoooooo"
 Window.position = Vec2(100, 100)
 Window.maximize()
 print(Window.size)
 --Window.Borderless = true
 
-local myEvent: Event<number> = Event()
+local myEvent = Event()
+
 
 myEvent:connect(function(num: number)
     Window.title = `Yo check this number out {num}`
@@ -89,6 +91,9 @@ core.during_update:connect(function(dt: number)
 end)
 fpsCounter.init()
 dummyImage.init()
+UserInput.mouse_button_pressed:connect(function(type: "Left" | "Middle" | "Right", mouse_pos: Vec2)
+
+end)
 UserInput.key_pressed:connect(function(key)
     if key == 'W' then
         print(`Mouse position: {UserInput.mouse_position}`)

@@ -68,7 +68,7 @@ static int texture_newindex(lua_State* L) {
 static int texture_ctor_call(lua_State* L) {
     auto path = resolve_path_type(L, 2);
     if (not path) {
-        return lua_err::invalid_argument(L, 2, "FilePath | string");
+        return lua_err::invalid_argument(L, 2, "Files_Path | string");
     }
     SDL_Surface* surface = IMG_Load(path->c_str());
     if (not surface) {

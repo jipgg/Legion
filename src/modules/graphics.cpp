@@ -516,13 +516,13 @@ static int newindex(lua_State* L) {
         case char_v(blend_mode): {
             engine::expect(key == blend_mode);
             const char* bm = luaL_checkstring(L, value_idx);
-            SDL_SetRenderDrawBlendMode(util::renderer(), string_to_blendmode(bm));
+            SDL_SetRenderDrawBlendMode(engine::renderer(), string_to_blendmode(bm));
             return 0;
         }
         case char_v(viewport): {
             if (key == vsync_enabled) {
                 const bool enabled = luaL_checkboolean(L, value_idx);
-                SDL_RenderSetVSync(util::renderer(), enabled);
+                SDL_RenderSetVSync(engine::renderer(), enabled);
                 return 0;
             } else if (key == viewport) {
                 auto& r = check<Rect>(L, value_idx);
@@ -532,14 +532,14 @@ static int newindex(lua_State* L) {
                     static_cast<int>(r.w),
                     static_cast<int>(r.h),
                 };
-                SDL_RenderSetViewport(util::renderer(), &vp);
+                SDL_RenderSetViewport(engine::renderer(), &vp);
                 return 0;
             }
         }
         case char_v(clip_rect): {
             if (key == draw_color) {
                 auto& color = check<Color>(L, value_idx);
-                SDL_SetRenderDrawColor(util::renderer(), color.r, color.g, color.b, color.a);
+                SDL_SetRenderDrawColor(engine::renderer(), color.r, color.g, color.b, color.a);
                 return 0;
             } else if (key == clip_rect) {
                 if (is_type<Rect>(L, value_idx)) {
@@ -550,9 +550,9 @@ static int newindex(lua_State* L) {
                         static_cast<int>(r.w),
                         static_cast<int>(r.h),
                     };
-                    SDL_RenderSetClipRect(util::renderer(), &cr);
+                    SDL_RenderSetClipRect(engine::renderer(), &cr);
                 } else if (lua_isnil(L, value_idx)) {
-                    SDL_RenderSetClipRect(util::renderer(), nullptr);
+                    SDL_RenderSetClipRect(engine::renderer(), nullptr);
                 }
                 return 0;
             }
@@ -560,7 +560,7 @@ static int newindex(lua_State* L) {
         case char_v(scale): {
             engine::expect(key == scale);
             const auto& s = check<Vec2>(L, value_idx);
-            SDL_RenderSetScale(util::renderer(), static_cast<float>(s[0]), static_cast<float>(s[1]));
+            SDL_RenderSetScale(engine::renderer(), static_cast<float>(s[0]), static_cast<float>(s[1]));
             return 0;
         }
     }
@@ -568,7 +568,7 @@ static int newindex(lua_State* L) {
     return 0;
 }
 static int is_clip_enabled(lua_State* L) {
-    SDL_bool enabled = SDL_RenderIsClipEnabled(util::renderer());
+    SDL_bool enabled = SDL_RenderIsClipEnabled(engine::renderer());
     lua_pushboolean(L, static_cast<bool>(enabled));
     return 1;
 }

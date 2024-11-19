@@ -5,10 +5,10 @@
 #include <filesystem>
 #include "util.h"
 namespace fs = std::filesystem;
-using builtin::FilePath;
-using builtin::DirectoryEntry;
-static constexpr auto file_path_type = "FilePath";
-static constexpr auto directory_entry_type = "DirectoryEntry";
+using builtin::files::Path;
+using builtin::files::DirectoryEntry;
+static constexpr auto file_path_type = "Files_Path";
+static constexpr auto directory_entry_type = "Files_DirectoryEntry";
 
 static fs::copy_options to_copy_options(std::string_view str) {
     using copts = fs::copy_options;
@@ -198,10 +198,10 @@ static int directory_entry_namecall(lua_State* L) {
 }
 
 static int path_div(lua_State* L) {
-    FilePath lhs;
-    FilePath rhs;
-    if (is_type<FilePath>(L, 1)) {
-        lhs = check<FilePath>(L, 1);
+    Path lhs;
+    Path rhs;
+    if (is_type<Path>(L, 1)) {
+        lhs = check<Path>(L, 1);
     } else if (lua_isstring(L, 1)) {
         lhs = luaL_checkstring(L, 1);
     } else {
@@ -209,8 +209,8 @@ static int path_div(lua_State* L) {
         lua_error(L);
         return 0;
     }
-    if (is_type<FilePath>(L, 2)) {
-        rhs = check<FilePath>(L, 2);
+    if (is_type<Path>(L, 2)) {
+        rhs = check<Path>(L, 2);
     } else if (lua_isstring(L, 2)) {
         rhs = luaL_checkstring(L, 2);
     } else {
@@ -218,32 +218,32 @@ static int path_div(lua_State* L) {
         lua_error(L);
         return 0;
     }
-    create<FilePath>(L, lhs / rhs);
+    create<Path>(L, lhs / rhs);
     return 1;
 }
 static int path_namecall(lua_State* L) {
     int atom{};
     lua_namecallatom(L, &atom);
-    auto& r = check<FilePath>(L, 1);
+    auto& r = check<Path>(L, 1);
     using la = lua_atom;
     switch (static_cast<la>(atom)) {
         case la::stem:
-            create<FilePath>(L, r.stem());
+            create<Path>(L, r.stem());
             return 1;
         case la::is_empty:
             lua_pushboolean(L, r.empty());
             return 1;
         case la::file_name:
-            create<FilePath>(L, r.filename());
+            create<Path>(L, r.filename());
             return 1;
         case la::has_stem:
             lua_pushboolean(L, r.has_stem());
             return 1;
         case la::root_path:
-            create<FilePath>(L, r.root_path());
+            create<Path>(L, r.root_path());
             return 1;
         case la::parent_path:
-            create<FilePath>(L, r.parent_path());
+            create<Path>(L, r.parent_path());
             return 1;
         case la::is_absolute:
             lua_pushboolean(L, r.is_absolute());
@@ -252,7 +252,7 @@ static int path_namecall(lua_State* L) {
             lua_pushboolean(L, r.is_relative());
             return 1;
         case la::extension:
-            create<FilePath>(L, r.extension());
+            create<Path>(L, r.extension());
             return 1;
         case la::has_extenson:
             lua_pushboolean(L, r.has_extension());
@@ -261,19 +261,19 @@ static int path_namecall(lua_State* L) {
             r.replace_extension(luaL_checkstring(L, 2));
             return 0;
         case la::relative_path:
-            create<FilePath>(L, r.relative_path());
+            create<Path>(L, r.relative_path());
             return 1;
         case la::has_relative_path:
             lua_pushboolean(L, r.has_relative_path());
             return 1;
         case la::compare:
-            lua_pushinteger(L, r.compare(check<FilePath>(L, 2)));
+            lua_pushinteger(L, r.compare(check<Path>(L, 2)));
             return 1;
         case la::root_name:
-            create<FilePath>(L, r.root_name());
+            create<Path>(L, r.root_name());
             return 1;
         case la::root_directory:
-            create<FilePath>(L, r.root_directory());
+            create<Path>(L, r.root_directory());
             return 1;
         case la::has_root_path:
             lua_pushboolean(L, r.has_root_path());
@@ -289,29 +289,29 @@ static int path_namecall(lua_State* L) {
     }
 }
 static int path_tostring(lua_State* L) {
-    auto& r = check<FilePath>(L, 1);
+    auto& r = check<Path>(L, 1);
     lua_pushstring(L, r.string().c_str());
     return 1;
 }
 static int path_ctor(lua_State* L) {
-    create<FilePath>(L, luaL_checkstring(L, 1));
+    create<Path>(L, luaL_checkstring(L, 1));
     return 1;
 }
 static int executable_directory(lua_State* L) {
-    create<FilePath>(L, util::get_executable_path());
+    create<Path>(L, util::get_executable_path());
     return 1;
 }
 static int current_working_directory(lua_State* L) {
-    create<FilePath>(L, fs::current_path());
+    create<Path>(L, fs::current_path());
     return 1;
 }
 static int canonical(lua_State* L) {
-    create<FilePath>(L, fs::canonical(*resolve_path_type(L, 1)));
+    create<Path>(L, fs::canonical(*resolve_path_type(L, 1)));
     return 1;
 }
 static int proximate(lua_State* L) {
     auto base_opt = resolve_path_type(L, 2);
-    create<FilePath>(L, fs::proximate(*resolve_path_type(L, 1),
+    create<Path>(L, fs::proximate(*resolve_path_type(L, 1),
         base_opt ? *base_opt : fs::current_path()));
 
     return 1;
@@ -322,14 +322,14 @@ static int create_symlink(lua_State* L) {
 }
 static int relative(lua_State* L) {
     auto base_opt = resolve_path_type(L, 2);
-    create<FilePath>(L, fs::relative(
+    create<Path>(L, fs::relative(
                  *resolve_path_type(L, 1),
                  base_opt? *base_opt : fs::current_path()));
     return 1;
 }
 
 static const luaL_Reg fs_lib[] = {
-    {"create_directoy", create_directory},
+    {"create_directory", create_directory},
     {"exists", exists},
     {"is_character_file", is_character_file},
     {"copy_file", copy_file},
@@ -347,7 +347,7 @@ static const luaL_Reg fs_lib[] = {
     {"canonical", canonical},
     {"proximate", proximate},
     {"create_symlink", create_symlink},
-    {"FilePath", path_ctor},
+    {"Path", path_ctor},
     {"relative", relative},
     {"read_file", read_text_file},
     {"write_file", write_text_file},
@@ -364,16 +364,22 @@ const luaL_Reg directory_entry_metatable[] = {
     {nullptr, nullptr}
 };
 static void init_types(lua_State* L) {
-    if (luaL_newmetatable(L, metatable_name<FilePath>())) {
+    if (luaL_newmetatable(L, metatable_name<Path>())) {
         luaL_register(L, nullptr, path_metatable);
         lua_pushstring(L, file_path_type);
+        lua_setfield(L, -2, builtin::metamethod::type);
+        lua_pop(L, 1);
+    }
+    if (luaL_newmetatable(L, metatable_name<DirectoryEntry>())) {
+        luaL_register(L, nullptr, directory_entry_metatable);
+        lua_pushstring(L, directory_entry_type);
         lua_setfield(L, -2, builtin::metamethod::type);
         lua_pop(L, 1);
     }
 }
 namespace builtin {
 void register_file_path_type(lua_State *L) {
-    if (luaL_newmetatable(L, metatable_name<FilePath>())) {
+    if (luaL_newmetatable(L, metatable_name<Path>())) {
         luaL_register(L, nullptr, path_metatable);
         lua_pushstring(L, file_path_type);
         lua_setfield(L, -2, metamethod::type);
@@ -383,12 +389,7 @@ void register_file_path_type(lua_State *L) {
     lua_setglobal(L, file_path_type);
 }
 int files_module(lua_State *L) {
-    if (luaL_newmetatable(L, metatable_name<DirectoryEntry>())) {
-        luaL_register(L, nullptr, directory_entry_metatable);
-        lua_pushstring(L, directory_entry_type);
-        lua_setfield(L, -2, metamethod::type);
-        lua_pop(L, 1);
-    }
+    init_types(L);
     lua_newtable(L);
     luaL_register(L, nullptr, fs_lib);
     return 1;

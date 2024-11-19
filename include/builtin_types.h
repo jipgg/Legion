@@ -25,8 +25,10 @@ using Vec3 = blaze::StaticVector<double, 3, blaze::defaultTransposeFlag, blaze::
     blaze::unpadded /*not 100% sure why but this causes issues when turning ud back to blaze type if set padded*/>; 
 using Vec = blaze::DynamicVector<double>;
 using Mat3 = blaze::StaticMatrix<double, 3, 3>;
-using FilePath = std::filesystem::path;
+namespace files {
+using Path = std::filesystem::path;
 using DirectoryEntry = std::filesystem::directory_entry;
+}
 struct Event {
     struct Connection {
         size_t id;
@@ -48,6 +50,6 @@ struct Texture {
 struct Font {
     std::shared_ptr<TTF_Font> ptr;
     int pt_size;
-    FilePath file_path;
+    files::Path path;
 };
 }
