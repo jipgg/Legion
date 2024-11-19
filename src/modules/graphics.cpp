@@ -445,12 +445,12 @@ static int draw_texture(lua_State* L) {
     SDL_RenderCopy(util::renderer(), r.ptr.get(), &src, &dst);
     return 0;
 }
-static constexpr std::string_view draw_color = "Color";
-static constexpr std::string_view blend_mode = "BlendMode";
-static constexpr std::string_view viewport = "Viewport";
-static constexpr std::string_view vsync_enabled = "VSyncEnabled";
-static constexpr std::string_view clip_rect = "ClipRect";
-static constexpr std::string_view scale = "Scale";
+static constexpr std::string_view draw_color = "color";
+static constexpr std::string_view blend_mode = "blend_mode";
+static constexpr std::string_view viewport = "viewport";
+static constexpr std::string_view vsync_enabled = "vsync_enabled";
+static constexpr std::string_view clip_rect = "clip_rect";
+static constexpr std::string_view scale = "scale";
 static consteval char char_v(const std::string_view v) {
     return *v.data();
 }
@@ -575,58 +575,58 @@ static int is_clip_enabled(lua_State* L) {
 namespace builtin {
 int graphics_module(lua_State *L) {
     const luaL_Reg lib[] = {
-        {"DrawRectangle", draw_rectangle},
-        {"DrawRectangles", draw_rectangles},
-        {"FillRectangle", fill_rectangle},
-        {"FillRectangles", fill_rectangles},
-        {"DrawLine", draw_line},
-        {"DrawLines", draw_lines},
-        {"DrawPixel", draw_point},
-        {"DrawPixels", draw_points},
-        {"DrawPolygon", draw_polygon},
-        {"FillPolygon", fill_polygon},
-        {"FillCircle", fill_circle},
-        {"FillEllipse", fill_ellipse},
-        {"DrawString", draw_string},
-        {"DrawTexture", draw_texture},
-        {"ClearCanvas", clear},
-        {"IsClipEnabled", is_clip_enabled},
+        {"draw_rect", draw_rectangle},
+        {"draw_rects", draw_rectangles},
+        {"fill_rect", fill_rectangle},
+        {"fill_rects", fill_rectangles},
+        {"draw_line", draw_line},
+        {"draw_lines", draw_lines},
+        {"draw_pixel", draw_point},
+        {"draw_pixels", draw_points},
+        {"draw_polygon", draw_polygon},
+        {"fill_polygon", fill_polygon},
+        {"fill_circle", fill_circle},
+        {"fill_ellipse", fill_ellipse},
+        {"draw_string", draw_string},
+        {"draw_texture", draw_texture},
+        {"clear", clear},
+        {"is_clip_enabled", is_clip_enabled},
         {nullptr, nullptr}
     };
     const luaL_Reg draw[] = {
-        {"Rectangle", draw_rectangle},
-        {"Rectangles", draw_rectangles},
-        {"Line", draw_line},
-        {"Lines", draw_lines},
-        {"Pixel", draw_point},
-        {"Pixels", draw_points},
-        {"String", draw_string},
-        {"Texture", draw_texture},
+        {"rect", draw_rectangle},
+        {"rects", draw_rectangles},
+        {"line", draw_line},
+        {"lines", draw_lines},
+        {"pixel", draw_point},
+        {"pixels", draw_points},
+        {"string", draw_string},
+        {"texture", draw_texture},
         {nullptr, nullptr},
     };
     const luaL_Reg fill[] = {
-        {"Rectangle", fill_rectangle},
-        {"Rectangles", fill_rectangles},
-        {"Circle", fill_circle},
-        {"Ellipse", fill_ellipse},
+        {"rect", fill_rectangle},
+        {"rects", fill_rectangles},
+        {"circle", fill_circle},
+        {"ellipse", fill_ellipse},
         {nullptr, nullptr}
     };
     const luaL_Reg render[] = {
-        {"Text", draw_string},
-        {"Texture", draw_texture},
+        {"text", draw_string},
+        {"texture", draw_texture},
         {nullptr, nullptr}
     };
     lua_newtable(L);
     luaL_register(L, nullptr, lib);
     lua_newtable(L);
     luaL_register(L, nullptr, draw);
-    lua_setfield(L, -2, "Draw");
+    lua_setfield(L, -2, "draw");
     lua_newtable(L);
     luaL_register(L, nullptr, fill);
-    lua_setfield(L, -2, "Fill");
+    lua_setfield(L, -2, "fill");
     lua_newtable(L);
     luaL_register(L, nullptr, render);
-    lua_setfield(L, -2, "Render");
+    lua_setfield(L, -2, "render");
     if (luaL_newmetatable(L, "builtin_graphics_module")) {
         const luaL_Reg meta[] = {
             {metamethod::index, index},

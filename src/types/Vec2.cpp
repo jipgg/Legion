@@ -56,8 +56,8 @@ static int index(lua_State *L) {
     const char index = *luaL_checkstring(L, 2);
     auto& r = check<Vec2>(L, 1);
     switch (index) {
-        case 'X': lua_pushnumber(L, r[0]); return 1;
-        case 'Y': lua_pushnumber(L, r[1]); return 1;
+        case 'x': lua_pushnumber(L, r[0]); return 1;
+        case 'y': lua_pushnumber(L, r[1]); return 1;
     }
     return 0;
 }
@@ -65,8 +65,8 @@ static int newindex(lua_State *L) {
     const double n = luaL_checknumber(L, 3);
     Vec2& r = check<Vec2>(L, 1);
     switch (*luaL_checkstring(L, 2)) {
-        case 'X': luaL_error(L, "property 'X' is readonly."); return 0;
-        case 'Y': luaL_error(L, "Property 'Y' is readonly."); return 0;
+        case 'x': luaL_error(L, "property 'X' is readonly."); return 0;
+        case 'y': luaL_error(L, "Property 'Y' is readonly."); return 0;
         default: return lua_err::invalid_member(L, type);
     }
     return 0;
@@ -104,16 +104,16 @@ static int namecall(lua_State *L) {
     auto& self = check<Vec2>(L, 1);
     using la = lua_atom;
     switch(static_cast<la>(atom)) {
-        case la::DotProduct:
+        case la::dot:
             lua_pushnumber(L, blaze::dot(self, check<Vec2>(L, 2)));
             return 1;
-        case la::ToUnitVector:
+        case la::normalized:
             create<Vec2>(L) = self / blaze::length(self);
             return 1;
-        case la::Abs:
+        case la::abs:
             create<Vec2>(L) = blaze::abs(self);
             return 1;
-        case la::Length:
+        case la::norm:
             lua_pushnumber(L, blaze::length(self));
             return 1;
         default:

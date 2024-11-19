@@ -10,25 +10,25 @@ using builtin::Color;
 using engine::expect;
 using builtin::Font;
 
-static constexpr size_t color_length{std::string("Color").length()};
-static constexpr size_t blend_mode_length{std::string("BlendMode").length()};
+static constexpr size_t color_length{std::string("color").length()};
+static constexpr size_t blend_mode_length{std::string("blend_mode").length()};
 static int texture_index(lua_State* L) {
     auto& r = check<Texture>(L, 1);
     const std::string_view key = luaL_checkstring(L, 2);
     switch (key.at(0)) {
-        case 'W':
+        case 'w':
             lua_pushinteger(L, r.w);
             return 1;
-        case 'H':
+        case 'h':
             lua_pushinteger(L, r.h);
             return 1;
-        case 'C':
+        case 'c':
             Color col;
             SDL_GetTextureColorMod(r.ptr.get(), &col.r, &col.g, &col.b);
             SDL_GetTextureAlphaMod(r.ptr.get(), &col.a);
             create<Color>(L, std::move(col));
             return 1;
-        case 'B':
+        case 'b':
             SDL_BlendMode bm;
             SDL_GetTextureBlendMode(r.ptr.get(), &bm);
             lua_pushstring(L, blendmode_to_string(bm));
@@ -40,23 +40,23 @@ static int texture_newindex(lua_State* L) {
     auto& r = check<Texture>(L, 1);
     const std::string_view key = luaL_checkstring(L, 2);
     switch (key.at(0)) {
-        case 'W': {
+        case 'w': {
             const int v = luaL_checkinteger(L, 3);
             r.w = v;
             return 0;
         }
-        case 'H': {
+        case 'h': {
             const int v = luaL_checkinteger(L, 3);
             r.h = v;
             return 0;
         }
-        case 'C': {
+        case 'c': {
             const auto& new_color = check<Color>(L, 3);
             SDL_SetTextureColorMod(r.ptr.get(), new_color.r, new_color.g, new_color.b);
             SDL_SetTextureAlphaMod(r.ptr.get(), new_color.a);
             return 0;
         }
-        case 'B': {
+        case 'b': {
             SDL_BlendMode bm = string_to_blendmode(luaL_checkstring(L, 3));
             SDL_SetTextureBlendMode(r.ptr.get(), bm);
             return 0;
@@ -68,7 +68,7 @@ static int texture_newindex(lua_State* L) {
 static int texture_ctor_call(lua_State* L) {
     auto path = resolve_path_type(L, 2);
     if (not path) {
-        return lua_err::invalid_argument(L, 2, "Path | string");
+        return lua_err::invalid_argument(L, 2, "FilePath | string");
     }
     SDL_Surface* surface = IMG_Load(path->c_str());
     if (not surface) {
@@ -136,7 +136,7 @@ void register_texture_type(lua_State* L) {
     }
     lua_pop(L, 1);
     const luaL_Reg ctors[] = {
-        {"FromString", texture_ctor_from_string},
+        {"from_string", texture_ctor_from_string},
         {nullptr, nullptr}
     };
     lua_newtable(L);

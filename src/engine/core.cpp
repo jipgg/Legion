@@ -130,7 +130,7 @@ static void init_luau_state(const fs::path& main_entry_point) {
     };
     lua_register_globals(main_state);
     const luaL_Reg engine_functions[] = {
-        {"GetModule", load_builtin_module},
+        {"get_module", load_builtin_module},
         {nullptr, nullptr}
     };
     lua_newtable(main_state);
@@ -150,11 +150,11 @@ static void init_luau_state(const fs::path& main_entry_point) {
         register_rect_type(main_state);
     }
     lua_getglobal(main_state, builtin_name);
-    register_event(main_state, events::run_begin, "BeforeRun");
-    register_event(main_state, events::run_done, "AfterRun");
-    register_event(main_state, events::updating, "DuringUpdate");
-    register_event(main_state, events::rendering, "DuringRender");
-    register_event(main_state, events::shutting_down, "ShuttingDown");
+    register_event(main_state, events::run_begin, "before_run");
+    register_event(main_state, events::run_done, "after_run");
+    register_event(main_state, events::updating, "during_update");
+    register_event(main_state, events::rendering, "during_render");
+    register_event(main_state, events::shutting_down, "shutting_down");
     lua_pop(main_state, 1);
     std::optional<std::string> source = read_file(main_entry_point);
     if (not source) {

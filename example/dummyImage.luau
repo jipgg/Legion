@@ -1,5 +1,5 @@
-local Graphics = core.GetModule('Graphics')
-local GRender = Graphics.Render
+local Graphics = core.get_module('Graphics')
+local grender = Graphics.render
 
 local M = {
     dummy = Texture('resources/jw.png'),
@@ -10,9 +10,9 @@ export type Module = {
     dummy: Texture,
 }
 function M.init()
-    M.dummy.BlendMode = 'Blend'
-    M.dummy.Color = Color(255, 255, 255)
-    core.DuringRender:Connect(function()
+    M.dummy.blend_mode = 'Blend'
+    M.dummy.color = Color(255, 255, 255)
+    core.during_render:connect(function()
         local t = Mat3(
             1, 0, 600 + math.cos(M.angle /2) * 100,
             0, 1, 200 + math.cos(M.angle / 3) * 50,
@@ -29,14 +29,14 @@ function M.init()
             0, 0, 1
         )
         local off = Mat3(
-            1, 0, -M.dummy.Width / 2,
-            0, 1, -M.dummy.Height / 2,
+            1, 0, -M.dummy.width / 2,
+            0, 1, -M.dummy.height / 2,
             0, 0, 1
         )
         local transform = t * r * s * off
-        GRender.Texture(M.dummy, transform)
+        grender.texture(M.dummy, transform)
     end)
-    core.DuringUpdate:Connect(function(dt: number)
+    core.during_update:connect(function(dt: number)
         M.angle += math.rad(30) * dt
     end)
 end

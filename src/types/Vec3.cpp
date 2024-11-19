@@ -80,20 +80,20 @@ static int namecall(lua_State *L) {
     auto& self = check<Vec3>(L, 1);
     using la = lua_atom;
     switch(static_cast<la>(atom)) {
-        case la::DotProduct: {
+        case la::dot: {
             const double dot = blaze::dot(check<Vec3>(L, 1), check<Vec3>(L, 2));
             lua_pushnumber(L, dot);
             return 1;
         }
-        case la::ToUnitVector: {
+        case la::normalized: {
             create<Vec3>(L) = blaze::normalize(check<Vec3>(L, 1));
             return 1;
         }
-        case la::Abs: {
+        case la::abs: {
             create<Vec3>(L) = blaze::abs(check<Vec3>(L, 1));
             return 0;
         }
-        case la::Length: {
+        case la::norm: {
             auto& r = check<Vec3>(L, 1);
             lua_pushnumber(L, blaze::length(r));
             return 1;

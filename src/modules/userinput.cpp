@@ -16,12 +16,12 @@ static int is_key_down(lua_State* L) {
     lua_pushboolean(L, state[string_to_scancode(key)]);
     return 1;
 }
-static constexpr size_t mouse_position_length = std::string("MousePosition").length();
+static constexpr size_t mouse_position_length = std::string("mouse_position").length();
 static int index(lua_State* L) {
     size_t length;
     const char* key = luaL_checklstring(L, 2, &length);
     switch (*key) {
-        case 'M':
+        case 'm':
             engine::expect(length == mouse_position_length);
             Vec2i pos{};
             SDL_GetMouseState(&pos[0], &pos[1]);
@@ -37,7 +37,7 @@ static int newindex(lua_State* L) {
     switch (*key) {
         case 'M':
             engine::expect(length == mouse_position_length);
-            luaL_error(L, "property 'MousePosition' is readonly");
+            luaL_error(L, "property 'mouse_position' is readonly");
             return 0;
     }
     luaL_error(L, "invalid index");
@@ -47,17 +47,17 @@ static int newindex(lua_State* L) {
 namespace builtin {
 int userinput_module(lua_State *L) {
     const luaL_Reg functions[] = {
-        {"IsKeyDown", is_key_down},
+        {"is_key_down", is_key_down},
         {nullptr, nullptr}
     };
     lua_newtable(L);
     luaL_register(L, nullptr, functions);
-    register_event(L, key_pressed, "KeyPressed");
-    register_event(L, key_released, "KeyReleased");
-    register_event(L, mouse_button_pressed, "MouseButtonPressed");
-    register_event(L, mouse_button_released, "MouseButtonReleased");
-    register_event(L, mouse_moved, "MouseMoved");
-    register_event(L, mouse_wheeled, "MouseWheeled");
+    register_event(L, key_pressed, "key_pressed");
+    register_event(L, key_released, "key_released");
+    register_event(L, mouse_button_pressed, "mouse_button_pressed");
+    register_event(L, mouse_button_released, "mouse_button_released");
+    register_event(L, mouse_moved, "mouse_moved");
+    register_event(L, mouse_wheeled, "mouse_wheeled");
     if (luaL_newmetatable(L, "builtin_userinput_module")) {
         const luaL_Reg meta[] = {
             {metamethod::index, index},

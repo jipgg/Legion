@@ -154,10 +154,10 @@ static int namecall(lua_State* L) {
     lua_namecallatom(L, &atom);
     using la = lua_atom;
     switch (static_cast<la>(atom)) {
-        case la::Transpose:
+        case la::transpose:
             create<Mat3>(L) = r.transpose();
         return 1;
-        case la::Inverse: {
+        case la::inverse: {
             Mat3 inv = r;
             blaze::invert3x3<blaze::InversionFlag::asGeneral>(inv);
             create<Mat3>(L) = inv;
@@ -193,9 +193,9 @@ void register_mat3_type(lua_State *L) {
     }
     lua_pop(L, 1);
     const luaL_Reg lib[] = {
-        {"FromScale", ctor_from_scale},
-        {"FromTranslation", ctor_from_position},
-        {"FromRotation", ctor_from_rotation},
+        {"from_scale", ctor_from_scale},
+        {"from_translation", ctor_from_position},
+        {"from_rotation", ctor_from_rotation},
         {nullptr, nullptr}
     };
     lua_newtable(L);

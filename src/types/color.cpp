@@ -7,10 +7,10 @@
 #include "lua_atom.h"
 #include <SDL_image.h>
 static constexpr auto type = "Color";
-static constexpr std::string_view red = "Red";
-static constexpr std::string_view green = "Green";
-static constexpr std::string_view blue = "Blue";
-static constexpr std::string_view alpha = "Alpha";
+static constexpr std::string_view red = "red";
+static constexpr std::string_view green = "green";
+static constexpr std::string_view blue = "blue";
+static constexpr std::string_view alpha = "alpha";
 using builtin::Color;
 using engine::expect;
 
@@ -85,7 +85,7 @@ static int namecall(lua_State* L) {
     };
     using la  = lua_atom;
     switch (static_cast<lua_atom>(atom)) {
-        case la::Modulate: {//should refactor these for using it in draw_texture
+        case la::modulated: {//should refactor these for using it in draw_texture
             const Vec3f dst_rgb{to_percent(self.r), to_percent(self.g), to_percent(self.b)};
             const float dst_a{to_percent(self.a)};
             const auto& other = check<Color>(L, 2);
@@ -94,12 +94,12 @@ static int namecall(lua_State* L) {
             create<Color>(L, to_color(result[0], result[1], result[2], dst_a));
             return 1;
         }
-        case la::Invert: {
+        case la::inverted: {
             auto invert = [](uint8_t v) {return static_cast<uint8_t>(0xff - v);};
             create<Color>(L, invert(self.r), invert(self.g), invert(self.b), self.a);
             return 1;
         }
-        case la::Multiply: {
+        case la::multiplied: {
             const Vec3f dst_rgb{to_percent(self.r), to_percent(self.g), to_percent(self.b)};
             const float dst_a{to_percent(self.a)};
             const auto& other = check<Color>(L, 2);
@@ -109,7 +109,7 @@ static int namecall(lua_State* L) {
             create<Color>(L, to_color(result[0], result[1], result[2], dst_a));
             return 1;
         }
-        case la::AdditiveBlend: {
+        case la::additive_blend: {
             const Vec3f dst_rgb{to_percent(self.r), to_percent(self.g), to_percent(self.b)};
             const float dst_a{to_percent(self.a)};
             const auto& other = check<Color>(L, 2);
@@ -119,7 +119,7 @@ static int namecall(lua_State* L) {
             create<Color>(L, to_color(result[0], result[1], result[2], dst_a));
             return 1;
         }
-        case la::AlphaBlend: {
+        case la::alpha_blend: {
             const Vec3f dst_rgb{to_percent(self.r), to_percent(self.g), to_percent(self.b)};
             const float dst_a{to_percent(self.a)};
             const auto& other = check<Color>(L, 2);

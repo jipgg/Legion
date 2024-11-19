@@ -10,16 +10,16 @@ static int index(lua_State* L) {
     size_t length;
     std::string_view key = luaL_checklstring(L, 2, &length);
     switch (key[0]) {
-        case 'X':
+        case 'x':
             lua_pushnumber(L, r.x);
             return 1;
-        case 'Y':
+        case 'y':
             lua_pushnumber(L, r.y);
             return 1;
-        case 'W':
+        case 'w':
             lua_pushnumber(L, r.w);
             return 1;
-        case 'H':
+        case 'h':
             lua_pushnumber(L, r.h);
             return 1;
     }
@@ -33,16 +33,16 @@ static int newindex(lua_State* L) {
     char initial = *luaL_checklstring(L, 2, &length);
     int v = luaL_checknumber(L, 3);
     switch (initial) {
-        case 'X':
+        case 'x':
             r.x = v;
             return 0;
-        case 'Y':
+        case 'y':
             r.y = v;
             return 0;
-        case 'W':
+        case 'w':
             r.w = v;
             return 0;
-        case 'H': 
+        case 'h': 
             r.h = v;
             return 0;
     }

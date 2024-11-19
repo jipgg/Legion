@@ -5,14 +5,14 @@
 #include <SDL_image.h>
 #include "lua_util.h"
 using engine::window;
-static constexpr size_t size_length = std::string("Size").length();
-static constexpr size_t position_length = std::string("Position").length();
-static constexpr size_t title_length = std::string("Title").length();
-static constexpr size_t opacity_length = std::string("Opacity").length();
-static constexpr size_t borderless_length = std::string("Borderless").length();
-static constexpr size_t always_on_top_length = std::string("AlwaysOnTop").length();
-static constexpr size_t fullscreen_length = std::string("Fullscreen").length();
-static constexpr size_t icon_length = std::string("Icon").length();
+static constexpr size_t size_length = std::string("size").length();
+static constexpr size_t position_length = std::string("position").length();
+static constexpr size_t title_length = std::string("title").length();
+static constexpr size_t opacity_length = std::string("opacity").length();
+static constexpr size_t borderless_length = std::string("borderless").length();
+static constexpr size_t always_on_top_length = std::string("always_on_top").length();
+static constexpr size_t fullscreen_length = std::string("fullscreen").length();
+static constexpr size_t icon_length = std::string("icon").length();
 using engine::expect;
 using engine::window;
 using builtin::Vec2;
@@ -38,37 +38,37 @@ static int index(lua_State* L) {
     size_t length;
     const char key = *luaL_checklstring(L, 2, &length);
     switch (key) {
-        case 'S': {
+        case 's': {
             expect(length == size_length);
             int w, h;
             SDL_GetWindowSize(engine::window(), &w, &h);
             create<Vec2>(L) = Vec2i{w, h};
             return 1;
         }
-        case 'P': {
+        case 'p': {
             expect(length == position_length);
             int x, y;
             SDL_GetWindowPosition(engine::window(), &x, &y);
             create<Vec2>(L) = Vec2i{x, y};
             return 1;
         }
-        case 'T': {
+        case 't': {
             expect(length == title_length);
             lua_pushstring(L, SDL_GetWindowTitle(engine::window()));
             return 1;
         }
-        case 'O': {
+        case 'o': {
             expect(length == opacity_length);
             float opacity;
             SDL_GetWindowOpacity(engine::window(), &opacity);
             return 1;
         }
-        case 'A': {
+        case 'a': {
             expect(length == always_on_top_length);
             lua_pushboolean(L, is_always_on_top);
             return 1;
         }
-        case 'B': {
+        case 'b': {
             expect(length == borderless_length);
             lua_pushboolean(L, is_borderless);
             return 1;
@@ -80,37 +80,37 @@ static int newindex(lua_State* L) {
     size_t length;
     const char key = *luaL_checklstring(L, 2, &length);
     switch (key) {
-        case 'S': {
+        case 's': {
             expect(length == size_length);
             auto& new_size = check<Vec2>(L, 3);
             SDL_SetWindowSize(window(), static_cast<int>(new_size[0]), static_cast<int>(new_size[1]));
             return 0;
         }
-        case 'P': {
+        case 'p': {
             expect(length == position_length);
             auto& pos = check<Vec2>(L, 3);
             SDL_SetWindowPosition(window(), static_cast<int>(pos[0]), static_cast<int>(pos[1]));
             return 0;
         }
-        case 'T': {
+        case 't': {
             expect(length == title_length);
             SDL_SetWindowTitle(window(), luaL_checkstring(L, 3));
             return 0;
         }
-        case 'O': {
+        case 'o': {
             expect(length == opacity_length);
             const float opacity = luaL_checknumber(L, 3);
             SDL_SetWindowOpacity(window(), opacity);
             return 1;
         }
-        case 'A': {
+        case 'a': {
             expect(length == always_on_top_length);
             const bool b = luaL_checkboolean(L, 3);
             is_always_on_top = b;
             SDL_SetWindowAlwaysOnTop(window(), static_cast<SDL_bool>(b));
             return 0;
         }
-        case 'B': {
+        case 'b': {
             expect(length == borderless_length);
             const bool b = luaL_checkboolean(L, 3);
             is_borderless = not b;
@@ -242,28 +242,28 @@ void handle_window_event(lua_State* L, SDL_WindowEvent& e) {
 }
 int window_module(lua_State *L) {
     const luaL_Reg lib[] = {
-        {"Maximize", maximize},
-        {"Minimize", minimize},
-        {"SetIcon", set_icon},
+        {"maximize", maximize},
+        {"minimize", minimize},
+        {"set_icon", set_icon},
         {"Focus", focus},
         {nullptr, nullptr}
     };
     lua_newtable(L);
     luaL_register(L, nullptr, lib);
-    register_event(L, hidden, "Hidden");
-    register_event(L, shown, "Shown");
-    register_event(L, resized, "Resized");
-    register_event(L, mouse_entered, "MouseEnter");
-    register_event(L, mouse_left, "MouseLeave");
-    register_event(L, size_changed, "SizeChanged");
-    register_event(L, position_changed, "PositionChanged");
-    register_event(L, focus_gained, "FocusGained");
-    register_event(L, focus_lost, "FocusLost");
-    register_event(L, restored, "Restored");
-    register_event(L, closing, "Closing");
-    register_event(L, exposed, "Exposed");
-    register_event(L, maximized, "Maximized");
-    register_event(L, minimized, "Minimized");
+    register_event(L, hidden, "hidden");
+    register_event(L, shown, "shown");
+    register_event(L, resized, "resized");
+    register_event(L, mouse_entered, "mouse_enter");
+    register_event(L, mouse_left, "mouse_leave");
+    register_event(L, size_changed, "size_changed");
+    register_event(L, position_changed, "position_changed");
+    register_event(L, focus_gained, "focus_gained");
+    register_event(L, focus_lost, "focus_lost");
+    register_event(L, restored, "restored");
+    register_event(L, closing, "closing");
+    register_event(L, exposed, "exposed");
+    register_event(L, maximized, "maximized");
+    register_event(L, minimized, "minimized");
     if (luaL_newmetatable(L, "builtin_window_module")) {
         const luaL_Reg meta[] = {
             {metamethod::index, index},

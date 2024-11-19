@@ -10,10 +10,10 @@ static int index(lua_State* L) {
     size_t len;
     const char initial = *luaL_checklstring(L, 2, &len);
     switch (initial) {
-        case 'F':
+        case 'f':
             create<FilePath>(L, r.file_path);
             return 1;
-        case 'P': {
+        case 'p': {
             lua_pushinteger(L, r.pt_size);
             return 1;
         }
