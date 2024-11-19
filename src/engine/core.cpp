@@ -122,7 +122,6 @@ static void init_luau_state(lua_State* L, const fs::path& main_entry_point) {
         auto e = comptime_enum::item<lua_atom, count>(name);
         return static_cast<int16_t>(e.index);
     };
-    bi::init_global_types(L);
     lua_register_globals(L);
     const luaL_Reg engine_functions[] = {
         {"GetModule", load_builtin_module},
@@ -131,18 +130,19 @@ static void init_luau_state(lua_State* L, const fs::path& main_entry_point) {
     lua_newtable(L);
     luaL_register(L, nullptr, engine_functions);
     lua_setglobal(L, builtin_name);
-    builtin::vector2_type(L);
-    lua_setglobal(L, "Vector2");
-    builtin::vector3_type(L);
-    lua_setglobal(L, "Vector3");
-    builtin::vector_type(L);
-    lua_setglobal(L, "Vector");
-    builtin::matrix3_type(L);
-    lua_setglobal(L, "Matrix3");
-    builtin::path_type(L);
-    lua_setglobal(L, "FilePath");
-    builtin::event_type(L);
-    lua_setglobal(L, "Event");
+    {
+        using namespace builtin;
+        register_matrix3_type(L);
+        register_vector2_type(L);
+        register_vector3_type(L);
+        register_vector_type(L);
+        register_path_type(L);
+        register_event_type(L);
+        register_font_type(L);
+        register_texture_type(L);
+        register_color_type(L);
+        register_rectangle_type(L);
+    }
     lua_getglobal(L, builtin_name);
     register_event(L, events::run_begin, "BeforeRun");
     register_event(L, events::run_done, "AfterRun");
@@ -253,9 +253,11 @@ int bootstrap(start_options opts) {
     return 0;
 }
 SDL_Window* window() {return window_ptr;}
+SDL_Renderer* renderer() {return renderer_ptr;}
 lua_State* lua_state() {return main_state;}
 void quit() {quitting = true;}
 builtin::font& default_font() {return *default_font_ptr;}
+builtin::font& debug_font() {return *default_font_ptr;}
 void expect(bool expression, std::string_view reason, const std::source_location& location) {
     if (expression) return;
     luaL_error(main_state, "Failed expected precondition. Luau state terminated.\n-> Reason: %s\n-> In file: %s\n-> At line: %d (column: %d) \n-> In function: %s",

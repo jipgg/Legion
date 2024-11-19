@@ -5,11 +5,9 @@
 #include <SDL_ttf.h>
 #include <blaze/Blaze.h>
 #include <lualib.h>
+#include <functional>
 //#include "lua_event.h"
 namespace builtin {
-void init_global_types(lua_State* L);
-void physical_init_type(lua_State* L);
-void init_filesystem_lib(lua_State* L);
 
 namespace metamethod {
 constexpr auto type = "__type";
@@ -27,13 +25,16 @@ constexpr auto len = "__len";
 constexpr auto call = "__call";
 constexpr auto pow = "__pow";
 }
-int matrix3_type(lua_State* L);
-int vector2_type(lua_State* L);
-int vector2i_type(lua_State* L);
-int vector3_type(lua_State* L);
-int vector_type(lua_State* L);
-int path_type(lua_State* L);
-int event_type(lua_State* L);
+void register_matrix3_type(lua_State* L);
+void register_vector2_type(lua_State* L);
+void register_vector3_type(lua_State* L);
+void register_vector_type(lua_State* L);
+void register_path_type(lua_State* L);
+void register_event_type(lua_State* L);
+void register_font_type(lua_State* L);
+void register_texture_type(lua_State* L);
+void register_color_type(lua_State* L);
+void register_rectangle_type(lua_State* L);
 
 int fn_read_file(lua_State* L);
 int fn_get_mouse_position(lua_State* L);
@@ -50,7 +51,6 @@ int graphics_module(lua_State* L);
 int renderer_module(lua_State* L);
 int userinput_module(lua_State* L);
 void handle_userinput_event(lua_State* L, SDL_Event& e);
-
 
 namespace tname {
 constexpr auto opaque_texture = "TexturePtr";

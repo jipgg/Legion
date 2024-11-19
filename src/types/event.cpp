@@ -1,7 +1,10 @@
 #include "builtin.h"
 #include "lua_util.h"
 #include "lua_atom.h"
-namespace builtin {
+using builtin::event;
+static constexpr auto type = "Event";
+static constexpr auto connection_type = "EventConnectionId";
+
 event::event(lua_State* L): L(L), refs() {
 }
 event::~event() {
@@ -72,7 +75,7 @@ static int namecall(lua_State* L) {
             return 0;
         }
         default:
-        return lua_err::invalid_method(L, tname::event);
+        return lua_err::invalid_method(L, type);
     }
 }
 int connection_id_tostring(lua_State* L) {
@@ -81,11 +84,12 @@ int connection_id_tostring(lua_State* L) {
     return 1;
 }
 
-int event_type(lua_State* L) {
+namespace builtin {
+void register_event_type(lua_State* L) {
     if (luaL_newmetatable(L, metatable_name<event::connection>())) {
         lua_pushcfunction(L, connection_id_tostring, "event_connection_id_tostring");
         lua_setfield(L, -2, metamethod::tostring);
-        lua_pushstring(L, "event_connection");
+        lua_pushstring(L, connection_type);
         lua_setfield(L, -2, metamethod::type);
     }
     lua_pop(L, 1);
@@ -95,11 +99,11 @@ int event_type(lua_State* L) {
             {nullptr, nullptr}
         };
         luaL_register(L, nullptr, lib);
-        lua_pushstring(L, tname::event);
+        lua_pushstring(L, type);
         lua_setfield(L, -2, metamethod::type);
     }
     lua_pop(L, 1);
-    lua_pushcfunction(L, ctor, tname::event);
-    return 1;
+    lua_pushcfunction(L, ctor, type);
+    lua_setglobal(L, type);
 }
 }

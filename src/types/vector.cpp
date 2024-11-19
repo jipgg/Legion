@@ -126,7 +126,8 @@ static int call(lua_State* L) {
     lua_pushnumber(L, r[index]);
     return 1;
 }
-int builtin::vector_type(lua_State* L) {
+namespace builtin {
+void register_vector_type(lua_State* L) {
     if (luaL_newmetatable(L, metatable_name<ty>())) {
         const luaL_Reg meta [] = {
             {mm::add, add},
@@ -145,5 +146,7 @@ int builtin::vector_type(lua_State* L) {
     }
     lua_pop(L, 1);
     lua_pushcfunction(L, ctor, tn);
-    return 1;
+    lua_setglobal(L, "Vector");
+}
+
 }

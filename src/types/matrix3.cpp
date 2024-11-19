@@ -167,7 +167,7 @@ static int namecall(lua_State* L) {
 }
 
 namespace builtin {
-int matrix3_type(lua_State *L) {
+void register_matrix3_type(lua_State *L) {
     if (luaL_newmetatable(L, metatable_name<matrix3>())) {
         const luaL_Reg meta[] = {
             {mm::call, call},
@@ -200,6 +200,6 @@ int matrix3_type(lua_State *L) {
     luaL_register(L, nullptr, lib);
     luaL_getmetatable(L, ctor_tname.c_str());
     lua_setmetatable(L, -2);
-    return 1;
+    lua_setglobal(L, tname::matrix3);
 }
 }

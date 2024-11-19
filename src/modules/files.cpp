@@ -382,7 +382,7 @@ static void init_types(lua_State* L) {
     }
 }
 namespace builtin {
-int path_type(lua_State *L) {
+void register_path_type(lua_State *L) {
     if (luaL_newmetatable(L, metatable_name<path>())) {
         luaL_register(L, nullptr, path_metatable);
         lua_pushstring(L, builtin::tname::path);
@@ -390,16 +390,10 @@ int path_type(lua_State *L) {
         lua_pop(L, 1);
     }
     lua_pushcfunction(L, path_ctor, builtin::tname::path);
-    return 1;
-}
-
-void init_filesystem_lib(lua_State *L) {
-    init_types(L);
-    //lua_pushcfunction(L, path_ctor, path_tname);
-    //lua_setglobal(L, path_tname);
+    lua_setglobal(L, "FilePath");
 }
 int files_module(lua_State *L) {
-    init_filesystem_lib(L);
+    init_types(L);
     lua_newtable(L);
     luaL_register(L, nullptr, fs_lib);
     return 1;

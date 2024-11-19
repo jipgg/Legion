@@ -121,7 +121,8 @@ static int namecall(lua_State *L) {
         return 0;
     }
 }
-int builtin::vector2_type(lua_State* L) {
+namespace builtin {
+void register_vector2_type(lua_State* L) {
     if (luaL_newmetatable(L, metatable_name<vector2>())) {
         const luaL_Reg meta [] = {
             {mm::index, index},
@@ -141,5 +142,7 @@ int builtin::vector2_type(lua_State* L) {
     }
     lua_pop(L, 1);
     lua_pushcfunction(L, ctor, tn::vector2);
-    return 1;
+    lua_setglobal(L, "Vector2");
+}
+
 }
