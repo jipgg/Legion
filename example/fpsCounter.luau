@@ -1,5 +1,4 @@
-local Graphics = core.get_module("Graphics")
-local GRender = Graphics.render
+local graphics = core.get_module("graphics")
 local M = {
     accumulatedSeconds = 0,
     frameCount = 0,
@@ -28,10 +27,10 @@ function M.init()
         end
     end)
     M.renderConnection = core.during_render:connect(function()
-        local OLD_DRAW_COLOR = Graphics.color
-        Graphics.color = M.drawColor
-        GRender.text(M.text, Mat3.from_translation(Vec2(0, 0)))
-        Graphics.color = OLD_DRAW_COLOR
+        local OLD_DRAW_COLOR = graphics.color
+        graphics.color = M.drawColor
+        graphics.render.text(M.text, Mat3.from_translation(Vec2(0, 0)))
+        graphics.color = OLD_DRAW_COLOR
     end)
 end
 

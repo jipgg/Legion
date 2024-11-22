@@ -1,5 +1,4 @@
-local Graphics = core.get_module('Graphics')
-local grender = Graphics.render
+local graphics = core.get_module('graphics')
 
 local M = {
     dummy = Texture('resources/jw.png'),
@@ -34,7 +33,7 @@ function M.init()
             0, 0, 1
         )
         local transform = t * r * s * off
-        grender.texture(M.dummy, transform)
+        graphics.render.texture(M.dummy, transform)
     end)
     core.during_update:connect(function(dt: number)
         M.angle += math.rad(30) * dt

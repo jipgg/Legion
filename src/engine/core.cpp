@@ -1,7 +1,9 @@
 #include "engine.h"
+#include "gui.h"
 #include <SDL.h>
 #include <SDL_ttf.h>
 #include <SDL_image.h>
+#include <SDL_mixer.h>
 #include <chrono>
 #include <lua.h>
 #include <lualib.h>
@@ -25,6 +27,7 @@ static constexpr auto builtin_name = "core";
 static SDL_Window* window_ptr{nullptr};
 static SDL_Renderer* renderer_ptr{nullptr};
 static std::unique_ptr<builtin::Font> default_font_ptr{nullptr};
+static std::unique_ptr<builtin::Font> debug_font{nullptr};
 static bool quitting{false};
 static bool paused{false};
 static SDL_Event sdl_event_dummy{};
@@ -36,10 +39,10 @@ static fs::path res_path() {
     return bin_path / "resources/luau_library";
 }
 namespace module {
-static BuiltinModule filesystem{"Files", builtin::files_module};
-static BuiltinModule window{"Window", builtin::window_module};
-static BuiltinModule graphics{"Graphics", builtin::graphics_module};
-static BuiltinModule userinput("UserInput", builtin::userinput_module);
+static BuiltinModule filesystem{"files", builtin::files_module};
+static BuiltinModule window{"window", builtin::window_module};
+static BuiltinModule graphics{"graphics", builtin::graphics_module};
+static BuiltinModule userinput("userinput", builtin::userinput_module);
 static BuiltinModule rendering{"rendering", builtin::rendering_module};
 }
 namespace events {
@@ -89,24 +92,6 @@ static int lua_load_image(lua_State* L) {
 }
 static int load_builtin_module(lua_State* L) {
     std::string key = luaL_checkstring(L, 1);
-     auto cache_import_module = [&L, &key](BuiltinModule& module, int(*fn)(lua_State* L)) {
-        lua_getglobal(L, module_cache_name);
-        if (lua_isnil(L, -1)) {
-            lua_pop(L, 1);
-            lua_newtable(L);
-            lua_setglobal(L, module_cache_name);
-            lua_getglobal(L, module_cache_name);
-        }
-        lua_getfield(L, -1, module.name);
-        if (lua_isnil(L, -1)) {
-            lua_pop(L, 1);
-            if (fn(L) != 1) luaL_error(L, "Library function did not return exactly one value");
-            lua_setfield(L, -2, module.name);
-            lua_getfield(L, -1, module.name);
-        }
-        lua_remove(L, -2);
-        return 1;
-    };
     if (key == module::filesystem.name) return module::filesystem.load(L);
     if (key == module::window.name) return module::window.load(L);
     if (key == module::rendering.name) return module::rendering.load(L);
@@ -142,7 +127,6 @@ static void init_luau_state(const fs::path& main_entry_point) {
         register_vec2_type(main_state);
         register_vec3_type(main_state);
         register_vec_type(main_state);
-        //register_file_path_type(main_state);
         register_event_type(main_state);
         register_font_type(main_state);
         register_texture_type(main_state);
@@ -176,9 +160,16 @@ static void init_luau_state(const fs::path& main_entry_point) {
     luaL_sandbox(main_state);
 }
 static void init(engine::LaunchOptions opts) {
-    SDL_Init(SDL_INIT_VIDEO);// should do proper error handling here
+    SDL_InitSubSystem(SDL_INIT_VIDEO);// should do proper error handling here
     TTF_Init();
-    IMG_Init(IMG_INIT_PNG | IMG_INIT_JPG | IMG_INIT_WEBP | IMG_INIT_TIF);
+    constexpr auto img_init_flags = IMG_INIT_JPG 
+        | IMG_INIT_PNG
+        | IMG_INIT_WEBP
+        | IMG_INIT_TIF;
+    constexpr auto img_init_failure = 0; 
+    if (IMG_Init(img_init_flags) == img_init_failure) {
+        printerr(SDL_GetError());
+    }
     constexpr int undefined = SDL_WINDOWPOS_UNDEFINED;
     const int width = opts.window_size.at(0);
     const int height = opts.window_size.at(1);
@@ -209,10 +200,12 @@ static void init(engine::LaunchOptions opts) {
 static void run() {
     auto cached_last_tp = ch::steady_clock::now();
     auto& e = sdl_event_dummy;
+    SDL_Rect window_rect{};
     while (not quitting) {
         {// event handling
             events::run_begin->fire(0);
             while (SDL_PollEvent(&e)) {
+                gui::root::handle_event(&e);
                 if (module::userinput.loaded) {
                     builtin::handle_userinput_event(main_state, e);
                 }
@@ -235,6 +228,10 @@ static void run() {
             events::updating->fire(1);
         } {//rendering
             events::rendering->fire(0);
+            SDL_GetWindowSize(window_ptr, &window_rect.w, & window_rect.h);
+            SDL_RenderSetViewport(renderer_ptr, &window_rect);
+            SDL_SetRenderDrawColor(renderer_ptr, 255, 255, 255, 255);
+            gui::root::render();
             SDL_RenderPresent(renderer_ptr);
         }
         events::run_done->fire(0);//maybe time point as parameter
@@ -258,6 +255,7 @@ int bootstrap(LaunchOptions opts) {
     shutdown();
     return 0;
 }
+
 SDL_Window* window() {return window_ptr;}
 SDL_Renderer* renderer() {return renderer_ptr;}
 lua_State* lua_state() {return main_state;}

@@ -11,6 +11,7 @@
 #include <string_view>
 #include <filesystem>
 #include <stdexcept>
+#include <mutex>
 #include <array>
 #include <blaze/Blaze.h>
 using Vec2f = blaze::StaticVector<float, 2, false, blaze::aligned, blaze::unpadded>;
@@ -25,6 +26,15 @@ struct ScopeGuard {
     using DeferFunction = std::function<void()>;
     DeferFunction block;
     ~ScopeGuard() {block();};
+};
+template <class T>
+struct MutexVector {
+    std::vector<T> vec;
+    std::mutex mtx;
+    void lazy_clear(int to_reserve = 1) {
+        vec.resize(0);
+        vec.reserve(to_reserve);
+    }
 };
 //concepts
 template <class Ty>
@@ -269,11 +279,15 @@ public:
         return data_.at(address);
     }
 };
-template <class ...Ts>
+template <class T>
+concept Printable = requires(T&& obj, std::ostream& os) {
+    {os << obj} -> std::same_as<std::ostream&>;
+};
+template <Printable ...Ts>
 void print(Ts&&...args) {
     ((std::cout << args << ' '), ...) << '\n';
 }
-template <class ...Ts>
+template <Printable ...Ts>
 void printerr(Ts&&...args) {
     std::cerr << "\033[31m";//red
     ((std::cerr << args << ' '), ...) << "\033[0m\n";

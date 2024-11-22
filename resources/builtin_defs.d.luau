@@ -1,34 +1,34 @@
 declare function collectgarbage(opt: ("collect" | "count")?)
-export type PathUnion = string | Files_Path
-export type CopyOptions = "Recursive"|"Copy Symlinks"|
+export type PathUnion = string | files_Path
+export type files_CopyOptions = "Recursive"|"Copy Symlinks"|
     "Skip Symlinks"|"Skip Existing"|"Update Existing"|
     "Create Symlinks"|"Directories Only"|"Create Hard Links"|
     "Overwrite Existing"
-declare class Files_Path
-    function stem(self): Files_Path
+declare class files_Path
+    function stem(self): files_Path
     function is_empty(self): boolean
-    function file_name(self): Files_Path
+    function file_name(self): files_Path
     function has_stem(self): boolean
-    function root_path(self): Files_Path
-    function parent_path(self): Files_Path
+    function root_path(self): files_Path
+    function parent_path(self): files_Path
     function is_absolute(self): boolean
     function is_relative(self): boolean
-    function extension(self): Files_Path
+    function extension(self): files_Path
     function replace_extension(self, s: string)
-    function relative_path(self): Files_Path
+    function relative_path(self): files_Path
     function compare(self): number
-    function root_name(self): Files_Path
-    function root_directory(self): Files_Path
+    function root_name(self): files_Path
+    function root_directory(self): files_Path
     function has_root_path(self): boolean
     function has_root_name(self): boolean
     function has_root_directory(self): boolean
     function __tostring(self): string
-    function __div(self, other: PathUnion): Files_Path
+    function __div(self, other: PathUnion): files_Path
 end
-declare class Files_DirectoryEntry
+declare class files_DirectoryEntry
     function is_directory(self): boolean
     function is_fifo(self): boolean
-    function path(self): Files_Path
+    function path(self): files_Path
     function is_socket(self): boolean
     function is_other(self): boolean
     function is_symlink(self): boolean
@@ -120,29 +120,29 @@ end
 declare class Font
     pt_size: number
 end
-export type Files = {
+export type files = {
     create_directory: (where: PathUnion) -> boolean,
     exists: (path: PathUnion) -> boolean,
     is_character_file: (path: PathUnion) -> boolean,
-    copy_file: (from: PathUnion, to: PathUnion, opt: CopyOptions?) -> boolean,
+    copy_file: (from: PathUnion, to: PathUnion, opt: files_CopyOptions?) -> boolean,
     rename: (from: PathUnion, to: PathUnion) -> (),
     remove: (path: PathUnion) -> boolean,
     remove_all: (path: PathUnion) -> number,
-    copy: (from: PathUnion, to: PathUnion, opt: CopyOptions?) -> (),
-    absolute: (path: PathUnion) -> Files_Path,
-    get_children_of: (path: PathUnion) -> {Files_DirectoryEntry},
-    get_descendants_of: (path: PathUnion) -> {Files_DirectoryEntry},
-    exe_path: ()->Files_Path,
-    current_path: ()->Files_Path,
-    canonical: (path: Files_Path)->Files_Path,
-    proximate: (path: Files_Path, base: Files_Path?)->Files_Path,
-    create_symlink: (to: Files_Path, new_symlink: Files_Path)->(),
-    relative: (path: Files_Path, base: Files_Path?)->Files_Path,
+    copy: (from: PathUnion, to: PathUnion, opt: files_CopyOptions?) -> (),
+    absolute: (path: PathUnion) -> files_Path,
+    get_children_of: (path: PathUnion) -> {files_DirectoryEntry},
+    get_descendants_of: (path: PathUnion) -> {files_DirectoryEntry},
+    exe_path: ()->files_Path,
+    current_path: ()->files_Path,
+    canonical: (path: files_Path)->files_Path,
+    proximate: (path: files_Path, base: files_Path?)->files_Path,
+    create_symlink: (to: files_Path, new_symlink: files_Path)->(),
+    relative: (path: files_Path, base: files_Path?)->files_Path,
     read_file: (path: PathUnion)->string?,
     write_file: (path: PathUnion, data: string)->boolean,
-    Path: (string)->Files_Path,
+    Path: (string)->files_Path,
 }
-export type WindowModule = {
+export type window = {
     size: Vec2,
     position: Vec2,
     title: string,
@@ -153,23 +153,23 @@ export type WindowModule = {
     minimize: ()->(),
     set_icon: (file: string)->(),
     focus: ()->(),
-    focus_gained: Event,
-    focus_lost: Event,
-    shown: Event,
-    hidden: Event,
+    focus_gained: EventSignal,
+    focus_lost: EventSignal,
+    shown: EventSignal,
+    hidden: EventSignal,
     resized: GenericEvent<Vec2>,
-    mouse_enter: Event,
-    mouse_leave: Event,
+    mouse_enter: EventSignal,
+    mouse_leave: EventSignal,
     position_changed: GenericEvent<Vec2>,
     size_changed: GenericEvent<Vec2>,
-    restored: Event,
-    closing: Event,
-    exposed: Event,
-    minimized: Event,
-    maximized: Event,
+    restored: EventSignal,
+    closing: EventSignal,
+    exposed: EventSignal,
+    minimized: EventSignal,
+    maximized: EventSignal,
 }
 export type BlendMode= 'None'|'Multiply'|'Add'|'Modulate'|'Blend'|'Invalid'
-type GraphicsModule_DrawFunctions = {
+type graphics_DrawFunctions = {
         rect: (rect: Rect)->(),
         rects: (...Rect)->(),
         pixel: (point: Vec2)->(),
@@ -178,21 +178,21 @@ type GraphicsModule_DrawFunctions = {
         lines: ((...Vec2)->()), 
         string: ((ft: Font, str: string, transform: Mat3?)->())
 }
-type GraphicsModule_FillFunctions = {
+type graphics_FillFunctions = {
     rect: (rect: Rect)->(),
     rects: (...Rect)->(),
     circle: ((center: Vec2, radius: number)->())
         & ((transform: Mat3, radius: number)->()),
     ellipse: (center: Vec2, radius: Vec2)->(),
 }
-type GraphicsModule_RenderFunctions = {
+type graphics_RenderFunctions = {
     text: ((ft: Font, str: string, transform: Mat3?)->())
         & ((text: string, transform: Mat3?)->()),
     texture: ((texture: Texture, pos: Vec2?)->())
         & ((texture: Texture, dest: Rect)->())
         & ((texture: Texture, trs: Mat3)->()),
 }
-export type GraphicsModule = {
+export type graphics = {
     color: Color,
     blend_mode: BlendMode,
     viewport: Rect,
@@ -201,33 +201,33 @@ export type GraphicsModule = {
     clip_rect: Rect?,
     is_clip_enabled: ()->boolean,
     clear: (bg: Color?)->(),
-    draw: GraphicsModule_DrawFunctions,
-    fill: GraphicsModule_FillFunctions,
-    render: GraphicsModule_RenderFunctions,
+    draw: graphics_DrawFunctions,
+    fill: graphics_FillFunctions,
+    render: graphics_RenderFunctions,
 }
-declare class Event
+declare class EventSignal
     function connect(self, fn: ()->()): EventConnectionId
     function disconnect(self, id: EventConnectionId)
 end
-declare class MouseButtonEvent extends Event
-    connect: (self: MouseButtonEvent, (type: MouseButtonType, mouse_pos: Vec2)->())->EventConnectionId
-    disconnect: (self: MouseButtonEvent, id: EventConnectionId)->EventConnectionId
+declare class MouseButtonEventSignal
+    connect: (self: MouseButtonEventSignal, (type: MouseButtonType, mouse_pos: Vec2)->())->EventConnectionId
+    disconnect: (self: MouseButtonEventSignal, id: EventConnectionId)->EventConnectionId
 end
-declare class KeyboardEvent extends Event
-    connect: (self: KeyboardEvent, (key: KeyCode)->())->EventConnectionId
-    disconnect: (self: KeyboardEvent, id: EventConnectionId)->()
+declare class KeyboardEventSignal
+    connect: (self: KeyboardEventSignal, (key: KeyCode)->())->EventConnectionId
+    disconnect: (self: KeyboardEventSignal, id: EventConnectionId)->()
 end
-declare class MouseMotionEvent extends Event
-    connect: (self: MouseMotionEvent, (new_pos: Vec2, relative_pos: Vec2)->())->EventConnectionId
-    disconnect: (self: MouseMotionEvent, id: EventConnectionId)->()
+declare class MouseMotionEventSignal
+    connect: (self: MouseMotionEventSignal, (new_pos: Vec2, relative_pos: Vec2)->())->EventConnectionId
+    disconnect: (self: MouseMotionEventSignal, id: EventConnectionId)->()
 end
-export type UserInputModule = {
+export type userinput = {
     is_key_down: (key: KeyCode)->boolean,
-    key_pressed: KeyboardEvent,
-    key_released: KeyboardEvent,
-    mouse_button_pressed: MouseButtonEvent,
-    mouse_button_released: MouseButtonEvent,
-    mouse_moved: MouseMotionEvent,
+    key_pressed: KeyboardEventSignal,
+    key_released: KeyboardEventSignal,
+    mouse_button_pressed: MouseButtonEventSignal,
+    mouse_button_released: MouseButtonEventSignal,
+    mouse_moved: MouseMotionEventSignal,
     mouse_position: Vec2,
 }
 declare class EventConnectionId
@@ -244,22 +244,22 @@ export type GenericEvent<Ts...> = {
     disconnect: (self: GenericEvent<Ts...>, id: EventConnectionId)->(),
     fire: (self: GenericEvent<Ts...>, Ts...)->(),
 }
-declare class UpdateEvent 
-    connect: (self: UpdateEvent, (delta_sec: number)->())->EventConnectionId
-    disconnect: (self: UpdateEvent, id: EventConnectionId)->()
+declare class UpdateEventSignal 
+    connect: (self: UpdateEventSignal, (delta_sec: number)->())->EventConnectionId
+    disconnect: (self: UpdateEventSignal, id: EventConnectionId)->()
 end
-export type Luwaw = {
-    get_module: (('Graphics')->GraphicsModule)
-        & (('Files')->Files)
-        & (('Window')->WindowModule)
-        & (('UserInput')->UserInputModule),
-    during_update: UpdateEvent,
-    during_render: Event,
-    shutting_down: Event,
-    before_run: Event,
-    after_run: Event,
+export type luwaw = {
+    get_module: (('graphics')->graphics)
+        & (('files')->files)
+        & (('window')->window)
+        & (('userinput')->userinput),
+    during_update: UpdateEventSignal,
+    during_render: EventSignal,
+    shutting_down: EventSignal,
+    before_run: EventSignal,
+    after_run: EventSignal,
 }
-declare core: Luwaw
+declare core: luwaw
 declare Rect: (x: number?, y: number?, w: number?, h: number?)->Rect
 declare Vec2: (x: number?, y: number?)->Vec2
 declare Vec3: (x: number?, y: number?, z: number?)->Vec3
@@ -277,7 +277,7 @@ declare Color: ((r: number?, g: number?, b: number?, a: number?)->Color)
         & ((r: number, g: number, b: number, alpha: number)->Color)
 --declare FilePath: (path: string)->FilePath
 declare Event: <Params...>()->GenericEvent<Params...>
-declare Font: (file: Files_Path, pt_size: number)->Font
+declare Font: (file: files_Path, pt_size: number)->Font
 
 type Texture_named_constructors = typeof(setmetatable({
     from_string = function(text: string, font: Font?, color: Color?): Texture return {} :: any end,

@@ -45,4 +45,41 @@ bool render_quad(const SDL_FRect& quad_dim, SDL_Texture* texture,
     }
     return true;
 }
+bool draw_rect_with_line_width(const SDL_Rect &rect, int line_width, ExpansionType expansion_type) {
+    std::lock_guard<std::mutex> lock(global_rect_buffer.mtx);
+    global_rect_buffer.lazy_clear();
+    auto& vec = global_rect_buffer.vec;
+    const int half_width{line_width / 2};
+    for (int i{0}; i < line_width; ++i) {
+        const int itwice{i * 2};
+        switch (expansion_type) {
+            case ExpansionType::outer:
+                vec.emplace_back(SDL_Rect{
+                    .x = rect.x - i,
+                    .y = rect.y - i,
+                    .w = rect.w + itwice,
+                    .h = rect.h + itwice,
+                });
+                break;
+            case ExpansionType::inner:
+                vec.emplace_back(SDL_Rect{
+                    .x = rect.x + i,
+                    .y = rect.y + i,
+                    .w = rect.w - itwice,
+                    .h = rect.h - itwice,
+                });
+                break;
+            case ExpansionType::centered:
+                vec.emplace_back(SDL_Rect{
+                    .x = rect.x - half_width + i,
+                    .y = rect.y - half_width + i,
+                    .w = rect.w + line_width - itwice,
+                    .h = rect.h + line_width - itwice,
+                });
+                break;
+        }
+    }
+    SDL_RenderDrawRects(renderer(), vec.data(), vec.size());
+    return true;
+}
 }

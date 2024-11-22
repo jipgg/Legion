@@ -6,6 +6,9 @@
 #include <filesystem>
 
 namespace util {
+inline MutexVector<SDL_Rect> global_rect_buffer;
+inline MutexVector<SDL_Point> global_point_buffer;
+inline MutexVector<float> global_float_buffer;
 constexpr Mat3f default_transform = {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}};
 std::array<float, 8> get_quad_transform_raw(const Vec2f& dim, const Mat3f& transform = default_transform);
 std::array<float, 8> get_quad_transform_raw(const SDL_FRect& quad, const Mat3f& transform = default_transform);
@@ -25,6 +28,8 @@ bool render_quad(
     const Mat3f& transform = default_transform,
     SDL_Color color = plain_white
 );
+enum class ExpansionType{outer, centered, inner};
+bool draw_rect_with_line_width(const SDL_Rect& rect, int line_width_px = 1, ExpansionType ex = ExpansionType::centered);
 void draw_string(const builtin::Font& font, std::string_view string, const Mat3f& transform = default_transform, const FontTraits& traits = {});
 void fill_circle();
 void fill_ellipse();
