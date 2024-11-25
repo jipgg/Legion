@@ -21,7 +21,7 @@
 namespace ch = std::chrono;
 namespace fs = std::filesystem;
 using czstring = const char*;
-static constexpr auto builtin_name = "core";
+static constexpr auto builtin_name = "waw";
 static SDL_Window* window_ptr{nullptr};
 static SDL_Renderer* renderer_ptr{nullptr};
 static std::unique_ptr<builtin::Font> default_font_ptr{nullptr};
@@ -37,9 +37,9 @@ static fs::path res_path() {
 }
 namespace module {
 static BuiltinModule filesystem{"Files", builtin::files_module};
-static BuiltinModule window{"Window", builtin::window_module};
+static BuiltinModule window{"window", builtin::window_module};
 static BuiltinModule graphics{"Graphics", builtin::graphics_module};
-static BuiltinModule userinput("UserInput", builtin::userinput_module);
+static BuiltinModule userinput("userinput", builtin::userinput_module);
 static BuiltinModule rendering{"rendering", builtin::rendering_module};
 }
 namespace events {
@@ -108,12 +108,16 @@ static int load_builtin_module(lua_State* L) {
         return 1;
     };
     if (key == module::filesystem.name) return module::filesystem.load(L);
-    if (key == module::window.name) return module::window.load(L);
+    //if (key == module::window.name) return module::window.load(L);
     if (key == module::rendering.name) return module::rendering.load(L);
     if (key ==  module::graphics.name) return module::graphics.load(L);
     if (key == module::userinput.name) return module::userinput.load(L);
     luaL_error(L, "invalid module name '%s'.", key.c_str());
     return 0;
+}
+static void register_builtin_module(lua_State* L, BuiltinModule& module) {
+    module.load(L);
+    lua_setfield(L, -2, module.name);
 }
 static void init_luau_state(const fs::path& main_entry_point) {
     luaL_openlibs(main_state);
@@ -130,7 +134,7 @@ static void init_luau_state(const fs::path& main_entry_point) {
     };
     lua_register_globals(main_state);
     const luaL_Reg engine_functions[] = {
-        {"get_module", load_builtin_module},
+        {"get_builtin_module", load_builtin_module},
         {nullptr, nullptr}
     };
     lua_newtable(main_state);
@@ -148,13 +152,18 @@ static void init_luau_state(const fs::path& main_entry_point) {
         register_texture_type(main_state);
         register_color_type(main_state);
         register_rect_type(main_state);
+        register_recti_type(main_state);
     }
     lua_getglobal(main_state, builtin_name);
-    register_event(main_state, events::run_begin, "before_run");
-    register_event(main_state, events::run_done, "after_run");
-    register_event(main_state, events::updating, "during_update");
-    register_event(main_state, events::rendering, "during_render");
-    register_event(main_state, events::shutting_down, "shutting_down");
+    //register_builtin_module(main_state, module::filesystem);
+    //register_builtin_module(main_state, module::graphics);
+    register_builtin_module(main_state, module::userinput);
+    register_builtin_module(main_state, module::window);
+    register_event(main_state, events::run_begin, "beforeRun");
+    register_event(main_state, events::run_done, "afterRun");
+    register_event(main_state, events::updating, "onUpdate");
+    register_event(main_state, events::rendering, "onRender");
+    register_event(main_state, events::shutting_down, "onQuit");
     lua_pop(main_state, 1);
     std::optional<std::string> source = read_file(main_entry_point);
     if (not source) {

@@ -17,8 +17,10 @@ void register_font_type(lua_State* L);
 void register_texture_type(lua_State* L);
 void register_color_type(lua_State* L);
 void register_rect_type(lua_State* L);
+void register_recti_type(lua_State* L);
 
 struct Rect {double x, y, w, h;};
+using Recti = SDL_Rect;
 using Color = SDL_Color;
 using Vec2 = blaze::StaticVector<double, 2, blaze::defaultTransposeFlag, blaze::aligned, blaze::unpadded>;
 using Vec3 = blaze::StaticVector<double, 3, blaze::defaultTransposeFlag, blaze::aligned,

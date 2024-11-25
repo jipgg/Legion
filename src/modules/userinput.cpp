@@ -16,7 +16,7 @@ static int is_key_down(lua_State* L) {
     lua_pushboolean(L, state[string_to_scancode(key)]);
     return 1;
 }
-static constexpr size_t mouse_position_length = std::string("mouse_position").length();
+static constexpr size_t mouse_position_length = std::string("mousePosition").length();
 static int index(lua_State* L) {
     size_t length;
     const char* key = luaL_checklstring(L, 2, &length);
@@ -52,12 +52,12 @@ int userinput_module(lua_State *L) {
     };
     lua_newtable(L);
     luaL_register(L, nullptr, functions);
-    register_event(L, key_pressed, "key_pressed");
-    register_event(L, key_released, "key_released");
-    register_event(L, mouse_button_pressed, "mouse_button_pressed");
-    register_event(L, mouse_button_released, "mouse_button_released");
-    register_event(L, mouse_moved, "mouse_moved");
-    register_event(L, mouse_wheeled, "mouse_wheeled");
+    register_event(L, key_pressed, "onKeyDown");
+    register_event(L, key_released, "onKeyUp");
+    register_event(L, mouse_button_pressed, "onMouseDown");
+    register_event(L, mouse_button_released, "onMouseUp");
+    register_event(L, mouse_moved, "onMouseMotion");
+    register_event(L, mouse_wheeled, "onMouseScroll");
     if (luaL_newmetatable(L, "builtin_userinput_module")) {
         const luaL_Reg meta[] = {
             {metamethod::index, index},

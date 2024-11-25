@@ -446,10 +446,10 @@ static int draw_texture(lua_State* L) {
     return 0;
 }
 static constexpr std::string_view draw_color = "color";
-static constexpr std::string_view blend_mode = "blend_mode";
+static constexpr std::string_view blend_mode = "blendMode";
 static constexpr std::string_view viewport = "viewport";
-static constexpr std::string_view vsync_enabled = "vsync_enabled";
-static constexpr std::string_view clip_rect = "clip_rect";
+static constexpr std::string_view vsync_enabled = "vsyncOn";
+static constexpr std::string_view clip_rect = "clipRect";
 static constexpr std::string_view scale = "scale";
 static consteval char char_v(const std::string_view v) {
     return *v.data();

@@ -1,6 +1,4 @@
-local Graphics = core.get_module('Graphics')
-local grender = Graphics.render
-
+local Graphics = waw.get_builtin_module('Graphics')
 local M = {
     dummy = Texture('resources/jw.png'),
     angle = 0,
@@ -10,9 +8,9 @@ export type Module = {
     dummy: Texture,
 }
 function M.init()
-    M.dummy.blend_mode = 'Blend'
+    M.dummy.blendMode = 'Blend'
     M.dummy.color = Color(255, 255, 255)
-    core.during_render:connect(function()
+    waw.onRender:connect(function()
         local t = Mat3(
             1, 0, 600 + math.cos(M.angle /2) * 100,
             0, 1, 200 + math.cos(M.angle / 3) * 50,
@@ -34,9 +32,9 @@ function M.init()
             0, 0, 1
         )
         local transform = t * r * s * off
-        grender.texture(M.dummy, transform)
+        Graphics.render.texture(M.dummy, transform)
     end)
-    core.during_update:connect(function(dt: number)
+    waw.onUpdate:connect(function(dt: number)
         M.angle += math.rad(30) * dt
     end)
 end

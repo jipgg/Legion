@@ -67,6 +67,12 @@ declare class Rect
     width: number
     height: number
 end
+declare class Recti
+    x: number
+    y: number
+    width: number
+    height: number
+end
 export type RenderFlip = 'None'|'Vertical'|'Horizontal'
 export type KeyCode = 'Escape'|'F1'|'F2'|'F3'|'F4'|'F5'|'F6'|'F7'|'F8'|'F9'|'F10'|'F11'|'F12'|
     '1'|'2'|'3'|'4'|'5'|'6'|'7'|'8'|'9'|'0'|'Minus'|'Equals'|'Backspace'|
@@ -118,7 +124,7 @@ declare class Vec
     function __unm(self): Vec
 end
 declare class Font
-    pt_size: number
+    ptSize: number
 end
 export type Files = {
     create_directory: (where: PathUnion) -> boolean,
@@ -142,31 +148,31 @@ export type Files = {
     write_file: (path: PathUnion, data: string)->boolean,
     Path: (string)->Files_Path,
 }
-export type WindowModule = {
+export type Window = {
     size: Vec2,
     position: Vec2,
     title: string,
     opacity: number,
     borderless: boolean,
-    always_on_top: boolean,
+    alwaysOnTop: boolean,
     maximize: ()->(),
     minimize: ()->(),
     set_icon: (file: string)->(),
     focus: ()->(),
-    focus_gained: Event,
-    focus_lost: Event,
-    shown: Event,
-    hidden: Event,
-    resized: GenericEvent<Vec2>,
-    mouse_enter: Event,
-    mouse_leave: Event,
-    position_changed: GenericEvent<Vec2>,
-    size_changed: GenericEvent<Vec2>,
-    restored: Event,
-    closing: Event,
-    exposed: Event,
-    minimized: Event,
-    maximized: Event,
+    onFocusGain: Event,
+    onFocusLoss: Event,
+    onShow: Event,
+    onHide: Event,
+    onResize: GenericEvent<Vec2>,
+    onMouseEnter: Event,
+    onMouseLeave: Event,
+    onPositionChange: GenericEvent<Vec2>,
+    onSizeChange: GenericEvent<Vec2>,
+    onRestore: Event,
+    onClose: Event,
+    onExpose: Event,
+    onMinimize: Event,
+    onMaximize: Event,
 }
 export type BlendMode= 'None'|'Multiply'|'Add'|'Modulate'|'Blend'|'Invalid'
 type GraphicsModule_DrawFunctions = {
@@ -192,13 +198,13 @@ type GraphicsModule_RenderFunctions = {
         & ((texture: Texture, dest: Rect)->())
         & ((texture: Texture, trs: Mat3)->()),
 }
-export type GraphicsModule = {
+export type Graphics = {
     color: Color,
-    blend_mode: BlendMode,
+    blendMode: BlendMode,
     viewport: Rect,
     scale: Vec2,
-    vsync_enabled: boolean,
-    clip_rect: Rect?,
+    vsyncOn: boolean,
+    clipRect: Rect?,
     is_clip_enabled: ()->boolean,
     clear: (bg: Color?)->(),
     draw: GraphicsModule_DrawFunctions,
@@ -221,14 +227,14 @@ declare class MouseMotionEvent extends Event
     connect: (self: MouseMotionEvent, (new_pos: Vec2, relative_pos: Vec2)->())->EventConnectionId
     disconnect: (self: MouseMotionEvent, id: EventConnectionId)->()
 end
-export type UserInputModule = {
+export type UserInput = {
     is_key_down: (key: KeyCode)->boolean,
-    key_pressed: KeyboardEvent,
-    key_released: KeyboardEvent,
-    mouse_button_pressed: MouseButtonEvent,
-    mouse_button_released: MouseButtonEvent,
-    mouse_moved: MouseMotionEvent,
-    mouse_position: Vec2,
+    onKeyDown: KeyboardEvent,
+    onkeyUp: KeyboardEvent,
+    onMouseDown: MouseButtonEvent,
+    onMouseUp: MouseButtonEvent,
+    onMouseMotion: MouseMotionEvent,
+    mousePosition: Vec2,
 }
 declare class EventConnectionId
     function __tostring(self): string
@@ -236,7 +242,7 @@ end
 declare class Texture
     width: number
     height: number
-    blend_mode: BlendMode
+    blendMode: BlendMode
     color: Color
 end
 export type GenericEvent<Ts...> = {
@@ -249,21 +255,22 @@ declare class UpdateEvent
     disconnect: (self: UpdateEvent, id: EventConnectionId)->()
 end
 export type Luwaw = {
-    get_module: (('Graphics')->GraphicsModule)
-        & (('Files')->Files)
-        & (('Window')->WindowModule)
-        & (('UserInput')->UserInputModule),
-    during_update: UpdateEvent,
-    during_render: Event,
-    shutting_down: Event,
-    before_run: Event,
-    after_run: Event,
+    get_builtin_module: (('Graphics')->Graphics)
+        & (('Files')->Files),
+    window: Window,
+    userinput: UserInput,
+    onUpdate: UpdateEvent,
+    onRender: Event,
+    onQuit: Event,
+    beforeRun: Event,
+    afterRun: Event,
 }
-declare core: Luwaw
+declare waw: Luwaw
 declare Rect: (x: number?, y: number?, w: number?, h: number?)->Rect
 declare Vec2: (x: number?, y: number?)->Vec2
 declare Vec3: (x: number?, y: number?, z: number?)->Vec3
 declare Vec: (...number)->Vec
+declare Recti: (x: number?, y: number?, w: number?, h: number?)->Recti
 type Mat3_named_constructors = typeof(setmetatable({
     from_scale = function(scale_factor: Vec2 | number): Mat3 return {} :: any end,
     from_rotation = function(radians: number): Mat3 return {} :: any end,

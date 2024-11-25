@@ -10,7 +10,7 @@ static constexpr size_t position_length = std::string("position").length();
 static constexpr size_t title_length = std::string("title").length();
 static constexpr size_t opacity_length = std::string("opacity").length();
 static constexpr size_t borderless_length = std::string("borderless").length();
-static constexpr size_t always_on_top_length = std::string("always_on_top").length();
+static constexpr size_t always_on_top_length = std::string("alwaysOnTop").length();
 static constexpr size_t fullscreen_length = std::string("fullscreen").length();
 static constexpr size_t icon_length = std::string("icon").length();
 using engine::expect;
@@ -250,20 +250,20 @@ int window_module(lua_State *L) {
     };
     lua_newtable(L);
     luaL_register(L, nullptr, lib);
-    register_event(L, hidden, "hidden");
-    register_event(L, shown, "shown");
-    register_event(L, resized, "resized");
-    register_event(L, mouse_entered, "mouse_enter");
-    register_event(L, mouse_left, "mouse_leave");
-    register_event(L, size_changed, "size_changed");
-    register_event(L, position_changed, "position_changed");
-    register_event(L, focus_gained, "focus_gained");
-    register_event(L, focus_lost, "focus_lost");
-    register_event(L, restored, "restored");
-    register_event(L, closing, "closing");
-    register_event(L, exposed, "exposed");
-    register_event(L, maximized, "maximized");
-    register_event(L, minimized, "minimized");
+    register_event(L, hidden, "onHide");
+    register_event(L, shown, "oShow");
+    register_event(L, resized, "onResize");
+    register_event(L, mouse_entered, "onMouseEnter");
+    register_event(L, mouse_left, "onMouseLeave");
+    register_event(L, size_changed, "onSizeChange");
+    register_event(L, position_changed, "onPositionChange");
+    register_event(L, focus_gained, "onFocusGain");
+    register_event(L, focus_lost, "onFocusLoss");
+    register_event(L, restored, "onRestore");
+    register_event(L, closing, "onClose");
+    register_event(L, exposed, "onExpose");
+    register_event(L, maximized, "onMaximize");
+    register_event(L, minimized, "onMinimize");
     if (luaL_newmetatable(L, "builtin_window_module")) {
         const luaL_Reg meta[] = {
             {metamethod::index, index},

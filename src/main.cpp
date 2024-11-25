@@ -25,7 +25,7 @@ int main(int argc, zstring* argv) {
         .window_resizable = true,
         .hardware_accelerated = true,
         .vsync_enabled = true,
-        .main_entry_point = "../tests/dummy_game.luau",
+        .main_entry_point = "../example/init.luau",
         .bin_path = util::get_executable_path(),
     };
     if (argc > 1) {
